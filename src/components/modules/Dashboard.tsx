@@ -1,11 +1,16 @@
 
 import React from 'react';
-import { BarChart3, Egg, ChevronRight, CloudSun, Users, Database } from 'lucide-react';
+import { BarChart3, Egg, ChevronRight, CloudSun, Users, Database, Info } from 'lucide-react';
 import StatCard from '../dashboard/StatCard';
 import PriceChart from '../dashboard/PriceChart';
 import FeedRatioChart from '../dashboard/FeedRatioChart';
+import ProductionStats from '../dashboard/ProductionStats';
 import NewsCard from '../dashboard/NewsCard';
 import WeatherCard from '../dashboard/WeatherCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 // Sample data - this would be replaced with actual API data
 const newsData = [
@@ -50,22 +55,40 @@ const weatherData = {
 
 const Dashboard: React.FC = () => {
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-gray-500">Comprehensive data insights for poultry stakeholders</p>
+        </div>
+        <div className="flex items-center space-x-2 mt-2 md:mt-0">
+          <Button variant="outline" size="sm">
+            <Info className="h-4 w-4 mr-2" /> Data Sources
+          </Button>
+          <Button size="sm">
+            Export Report
+          </Button>
+        </div>
+      </div>
       
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         <StatCard 
           title="Current Egg Price" 
           value="₹5.20 / piece" 
           change={3.5} 
-          icon={<Egg className="h-4 w-4 text-poultry-primary" />} 
+          icon={<Egg className="h-4 w-4 text-[#ea384c]" />} 
         />
         <StatCard 
           title="Broiler Price" 
           value="₹112 / kg" 
           change={-1.8} 
-          icon={<BarChart3 className="h-4 w-4 text-poultry-primary" />} 
+          icon={<BarChart3 className="h-4 w-4 text-[#ea384c]" />} 
         />
         <StatCard 
           title="National Production" 
@@ -77,61 +100,150 @@ const Dashboard: React.FC = () => {
           value="124.5" 
           change={5.2} 
         />
-      </div>
+      </motion.div>
       
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PriceChart />
-        <FeedRatioChart />
-      </div>
-      
-      {/* Module Highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="module-card">
-          <div className="flex items-center">
-            <div className="p-2 rounded-full bg-poultry-primary/10 mr-3">
-              <Database className="h-5 w-5 text-poultry-primary" />
-            </div>
-            <h2 className="text-lg font-medium">Financial Assistance</h2>
-          </div>
-          <p className="text-sm text-gray-600 mt-3">
-            3 new loan schemes available for poultry farmers with subsidized interest rates.
-          </p>
-          <a href="/financial" className="flex items-center text-sm text-poultry-primary font-medium mt-4 hover:underline">
-            Explore Options <ChevronRight className="h-4 w-4 ml-1" />
-          </a>
-        </div>
+      {/* Dashboard Tabs */}
+      <Tabs defaultValue="market">
+        <TabsList className="mb-4">
+          <TabsTrigger value="market">Market Analysis</TabsTrigger>
+          <TabsTrigger value="production">Production Data</TabsTrigger>
+          <TabsTrigger value="forecasts">Forecasts & Reports</TabsTrigger>
+        </TabsList>
         
-        <div className="module-card">
-          <div className="flex items-center">
-            <div className="p-2 rounded-full bg-poultry-primary/10 mr-3">
-              <Users className="h-5 w-5 text-poultry-primary" />
-            </div>
-            <h2 className="text-lg font-medium">Networking</h2>
-          </div>
-          <p className="text-sm text-gray-600 mt-3">
-            Connect with 1,200+ poultry professionals across India. 5 local events this month.
-          </p>
-          <a href="/network" className="flex items-center text-sm text-poultry-primary font-medium mt-4 hover:underline">
-            Join Community <ChevronRight className="h-4 w-4 ml-1" />
-          </a>
-        </div>
+        <TabsContent value="market" className="space-y-6">
+          {/* Charts Row */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          >
+            <PriceChart />
+            <FeedRatioChart />
+          </motion.div>
+          
+          {/* Module Highlights */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          >
+            <Card className="p-5">
+              <div className="flex items-center">
+                <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
+                  <Database className="h-5 w-5 text-[#ea384c]" />
+                </div>
+                <h2 className="text-lg font-medium">Financial Assistance</h2>
+              </div>
+              <p className="text-sm text-gray-600 mt-3">
+                3 new loan schemes available for poultry farmers with subsidized interest rates.
+              </p>
+              <a href="/financial" className="flex items-center text-sm text-[#ea384c] font-medium mt-4 hover:underline">
+                Explore Options <ChevronRight className="h-4 w-4 ml-1" />
+              </a>
+            </Card>
+            
+            <Card className="p-5">
+              <div className="flex items-center">
+                <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
+                  <Users className="h-5 w-5 text-[#ea384c]" />
+                </div>
+                <h2 className="text-lg font-medium">Networking</h2>
+              </div>
+              <p className="text-sm text-gray-600 mt-3">
+                Connect with 1,200+ poultry professionals across India. 5 local events this month.
+              </p>
+              <a href="/network" className="flex items-center text-sm text-[#ea384c] font-medium mt-4 hover:underline">
+                Join Community <ChevronRight className="h-4 w-4 ml-1" />
+              </a>
+            </Card>
+            
+            <Card className="p-5">
+              <div className="flex items-center">
+                <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
+                  <CloudSun className="h-5 w-5 text-[#ea384c]" />
+                </div>
+                <h2 className="text-lg font-medium">Weather Alert</h2>
+              </div>
+              <p className="text-sm text-gray-600 mt-3">
+                Heatwave expected in Northern India next week. Prepare your farms accordingly.
+              </p>
+              <a href="/news" className="flex items-center text-sm text-[#ea384c] font-medium mt-4 hover:underline">
+                View Details <ChevronRight className="h-4 w-4 ml-1" />
+              </a>
+            </Card>
+          </motion.div>
+        </TabsContent>
         
-        <div className="module-card">
-          <div className="flex items-center">
-            <div className="p-2 rounded-full bg-poultry-primary/10 mr-3">
-              <CloudSun className="h-5 w-5 text-poultry-primary" />
-            </div>
-            <h2 className="text-lg font-medium">Weather Alert</h2>
-          </div>
-          <p className="text-sm text-gray-600 mt-3">
-            Heatwave expected in Northern India next week. Prepare your farms accordingly.
-          </p>
-          <a href="/news" className="flex items-center text-sm text-poultry-primary font-medium mt-4 hover:underline">
-            View Details <ChevronRight className="h-4 w-4 ml-1" />
-          </a>
-        </div>
-      </div>
+        <TabsContent value="production">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            <ProductionStats />
+          </motion.div>
+        </TabsContent>
+        
+        <TabsContent value="forecasts">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <Card className="p-5">
+              <h3 className="font-medium text-lg mb-3">Market Forecast (Next Quarter)</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600">Egg Price Trend</p>
+                  <p className="font-medium">Projected to increase by 5-7%</p>
+                  <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '65%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Broiler Price Trend</p>
+                  <p className="font-medium">Expected to remain stable (±2%)</p>
+                  <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '50%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Feed Cost Projection</p>
+                  <p className="font-medium">Likely to increase by 8-10%</p>
+                  <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                    <div className="bg-amber-500 h-2 rounded-full" style={{ width: '80%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="p-5">
+              <h3 className="font-medium text-lg mb-3">Industry Analysts' Reports</h3>
+              <div className="space-y-3">
+                <div className="border-l-4 border-[#ea384c] pl-3 py-1">
+                  <p className="font-medium">CLFMA Annual Report 2023</p>
+                  <p className="text-sm text-gray-600">Comprehensive analysis of feed industry trends</p>
+                  <a href="#" className="text-xs text-[#ea384c] hover:underline">Download PDF</a>
+                </div>
+                <div className="border-l-4 border-[#ea384c] pl-3 py-1">
+                  <p className="font-medium">Poultry Federation Market Outlook</p>
+                  <p className="text-sm text-gray-600">Future projections for the next 2 years</p>
+                  <a href="#" className="text-xs text-[#ea384c] hover:underline">Download PDF</a>
+                </div>
+                <div className="border-l-4 border-[#ea384c] pl-3 py-1">
+                  <p className="font-medium">ICAR Poultry Technical Bulletin</p>
+                  <p className="text-sm text-gray-600">Latest research findings and advisories</p>
+                  <a href="#" className="text-xs text-[#ea384c] hover:underline">Download PDF</a>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        </TabsContent>
+      </Tabs>
       
       {/* News and Weather */}
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">

@@ -10,7 +10,7 @@ const WelcomeHero: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#ea384c]/90 to-[#0FA0CE]/90 p-6 text-white"
+      className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#ea384c]/90 to-[#0FA0CE]/90 p-8 text-white shadow-lg"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -39,11 +39,11 @@ const WelcomeHero: React.FC = () => {
           </div>
         </div>
         
-        <div className="hidden lg:block">
+        <div className="hidden lg:flex items-center space-x-4 mt-6 lg:mt-0">
           <img 
             src="/lovable-uploads/b1f21161-69db-4daf-8f6d-4d359738f8d7.png" 
             alt="22POULTRY" 
-            className="h-24 w-auto object-contain" 
+            className="h-28 w-auto object-contain" 
           />
         </div>
       </motion.div>
@@ -59,6 +59,11 @@ const WelcomeHero: React.FC = () => {
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
       </div>
+      
+      {/* Decorative elements */}
+      <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 backdrop-blur-sm"></div>
+      <div className="absolute top-10 right-20 w-6 h-6 rounded-full bg-yellow-300/30"></div>
+      <div className="absolute top-20 right-40 w-4 h-4 rounded-full bg-blue-300/30"></div>
     </motion.div>
   );
 };

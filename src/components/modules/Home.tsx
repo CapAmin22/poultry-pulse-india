@@ -50,21 +50,21 @@ const Home: React.FC = () => {
           value="₹5.20"
           unit="/piece"
           change={3.5}
-          icon={<Egg className="h-5 w-5 text-poultry-primary" />}
+          icon={<Egg className="h-5 w-5 text-[#ea384c]" />}
         />
         <StatHighlight 
           title="Broiler Price"
           value="₹112"
           unit="/kg"
           change={-1.8}
-          icon={<BarChart3 className="h-5 w-5 text-poultry-primary" />}
+          icon={<BarChart3 className="h-5 w-5 text-[#ea384c]" />}
         />
         <StatHighlight 
           title="Feed Price Index"
           value="124.5"
           unit=""
           change={5.2}
-          icon={<Database className="h-5 w-5 text-poultry-primary" />}
+          icon={<Database className="h-5 w-5 text-[#ea384c]" />}
         />
       </motion.div>
       
@@ -76,7 +76,7 @@ const Home: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.5 }}
           className="lg:col-span-2"
         >
-          <Card className="h-full">
+          <Card className="h-full shadow-md border-none">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
                 Latest Industry News
