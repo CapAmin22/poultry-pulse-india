@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/components/modules/Dashboard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FinancialAssistance from '@/components/modules/FinancialAssistance';
 import MarketplaceListing from '@/components/modules/MarketplaceListing';
 import { motion } from 'framer-motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Home from '@/components/modules/Home';
 
 const Index: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('home');
   
   // Animation variants for tab content
   const tabContentVariants = {
@@ -26,12 +27,18 @@ const Index: React.FC = () => {
         className="w-full"
       >
         <Tabs 
-          defaultValue="dashboard" 
+          defaultValue="home" 
           value={activeTab}
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid w-full md:w-auto grid-cols-3 mb-6 bg-gray-100/80 p-1 rounded-lg shadow-sm">
+          <TabsList className="grid w-full md:w-auto grid-cols-4 mb-6 bg-gray-100/80 p-1 rounded-lg shadow-sm">
+            <TabsTrigger 
+              value="home"
+              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c] data-[state=active]:shadow-sm"
+            >
+              Home
+            </TabsTrigger>
             <TabsTrigger 
               value="dashboard"
               className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c] data-[state=active]:shadow-sm"
@@ -59,6 +66,9 @@ const Index: React.FC = () => {
             animate="visible"
             exit="exit"
           >
+            <TabsContent value="home" className="mt-0">
+              <Home />
+            </TabsContent>
             <TabsContent value="dashboard" className="mt-0">
               <Dashboard />
             </TabsContent>
