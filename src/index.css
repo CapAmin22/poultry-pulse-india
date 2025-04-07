@@ -76,6 +76,25 @@
     @apply bg-gray-50 text-poultry-dark;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
 }
 
 @layer components {
@@ -92,14 +111,40 @@
   }
   
   .nav-link.active {
-    @apply bg-poultry-primary text-white hover:bg-poultry-primary/90;
+    @apply bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md hover:from-[#d52f41] hover:to-[#0d8fb7];
   }
   
   .btn-primary {
-    @apply bg-poultry-primary text-white hover:bg-poultry-primary/90 px-4 py-2 rounded-md transition-colors;
+    @apply bg-[#0FA0CE] text-white hover:bg-[#0d8fb7] px-4 py-2 rounded-md transition-colors;
   }
   
   .btn-secondary {
-    @apply bg-poultry-secondary text-poultry-dark hover:bg-poultry-secondary/90 px-4 py-2 rounded-md transition-colors;
+    @apply bg-[#ea384c] text-white hover:bg-[#d52f41] px-4 py-2 rounded-md transition-colors;
   }
+  
+  /* Animations */
+  .fade-in {
+    @apply animate-fade-in;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .pulse {
+    @apply animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite];
+  }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
 }
