@@ -18,53 +18,44 @@ const StatHighlight: React.FC<StatHighlightProps> = ({ title, value, unit, chang
   
   return (
     <motion.div 
-      whileHover={{ y: -5 }} 
-      transition={{ type: "spring", stiffness: 400 }}
-      className="group"
+      whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.08)" }} 
+      transition={{ type: "spring", stiffness: 300 }}
     >
-      <Card className="overflow-hidden border-none shadow-md transition-all duration-300 group-hover:shadow-lg">
-        <CardContent className="p-5 relative overflow-hidden">
-          {/* Background effect */}
-          <div 
-            className="absolute -right-10 -top-10 w-40 h-40 bg-gray-50 rounded-full opacity-30 group-hover:bg-gray-100 transition-colors"
-            style={{ zIndex: 0 }}
-          ></div>
+      <Card className="overflow-hidden border shadow-sm">
+        <CardContent className="p-6 relative overflow-hidden">
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-gray-50 to-white opacity-50 pointer-events-none"></div>
           
           <div className="relative z-10">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-                <div className="flex items-baseline">
-                  <span className="text-xl md:text-2xl font-bold">{value}</span>
-                  <span className="text-xs ml-1 text-gray-600">{unit}</span>
-                </div>
-              </div>
-              
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-medium text-gray-500">{title}</h3>
               {icon && (
-                <div className="p-3 rounded-full bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                <div className="p-3 rounded-full bg-blue-50">
                   {icon}
                 </div>
               )}
             </div>
             
-            {typeof change !== 'undefined' && (
-              <div className="mt-4 flex items-center text-xs">
-                {isPositive ? (
-                  <div className="flex items-center text-emerald-600">
-                    <ArrowUp className="h-3 w-3 mr-1" />
-                    <span className="font-medium">{Math.abs(change)}%</span>
-                  </div>
-                ) : isNegative ? (
-                  <div className="flex items-center text-rose-600">
-                    <ArrowDown className="h-3 w-3 mr-1" />
-                    <span className="font-medium">{Math.abs(change)}%</span>
-                  </div>
-                ) : (
-                  <span className="text-gray-500">No change</span>
-                )}
-                <span className="text-gray-500 ml-1">from last month</span>
+            <div className="mt-3">
+              <div className="flex items-baseline">
+                <span className="text-2xl md:text-3xl font-bold text-gray-800">{value}</span>
+                <span className="text-xs ml-1 text-gray-500">{unit}</span>
               </div>
-            )}
+              
+              {typeof change !== 'undefined' && (
+                <div className="mt-3 flex items-center text-xs">
+                  <div className={`flex items-center ${isPositive ? 'text-emerald-600' : isNegative ? 'text-rose-600' : 'text-gray-500'} px-2 py-1 rounded-full ${isPositive ? 'bg-emerald-50' : isNegative ? 'bg-rose-50' : 'bg-gray-50'}`}>
+                    {isPositive ? (
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                    ) : isNegative ? (
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    ) : null}
+                    <span className="font-medium">{Math.abs(change)}%</span>
+                  </div>
+                  <span className="text-gray-500 ml-2">from last week</span>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Bottom indicator bar */}
