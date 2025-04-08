@@ -1,10 +1,19 @@
 
-import React from 'react';
-import { Bell, Menu, User, Search } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, Menu, User, Search, Settings, LogOut, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -13,6 +22,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ sidebarOpen, setSidebarOpen }) => {
   const isMobile = useIsMobile();
+  const [notifications, setNotifications] = useState(3);
   
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
@@ -64,16 +74,56 @@ const Header: React.FC<HeaderProps> = ({ sidebarOpen, setSidebarOpen }) => {
             className="relative text-gray-500 hover:text-[#ea384c] hover:bg-gray-100"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-[#ea384c] rounded-full"></span>
+            {notifications > 0 && (
+              <span className="absolute top-1 right-1 flex items-center justify-center min-w-[1.1rem] h-[1.1rem] text-[0.65rem] font-medium bg-[#ea384c] text-white rounded-full">
+                {notifications}
+              </span>
+            )}
             <span className="sr-only">Notifications</span>
           </Button>
           
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="h-9 w-9 rounded-full bg-gradient-to-br from-[#ea384c] to-[#0FA0CE] flex items-center justify-center text-white cursor-pointer shadow-md"
-          >
-            <User className="h-5 w-5" />
-          </motion.div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="h-9 w-9 rounded-full bg-gradient-to-br from-[#ea384c] to-[#0FA0CE] flex items-center justify-center text-white cursor-pointer shadow-md"
+              >
+                <User className="h-5 w-5" />
+              </motion.div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">John Farmer</p>
+                  <p className="text-xs leading-none text-muted-foreground">john.farmer@example.com</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="flex cursor-pointer items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>My Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="flex cursor-pointer items-center">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/contact" className="flex cursor-pointer items-center">
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Support</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex cursor-pointer items-center text-red-500 focus:text-red-500">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

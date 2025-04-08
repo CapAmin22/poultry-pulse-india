@@ -10,9 +10,7 @@ import {
   ShoppingCart, 
   Home,
   X,
-  HelpCircle,
   Phone,
-  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -128,30 +126,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
       </div>
       
       <div className="px-3 py-4 border-t border-gray-200">
-        <div className="flex flex-col space-y-3">
-          <Link to="/profile" onClick={() => isMobile && setSidebarOpen && setSidebarOpen(false)}>
-            <div className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-200 ${
-              location.pathname === '/profile' 
-                ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
-                : 'text-gray-700 bg-gray-50 hover:bg-gray-100'
-            }`}>
-              <User className="h-5 w-5" />
-              <span className="font-medium">My Profile</span>
-            </div>
-          </Link>
-          
-          <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <HelpCircle className="h-5 w-5 text-[#0FA0CE]" />
-              <h3 className="font-medium text-sm text-gray-800">Need Help?</h3>
-            </div>
-            <p className="text-xs text-gray-600 mb-3">Contact our support team for any assistance with the platform.</p>
-            <Link to="/contact" onClick={() => isMobile && setSidebarOpen && setSidebarOpen(false)}>
-              <Button className="w-full text-xs bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:from-[#d52f41] hover:to-[#0d8fb7] text-white border-0">
-                Contact Support
-              </Button>
-            </Link>
-          </div>
+        <div className="text-center text-xs text-gray-500">
+          <p>© 2025 22POULTRY</p>
+          <p className="mt-1">Empowering poultry farmers</p>
         </div>
       </div>
     </motion.div>
