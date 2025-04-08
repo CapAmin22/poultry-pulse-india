@@ -10,7 +10,8 @@ import {
   ShoppingCart, 
   Home,
   X,
-  HelpCircle
+  HelpCircle,
+  Phone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -39,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
     { name: 'News & Weather', icon: <Newspaper className="h-5 w-5" />, href: '/news' },
     { name: 'Networking', icon: <Users className="h-5 w-5" />, href: '/network' },
     { name: 'Marketplace', icon: <ShoppingCart className="h-5 w-5" />, href: '/marketplace' },
+    { name: 'Contact Us', icon: <Phone className="h-5 w-5" />, href: '/contact' },
   ];
 
   // Animation variants
@@ -130,9 +132,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
             <h3 className="font-medium text-sm text-gray-800">Need Help?</h3>
           </div>
           <p className="text-xs text-gray-600 mb-3">Contact our support team for any assistance with the platform.</p>
-          <Button className="w-full text-xs bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:from-[#d52f41] hover:to-[#0d8fb7] text-white border-0">
-            Contact Support
-          </Button>
+          <Link to="/contact">
+            <Button className="w-full text-xs bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:from-[#d52f41] hover:to-[#0d8fb7] text-white border-0">
+              Contact Support
+            </Button>
+          </Link>
         </div>
       </div>
     </motion.div>
