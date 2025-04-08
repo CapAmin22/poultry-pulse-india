@@ -23,9 +23,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <AnimatePresence mode="wait">
-        {(sidebarOpen || !isMobile) && (
+        {sidebarOpen && (
           <motion.div 
-            initial={{ x: isMobile ? -280 : 0 }}
+            initial={{ x: -280 }}
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}

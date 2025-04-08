@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
   const isMobile = useIsMobile();
   
   const navigation: NavItem[] = [
-    { name: 'Dashboard', icon: <Home className="h-5 w-5" />, href: '/' },
+    { name: 'Home', icon: <Home className="h-5 w-5" />, href: '/' },
     { name: 'Statistics', icon: <BarChart3 className="h-5 w-5" />, href: '/statistics' },
     { name: 'Financial Assistance', icon: <Database className="h-5 w-5" />, href: '/financial' },
     { name: 'Training & Education', icon: <BookOpen className="h-5 w-5" />, href: '/training' },
@@ -115,6 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
                       ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
+                  onClick={() => isMobile && setSidebarOpen && setSidebarOpen(false)}
                 >
                   {item.icon}
                   <span className="font-medium">{item.name}</span>
@@ -132,7 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
             <h3 className="font-medium text-sm text-gray-800">Need Help?</h3>
           </div>
           <p className="text-xs text-gray-600 mb-3">Contact our support team for any assistance with the platform.</p>
-          <Link to="/contact">
+          <Link to="/contact" onClick={() => isMobile && setSidebarOpen && setSidebarOpen(false)}>
             <Button className="w-full text-xs bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:from-[#d52f41] hover:to-[#0d8fb7] text-white border-0">
               Contact Support
             </Button>
