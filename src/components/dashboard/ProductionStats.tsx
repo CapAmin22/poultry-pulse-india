@@ -84,99 +84,101 @@ const ProductionStats: React.FC = () => {
       </CardHeader>
       
       <CardContent>
-        <TabsContent value="monthly" className="m-0">
-          <div className="h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={getFilteredData()}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
-                <XAxis dataKey="month" />
-                <YAxis yAxisId="left" orientation="left" stroke="#1A365D" />
-                <YAxis yAxisId="right" orientation="right" stroke="#ea384c" />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="eggs" 
-                  name="Egg Production (million/day)" 
-                  stroke="#1A365D" 
-                  activeDot={{ r: 8 }} 
-                  strokeWidth={2}
-                />
-                <Line 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="broiler" 
-                  name="Broiler Production (thousand tonnes)" 
-                  stroke="#ea384c" 
-                  activeDot={{ r: 8 }} 
-                  strokeWidth={2}
-                />
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="layers" 
-                  name="Layer Population (millions)" 
-                  stroke="#0FA0CE" 
-                  activeDot={{ r: 8 }} 
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="regional" className="m-0">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Egg Production<br/>(million/day)
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Broiler Production<br/>(thousand tonnes)
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Layer Population<br/>(millions)
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {stateData.map((item, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                    <td className="px-4 py-3 whitespace-nowrap font-medium">{item.state}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{item.eggs}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{item.broiler}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{item.layers}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <Tabs value={viewType} onValueChange={setViewType}>
+          <TabsContent value="monthly" className="m-0">
+            <div className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={getFilteredData()}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
+                  <XAxis dataKey="month" />
+                  <YAxis yAxisId="left" orientation="left" stroke="#1A365D" />
+                  <YAxis yAxisId="right" orientation="right" stroke="#ea384c" />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="eggs" 
+                    name="Egg Production (million/day)" 
+                    stroke="#1A365D" 
+                    activeDot={{ r: 8 }} 
+                    strokeWidth={2}
+                  />
+                  <Line 
+                    yAxisId="right"
+                    type="monotone" 
+                    dataKey="broiler" 
+                    name="Broiler Production (thousand tonnes)" 
+                    stroke="#ea384c" 
+                    activeDot={{ r: 8 }} 
+                    strokeWidth={2}
+                  />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="layers" 
+                    name="Layer Population (millions)" 
+                    stroke="#0FA0CE" 
+                    activeDot={{ r: 8 }} 
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
           
-          <div className="mt-4 h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={stateData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
-                <XAxis dataKey="state" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="eggs" name="Egg Production" stroke="#1A365D" strokeWidth={2} />
-                <Line type="monotone" dataKey="broiler" name="Broiler Production" stroke="#ea384c" strokeWidth={2} />
-                <Line type="monotone" dataKey="layers" name="Layer Population" stroke="#0FA0CE" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </TabsContent>
+          <TabsContent value="regional" className="m-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Egg Production<br/>(million/day)
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Broiler Production<br/>(thousand tonnes)
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Layer Population<br/>(millions)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {stateData.map((item, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                      <td className="px-4 py-3 whitespace-nowrap font-medium">{item.state}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{item.eggs}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{item.broiler}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{item.layers}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-4 h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={stateData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
+                  <XAxis dataKey="state" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="eggs" name="Egg Production" stroke="#1A365D" strokeWidth={2} />
+                  <Line type="monotone" dataKey="broiler" name="Broiler Production" stroke="#ea384c" strokeWidth={2} />
+                  <Line type="monotone" dataKey="layers" name="Layer Population" stroke="#0FA0CE" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
