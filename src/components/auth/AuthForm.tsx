@@ -27,7 +27,7 @@ const AuthForm: React.FC = () => {
 
     try {
       if (mode === 'signin') {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -46,15 +46,25 @@ const AuthForm: React.FC = () => {
           description: "Welcome back to 22POULTRY",
         });
 
-        navigate('/');
+        // Check if user has completed onboarding
+        const { data: { user: userData } } = await supabase.auth.getUser();
+        const metadata = userData?.user_metadata || {};
+        
+        if (metadata.onboarding_completed) {
+          navigate('/');
+        } else {
+          navigate('/onboarding');
+        }
       } else {
-        const { error } = await supabase.auth.signUp({
+        // Signup flow
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
               full_name: fullName,
               organization: organization,
+              onboarding_completed: false,
             },
           },
         });
@@ -68,10 +78,18 @@ const AuthForm: React.FC = () => {
           return;
         }
 
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to confirm your account.",
-        });
+        if (data.user) {
+          toast({
+            title: "Registration successful",
+            description: "Your account has been created. Let's set up your profile.",
+          });
+          navigate('/onboarding');
+        } else {
+          toast({
+            title: "Email confirmation required",
+            description: "Please check your email to confirm your account before logging in.",
+          });
+        }
       }
     } catch (error) {
       console.error('Authentication error:', error);

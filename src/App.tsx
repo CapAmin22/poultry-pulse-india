@@ -18,6 +18,7 @@ import Network from "./pages/Network";
 import Marketplace from "./pages/Marketplace";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,14 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/" 
               element={
