@@ -18,11 +18,12 @@ interface WeatherData {
 
 interface WeatherCardProps {
   weather: WeatherData;
+  className?: string;
 }
 
-const WeatherCard: React.FC<WeatherCardProps> = ({ weather }) => {
+const WeatherCard: React.FC<WeatherCardProps> = ({ weather, className }) => {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between">
           <span>Weather Update</span>

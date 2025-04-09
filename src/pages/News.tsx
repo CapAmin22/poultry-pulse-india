@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -227,7 +228,7 @@ const NewsPage: React.FC = () => {
           {/* Sidebar with Weather and Alerts */}
           <div className="w-full md:w-80 space-y-6">
             {/* Weather Card */}
-            <WeatherCard weather={weatherData} className="h-auto" />
+            <WeatherCard weather={weatherData} />
             
             {/* Weather Alerts */}
             <Card>
