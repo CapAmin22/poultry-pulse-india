@@ -10,22 +10,27 @@ import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Upload } from 'lucide-react';
 
-// Define proper types for our profile data
+// Define proper types for our profile data that match the database schema
 interface ProfileData {
+  username: string;
+  bio: string | null;
+  avatar_url: string | null;
+  // Additional fields we'll store in the user metadata instead
   full_name: string;
   organization: string;
   location: string;
-  avatar_url: string | null;
 }
 
 const UserProfileForm: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
+    username: '',
+    bio: null,
+    avatar_url: null,
     full_name: '',
     organization: '',
     location: '',
-    avatar_url: null,
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -41,11 +46,11 @@ const UserProfileForm: React.FC = () => {
 
       if (!user) return;
 
-      // Use type assertion to specify we're working with the profiles table
+      // Get profile data from the profiles table
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (error) {
@@ -53,12 +58,19 @@ const UserProfileForm: React.FC = () => {
         return;
       }
 
+      // Get user metadata for additional fields
+      const { data: { user: userData } } = await supabase.auth.getUser();
+      const metadata = userData?.user_metadata || {};
+
       if (data) {
         setProfileData({
-          full_name: data.full_name || '',
-          organization: data.organization || '',
-          location: data.location || '',
+          username: data.username || '',
+          bio: data.bio,
           avatar_url: data.avatar_url || null,
+          // Get additional fields from user metadata
+          full_name: metadata.full_name || '',
+          organization: metadata.organization || '',
+          location: metadata.location || '',
         });
       }
     } catch (error) {
@@ -76,22 +88,38 @@ const UserProfileForm: React.FC = () => {
       
       if (!user) return;
 
-      // Use type assertion for the update operation
-      const { error } = await supabase
+      // Update profile fields in the profiles table
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          full_name: profileData.full_name,
-          organization: profileData.organization,
-          location: profileData.location,
-          updated_at: new Date().toISOString(),
+          username: profileData.username,
+          bio: profileData.bio,
         })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
-      if (error) {
+      if (profileError) {
         toast({
           variant: "destructive",
           title: "Profile update failed",
-          description: error.message,
+          description: profileError.message,
+        });
+        return;
+      }
+
+      // Update additional fields in user metadata
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          full_name: profileData.full_name,
+          organization: profileData.organization,
+          location: profileData.location,
+        }
+      });
+
+      if (metadataError) {
+        toast({
+          variant: "destructive",
+          title: "Profile update failed",
+          description: metadataError.message,
         });
         return;
       }
@@ -164,6 +192,16 @@ const UserProfileForm: React.FC = () => {
                   value={profileData.full_name}
                   onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                   required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={profileData.username}
+                  onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
+                  placeholder="Your username"
                 />
               </div>
               
