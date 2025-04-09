@@ -2,14 +2,18 @@
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import StatHighlight from '@/components/home/StatHighlight';
 import NewsHighlight from '@/components/home/NewsHighlight';
-import WeatherSummary from '@/components/home/WeatherSummary';
-import { Egg, BarChart3, Database, TrendingUp, PieChart } from 'lucide-react';
+import WeatherCard from '@/components/dashboard/WeatherCard';
+import { Egg, BarChart3, Database, TrendingUp, PieChart, AlertCircle, ChevronRight } from 'lucide-react';
 import PriceChart from '@/components/dashboard/PriceChart';
 import FeedRatioChart from '@/components/dashboard/FeedRatioChart';
 import ProductionStats from '@/components/dashboard/ProductionStats';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Sample news data
 const newsHighlights = [
@@ -49,7 +53,25 @@ const weatherData = {
   ],
 };
 
+// Weather alerts data
+const weatherAlerts = [
+  {
+    id: 1,
+    title: 'Heat Wave Warning',
+    description: 'Extreme temperatures expected for the next 3 days across Northern India. Take precautions for poultry.',
+    severity: 'high',
+  },
+  {
+    id: 2,
+    title: 'Heavy Rain Alert',
+    description: 'Heavy rainfall predicted in eastern regions starting tomorrow evening. Potential flooding risks.',
+    severity: 'medium',
+  }
+];
+
 const Index: React.FC = () => {
+  const navigate = useNavigate();
+  
   return (
     <Layout>
       <motion.div
@@ -74,8 +96,15 @@ const Index: React.FC = () => {
                 </p>
                 <div className="flex items-center space-x-2 text-sm font-medium text-white/80">
                   <TrendingUp className="h-4 w-4" />
-                  <span>Market insights updated today at 11:30 AM</span>
+                  <span>National market insights updated today at 11:30 AM</span>
                 </div>
+                <Button 
+                  className="bg-white text-[#f5565c] hover:bg-white/90" 
+                  onClick={() => navigate('/news')}
+                >
+                  Latest Industry News
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
               </div>
               
               <img 
@@ -91,7 +120,12 @@ const Index: React.FC = () => {
           
           {/* Key Stats Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Market Overview</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">National Market Overview</h2>
+              <Button variant="outline" size="sm" onClick={() => navigate('/statistics')}>
+                View Detailed Statistics
+              </Button>
+            </div>
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -99,14 +133,14 @@ const Index: React.FC = () => {
               className="grid grid-cols-1 md:grid-cols-4 gap-4"
             >
               <StatHighlight 
-                title="Current Egg Price"
+                title="National Egg Price"
                 value="₹5.20"
                 unit="/piece"
                 change={3.5}
                 icon={<Egg className="h-5 w-5 text-[#f5565c]" />}
               />
               <StatHighlight 
-                title="Broiler Price"
+                title="National Broiler Price"
                 value="₹112"
                 unit="/kg"
                 change={-1.8}
@@ -129,47 +163,207 @@ const Index: React.FC = () => {
             </motion.div>
           </div>
           
-          {/* Charts Row */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Yearly Performance Analysis</h2>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-            >
-              <PriceChart />
-              <FeedRatioChart />
-            </motion.div>
-          </div>
+          {/* Dashboard Tabs */}
+          <Tabs defaultValue="market">
+            <TabsList className="mb-4">
+              <TabsTrigger value="market">Market Analysis</TabsTrigger>
+              <TabsTrigger value="production">Production Data</TabsTrigger>
+              <TabsTrigger value="forecasts">Forecasts & Reports</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="market" className="space-y-6">
+              {/* Charts Row */}
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              >
+                <PriceChart />
+                <FeedRatioChart />
+              </motion.div>
+              
+              {/* Module Highlights */}
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              >
+                <Card className="p-5">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
+                      <Database className="h-5 w-5 text-[#ea384c]" />
+                    </div>
+                    <h2 className="text-lg font-medium">Financial Schemes</h2>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-3">
+                    3 new loan schemes available nationwide for poultry farmers with subsidized interest rates.
+                  </p>
+                  <Button 
+                    variant="link" 
+                    className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0"
+                    onClick={() => navigate('/financial')}
+                  >
+                    Explore Options <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Card>
+                
+                <Card className="p-5">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
+                      <TrendingUp className="h-5 w-5 text-[#ea384c]" />
+                    </div>
+                    <h2 className="text-lg font-medium">Industry Network</h2>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-3">
+                    Connect with 1,200+ poultry professionals across India. 5 national events this month.
+                  </p>
+                  <Button 
+                    variant="link" 
+                    className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0"
+                    onClick={() => navigate('/network')}
+                  >
+                    Join Community <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Card>
+                
+                <Card className="p-5">
+                  <div className="flex items-center">
+                    <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
+                      <AlertCircle className="h-5 w-5 text-[#ea384c]" />
+                    </div>
+                    <h2 className="text-lg font-medium">Weather Alert</h2>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-3">
+                    Heatwave expected in Northern India next week. Industry-wide advisory issued.
+                  </p>
+                  <Button 
+                    variant="link" 
+                    className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0"
+                    onClick={() => navigate('/news')}
+                  >
+                    View Details <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Card>
+              </motion.div>
+            </TabsContent>
+            
+            <TabsContent value="production">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <ProductionStats />
+              </motion.div>
+            </TabsContent>
+            
+            <TabsContent value="forecasts">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              >
+                <Card className="p-5">
+                  <h3 className="font-medium text-lg mb-3">National Market Forecast (Next Quarter)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Egg Price Trend</p>
+                      <p className="font-medium">Projected to increase by 5-7% nationally</p>
+                      <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '65%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Broiler Price Trend</p>
+                      <p className="font-medium">Expected to remain stable (±2%) across India</p>
+                      <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '50%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Feed Cost Projection</p>
+                      <p className="font-medium">Likely to increase by 8-10% due to global grain prices</p>
+                      <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+                        <div className="bg-amber-500 h-2 rounded-full" style={{ width: '80%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/statistics')}
+                  >
+                    View Full Market Analysis
+                  </Button>
+                </Card>
+                
+                <Card className="p-5">
+                  <h3 className="font-medium text-lg mb-3">Industry Analysts' Reports</h3>
+                  <div className="space-y-3">
+                    <div className="border-l-4 border-[#ea384c] pl-3 py-1">
+                      <p className="font-medium">CLFMA Annual Report 2023</p>
+                      <p className="text-sm text-gray-600">Comprehensive analysis of national feed industry trends</p>
+                      <Button variant="link" className="text-xs text-[#ea384c] p-0 h-auto">
+                        Download PDF
+                      </Button>
+                    </div>
+                    <div className="border-l-4 border-[#ea384c] pl-3 py-1">
+                      <p className="font-medium">Poultry Federation Market Outlook</p>
+                      <p className="text-sm text-gray-600">National projections for the next 2 years</p>
+                      <Button variant="link" className="text-xs text-[#ea384c] p-0 h-auto">
+                        Download PDF
+                      </Button>
+                    </div>
+                    <div className="border-l-4 border-[#ea384c] pl-3 py-1">
+                      <p className="font-medium">ICAR Poultry Technical Bulletin</p>
+                      <p className="text-sm text-gray-600">Latest research findings and industry advisories</p>
+                      <Button variant="link" className="text-xs text-[#ea384c] p-0 h-auto">
+                        Download PDF
+                      </Button>
+                    </div>
+                  </div>
+                  <Button 
+                    className="mt-4 w-full" 
+                    variant="outline"
+                    onClick={() => navigate('/training')}
+                  >
+                    Access All Reports
+                  </Button>
+                </Card>
+              </motion.div>
+            </TabsContent>
+          </Tabs>
           
-          {/* Production Stats */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Production Statistics</h2>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <ProductionStats />
-            </motion.div>
-          </div>
-          
-          {/* News and Weather Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* News and Weather */}
+          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="lg:col-span-2"
+              className="lg:col-span-4"
             >
               <Card className="h-full border-none shadow-md">
                 <CardHeader className="pb-2 border-b">
-                  <CardTitle className="text-xl flex items-center">
-                    Latest Industry News
-                    <span className="ml-2 bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">Live</span>
-                  </CardTitle>
-                  <CardDescription>Stay updated with the latest happenings in the poultry industry</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl flex items-center">
+                        Latest Industry News
+                        <span className="ml-2 bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full">Live</span>
+                      </CardTitle>
+                      <CardDescription>Stay updated with the latest happenings in the poultry industry</CardDescription>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate('/news')}
+                    >
+                      View All
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-4">
                   {newsHighlights.map((news) => (
@@ -183,8 +377,50 @@ const Index: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
+              className="lg:col-span-3 space-y-6"
             >
-              <WeatherSummary weather={weatherData} />
+              <WeatherCard weather={weatherData} />
+              
+              {/* Weather Alerts */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center">
+                    <AlertCircle className="h-5 w-5 mr-2 text-amber-500" />
+                    Weather Alerts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {weatherAlerts.map(alert => (
+                    <div 
+                      key={alert.id}
+                      className={`p-3 rounded-lg border ${
+                        alert.severity === 'high' ? 'border-red-200 bg-red-50' : 
+                        alert.severity === 'medium' ? 'border-amber-200 bg-amber-50' : 
+                        'border-blue-200 bg-blue-50'
+                      }`}
+                    >
+                      <h4 className={`font-medium ${
+                        alert.severity === 'high' ? 'text-red-700' : 
+                        alert.severity === 'medium' ? 'text-amber-700' : 
+                        'text-blue-700'
+                      }`}>
+                        {alert.title}
+                      </h4>
+                      <p className="text-sm mt-1">{alert.description}</p>
+                    </div>
+                  ))}
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => navigate('/news')}
+                  >
+                    View All Alerts
+                  </Button>
+                </CardFooter>
+              </Card>
             </motion.div>
           </div>
         </div>
