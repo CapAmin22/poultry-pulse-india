@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Bell, ChevronDown, MessageSquare, Search, User } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, Search, MessageSquare, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,9 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from '@/hooks/use-toast';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   
   const navItems = [
     { name: 'Home', path: '/' },
@@ -30,6 +34,31 @@ const Navbar: React.FC = () => {
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of 22POULTRY.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        variant: "destructive",
+        title: "Sign out failed",
+        description: "An error occurred while signing out.",
+      });
+    }
+  };
+
+  const getInitials = (email: string) => {
+    return email
+      .split('@')[0]
+      .slice(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -87,7 +116,9 @@ const Navbar: React.FC = () => {
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-9 w-9">
                     <AvatarImage src="https://i.pravatar.cc/150?u=johnfarmer" alt="User" />
-                    <AvatarFallback>JF</AvatarFallback>
+                    <AvatarFallback className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white">
+                      {user ? getInitials(user.email || '') : 'U'}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -107,7 +138,8 @@ const Navbar: React.FC = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-500 focus:text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
