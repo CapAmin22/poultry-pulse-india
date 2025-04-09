@@ -14,11 +14,11 @@ import { User, Upload } from 'lucide-react';
 interface ProfileData {
   username: string;
   bio: string | null;
-  avatar_url: string | null;
   // Additional fields we'll store in the user metadata instead
   full_name: string;
   organization: string;
   location: string;
+  avatar_url: string | null; // This will be stored in user metadata since it's not in the profiles table
 }
 
 const UserProfileForm: React.FC = () => {
@@ -27,10 +27,10 @@ const UserProfileForm: React.FC = () => {
   const [profileData, setProfileData] = useState<ProfileData>({
     username: '',
     bio: null,
-    avatar_url: null,
     full_name: '',
     organization: '',
     location: '',
+    avatar_url: null,
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -66,8 +66,8 @@ const UserProfileForm: React.FC = () => {
         setProfileData({
           username: data.username || '',
           bio: data.bio,
-          avatar_url: data.avatar_url || null,
-          // Get additional fields from user metadata
+          // Get avatar_url and additional fields from user metadata
+          avatar_url: metadata.avatar_url || null,
           full_name: metadata.full_name || '',
           organization: metadata.organization || '',
           location: metadata.location || '',
@@ -112,6 +112,7 @@ const UserProfileForm: React.FC = () => {
           full_name: profileData.full_name,
           organization: profileData.organization,
           location: profileData.location,
+          avatar_url: profileData.avatar_url,
         }
       });
 
