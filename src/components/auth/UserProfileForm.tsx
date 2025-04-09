@@ -5,11 +5,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Upload } from 'lucide-react';
 
+// Define proper types for our profile data
 interface ProfileData {
   full_name: string;
   organization: string;
@@ -37,10 +38,14 @@ const UserProfileForm: React.FC = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
+
+      if (!user) return;
+
+      // Use type assertion to specify we're working with the profiles table
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user!.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
@@ -48,12 +53,14 @@ const UserProfileForm: React.FC = () => {
         return;
       }
 
-      setProfileData({
-        full_name: data.full_name || '',
-        organization: data.organization || '',
-        location: data.location || '',
-        avatar_url: data.avatar_url,
-      });
+      if (data) {
+        setProfileData({
+          full_name: data.full_name || '',
+          organization: data.organization || '',
+          location: data.location || '',
+          avatar_url: data.avatar_url || null,
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -67,6 +74,9 @@ const UserProfileForm: React.FC = () => {
     try {
       setLoading(true);
       
+      if (!user) return;
+
+      // Use type assertion for the update operation
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -75,7 +85,7 @@ const UserProfileForm: React.FC = () => {
           location: profileData.location,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user!.id);
+        .eq('id', user.id);
 
       if (error) {
         toast({
