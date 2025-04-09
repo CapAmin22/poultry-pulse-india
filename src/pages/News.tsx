@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,48 +12,30 @@ import { motion } from 'framer-motion';
 const NewsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   
-  // Sample weather data for the WeatherCard component
+  // Sample weather data formatted to match the WeatherData type from WeatherCard
   const weatherData = {
-    current: {
-      temp_c: 28,
-      condition: { text: 'Sunny', icon: '//cdn.weatherapi.com/weather/64x64/day/113.png' },
-      wind_kph: 15,
-      humidity: 65,
-      precip_mm: 0,
-    },
-    forecast: {
-      forecastday: [
-        {
-          date: '2025-04-08',
-          day: {
-            maxtemp_c: 30,
-            mintemp_c: 22,
-            condition: { text: 'Sunny', icon: '//cdn.weatherapi.com/weather/64x64/day/113.png' },
-          },
-        },
-        {
-          date: '2025-04-09',
-          day: {
-            maxtemp_c: 29,
-            mintemp_c: 21,
-            condition: { text: 'Partly cloudy', icon: '//cdn.weatherapi.com/weather/64x64/day/116.png' },
-          },
-        },
-        {
-          date: '2025-04-10',
-          day: {
-            maxtemp_c: 28,
-            mintemp_c: 20,
-            condition: { text: 'Moderate rain', icon: '//cdn.weatherapi.com/weather/64x64/day/302.png' },
-          },
-        },
-      ],
-    },
-    location: {
-      name: 'Bengaluru',
-      region: 'Karnataka',
-      country: 'India',
-    },
+    location: 'Bengaluru, Karnataka',
+    temperature: 28,
+    condition: 'Sunny',
+    humidity: 65,
+    windSpeed: 15,
+    forecast: [
+      {
+        day: 'Today',
+        temp: 28,
+        condition: 'Sunny'
+      },
+      {
+        day: 'Tomorrow',
+        temp: 29,
+        condition: 'Partly cloudy'
+      },
+      {
+        day: 'Wed',
+        temp: 28,
+        condition: 'Moderate rain'
+      }
+    ]
   };
 
   // Sample news articles
