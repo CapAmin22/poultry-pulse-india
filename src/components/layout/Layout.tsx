@@ -37,13 +37,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
-      {!isMobile && (
-        <div className={`hidden md:block ${sidebarOpen ? 'w-64' : 'w-0'}`}>
-          <div className="fixed inset-y-0 left-0 z-20">
-            <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          </div>
+      <div className={`${isMobile ? 'hidden' : 'block'} ${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300`}>
+        <div className="fixed inset-y-0 left-0 z-20">
+          <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         </div>
-      )}
+      </div>
 
       {/* Mobile Sidebar (with overlay) */}
       <AnimatePresence>
@@ -76,8 +74,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="sticky top-0 z-10">
           <Navbar />
 
-          {/* Mobile hamburger button */}
-          <div className="fixed bottom-4 right-4 z-50 md:hidden shadow-lg">
+          {/* Hamburger button */}
+          <div className="fixed bottom-4 right-4 z-50 shadow-lg">
             <Button
               onClick={toggleSidebar}
               className={`rounded-full shadow-lg p-3 h-12 w-12 ${
