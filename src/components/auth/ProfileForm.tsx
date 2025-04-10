@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,7 @@ const ProfileForm: React.FC = () => {
             avatarUrl={profileData.avatar_url} 
             fullName={profileData.full_name}
           />
-          
+
           <div className="flex-1">
             <form onSubmit={updateProfile} className="space-y-4">
               <ProfileFormField
@@ -32,7 +31,7 @@ const ProfileForm: React.FC = () => {
                 disabled={true}
                 description="Email cannot be changed"
               />
-              
+
               <ProfileFormField
                 id="fullName"
                 label="Full Name"
@@ -40,7 +39,7 @@ const ProfileForm: React.FC = () => {
                 onChange={(value) => handleFieldChange('full_name', value)}
                 required={true}
               />
-              
+
               <ProfileFormField
                 id="username"
                 label="Username"
@@ -48,7 +47,7 @@ const ProfileForm: React.FC = () => {
                 onChange={(value) => handleFieldChange('username', value)}
                 placeholder="Your username"
               />
-              
+
               <ProfileFormField
                 id="organization"
                 label="Organization"
@@ -56,7 +55,7 @@ const ProfileForm: React.FC = () => {
                 onChange={(value) => handleFieldChange('organization', value)}
                 placeholder="Your Farm or Organization"
               />
-              
+
               <ProfileFormField
                 id="location"
                 label="Location"
@@ -64,7 +63,7 @@ const ProfileForm: React.FC = () => {
                 onChange={(value) => handleFieldChange('location', value)}
                 placeholder="City, State"
               />
-              
+
               <Button 
                 type="submit" 
                 className="w-full sm:w-auto bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white"

@@ -63,7 +63,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Navbar />
 
           {/* Mobile hamburger button */}
-          <div className="fixed bottom-5 right-5 z-50 md:hidden">
+          <div className="fixed bottom-4 right-4 z-50 md:hidden shadow-lg">
             <Button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className={`rounded-full shadow-lg p-3 h-12 w-12 ${
