@@ -11,9 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle2, Briefcase, Users, Leaf, 
-  LandPlot, BarChart2, GraduationCap, Building, Beaker } from 'lucide-react';
+import { 
+  ArrowLeft, ArrowRight, CheckCircle2, Briefcase, Users, Leaf, 
+  LandPlot, BarChart2, GraduationCap, Building, Beaker, Phone, 
+  MapPin, Calendar, Globe, Mail, AtSign, User, Info, ShieldCheck
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Define stakeholder roles with icons and descriptions
 const STAKEHOLDER_ROLES = [
@@ -83,6 +87,18 @@ const BUSINESS_SIZES = [
   { id: 'na', name: 'Not Applicable' }
 ];
 
+// Define poultry types
+const POULTRY_TYPES = [
+  { id: 'broiler', name: 'Broiler Chickens' },
+  { id: 'layer', name: 'Layer Chickens' },
+  { id: 'ducks', name: 'Ducks' },
+  { id: 'turkey', name: 'Turkeys' },
+  { id: 'quail', name: 'Quails' },
+  { id: 'mixed', name: 'Mixed Poultry' },
+  { id: 'other', name: 'Other' },
+  { id: 'na', name: 'Not Applicable' }
+];
+
 // Define experience levels
 const EXPERIENCE_LEVELS = [
   { id: 'novice', name: 'Novice (< 1 year)' },
@@ -90,6 +106,51 @@ const EXPERIENCE_LEVELS = [
   { id: 'intermediate', name: 'Intermediate (3-5 years)' },
   { id: 'experienced', name: 'Experienced (5-10 years)' },
   { id: 'expert', name: 'Expert (10+ years)' }
+];
+
+// Define farming systems
+const FARMING_SYSTEMS = [
+  { id: 'intensive', name: 'Intensive (Battery Cage)' },
+  { id: 'semi_intensive', name: 'Semi-Intensive' },
+  { id: 'free_range', name: 'Free Range' },
+  { id: 'backyard', name: 'Backyard' },
+  { id: 'organic', name: 'Organic' },
+  { id: 'mixed', name: 'Mixed System' },
+  { id: 'na', name: 'Not Applicable' }
+];
+
+// Define financial service types
+const FINANCIAL_SERVICES = [
+  { id: 'loans', name: 'Loans & Credit' },
+  { id: 'insurance', name: 'Insurance' },
+  { id: 'investment', name: 'Investment' },
+  { id: 'subsidy', name: 'Subsidy Programs' },
+  { id: 'consulting', name: 'Financial Consulting' },
+  { id: 'banking', name: 'Banking Services' },
+  { id: 'other', name: 'Other Financial Services' }
+];
+
+// Define training specializations
+const TRAINING_SPECIALIZATIONS = [
+  { id: 'husbandry', name: 'Poultry Husbandry' },
+  { id: 'health', name: 'Poultry Health & Disease Management' },
+  { id: 'nutrition', name: 'Nutrition & Feed Management' },
+  { id: 'business', name: 'Business Management' },
+  { id: 'marketing', name: 'Marketing & Sales' },
+  { id: 'biosecurity', name: 'Biosecurity' },
+  { id: 'technology', name: 'Technology & Automation' },
+  { id: 'other', name: 'Other Specializations' }
+];
+
+// Define organization types
+const ORGANIZATION_TYPES = [
+  { id: 'trade', name: 'Trade Association' },
+  { id: 'cooperative', name: 'Cooperative' },
+  { id: 'ngo', name: 'NGO' },
+  { id: 'govt', name: 'Government Body' },
+  { id: 'research', name: 'Research Institution' },
+  { id: 'education', name: 'Educational Institution' },
+  { id: 'other', name: 'Other Organization Type' }
 ];
 
 // Define states in India for location selection
@@ -101,12 +162,26 @@ const INDIAN_STATES = [
   'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
 ].sort();
 
+// Define languages spoken in India
+const INDIAN_LANGUAGES = [
+  'English', 'Hindi', 'Tamil', 'Telugu', 'Bengali', 'Marathi', 
+  'Gujarati', 'Kannada', 'Malayalam', 'Punjabi', 'Assamese', 
+  'Odia', 'Urdu', 'Other'
+];
+
 interface OnboardingData {
   full_name: string;
   username: string;
   role: string;
   business_name: string;
   business_size: string;
+  poultry_types: string[];
+  farming_system: string;
+  farming_capacity: string;
+  financial_services: string[];
+  training_specializations: string[];
+  organization_type: string;
+  organization_scope: string;
   experience_level: string;
   location: string;
   state: string;
@@ -114,7 +189,16 @@ interface OnboardingData {
   interests: string[];
   bio: string;
   preferred_language: string;
+  secondary_languages: string[];
   mobile_number: string;
+  whatsapp_number: string;
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  website_url: string;
+  years_in_business: string;
+  certifications: string[];
+  services_offered: string[];
+  product_types: string[];
 }
 
 const OnboardingFlow: React.FC = () => {
@@ -131,6 +215,13 @@ const OnboardingFlow: React.FC = () => {
     role: '',
     business_name: '',
     business_size: '',
+    poultry_types: [],
+    farming_system: '',
+    farming_capacity: '',
+    financial_services: [],
+    training_specializations: [],
+    organization_type: '',
+    organization_scope: '',
     experience_level: '',
     location: '',
     state: '',
@@ -138,7 +229,16 @@ const OnboardingFlow: React.FC = () => {
     interests: [],
     bio: '',
     preferred_language: 'English',
-    mobile_number: ''
+    secondary_languages: [],
+    mobile_number: '',
+    whatsapp_number: '',
+    email_notifications: true,
+    sms_notifications: true,
+    website_url: '',
+    years_in_business: '',
+    certifications: [],
+    services_offered: [],
+    product_types: []
   });
 
   // Check if user has already completed onboarding
@@ -211,18 +311,18 @@ const OnboardingFlow: React.FC = () => {
     }));
   };
 
-  const toggleInterest = (interest: string) => {
+  const toggleArrayItem = (field: keyof OnboardingData, item: string) => {
     setOnboardingData(prev => {
-      const currentInterests = [...prev.interests];
-      if (currentInterests.includes(interest)) {
+      const currentItems = [...(prev[field] as string[])];
+      if (currentItems.includes(item)) {
         return {
           ...prev,
-          interests: currentInterests.filter(i => i !== interest)
+          [field]: currentItems.filter(i => i !== item)
         };
       } else {
         return {
           ...prev,
-          interests: [...currentInterests, interest]
+          [field]: [...currentItems, item]
         };
       }
     });
@@ -249,7 +349,8 @@ const OnboardingFlow: React.FC = () => {
       // Location is required but other fields might be optional based on role
       return !!onboardingData.state;
     } else if (currentStep === 3) {
-      return !!onboardingData.mobile_number;
+      // Contact info - require mobile number
+      return !!onboardingData.mobile_number && onboardingData.mobile_number.length === 10;
     }
     return true;
   };
@@ -285,23 +386,60 @@ const OnboardingFlow: React.FC = () => {
         throw profileError;
       }
 
-      // Update user metadata
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: {
-          full_name: onboardingData.full_name,
-          role: onboardingData.role,
-          business_name: onboardingData.business_name,
+      // Update user metadata - only include fields relevant to the user's role
+      const metadataToUpdate = {
+        full_name: onboardingData.full_name,
+        role: onboardingData.role,
+        business_name: onboardingData.business_name,
+        experience_level: onboardingData.experience_level,
+        location: onboardingData.location,
+        state: onboardingData.state,
+        district: onboardingData.district,
+        interests: onboardingData.interests,
+        preferred_language: onboardingData.preferred_language,
+        secondary_languages: onboardingData.secondary_languages,
+        mobile_number: onboardingData.mobile_number,
+        whatsapp_number: onboardingData.whatsapp_number,
+        email_notifications: onboardingData.email_notifications,
+        sms_notifications: onboardingData.sms_notifications,
+        onboarding_completed: true,
+        onboarding_completed_at: new Date().toISOString()
+      };
+
+      // Add role-specific fields to metadata
+      if (['farmer', 'processor'].includes(onboardingData.role)) {
+        Object.assign(metadataToUpdate, {
           business_size: onboardingData.business_size,
-          experience_level: onboardingData.experience_level,
-          location: onboardingData.location,
-          state: onboardingData.state,
-          district: onboardingData.district,
-          interests: onboardingData.interests,
-          preferred_language: onboardingData.preferred_language,
-          mobile_number: onboardingData.mobile_number,
-          onboarding_completed: true,
-          onboarding_completed_at: new Date().toISOString()
-        }
+          poultry_types: onboardingData.poultry_types,
+          farming_system: onboardingData.farming_system,
+          farming_capacity: onboardingData.farming_capacity
+        });
+      } else if (onboardingData.role === 'financial') {
+        Object.assign(metadataToUpdate, {
+          financial_services: onboardingData.financial_services,
+          years_in_business: onboardingData.years_in_business
+        });
+      } else if (onboardingData.role === 'trainer') {
+        Object.assign(metadataToUpdate, {
+          training_specializations: onboardingData.training_specializations,
+          certifications: onboardingData.certifications
+        });
+      } else if (onboardingData.role === 'organization') {
+        Object.assign(metadataToUpdate, {
+          organization_type: onboardingData.organization_type,
+          organization_scope: onboardingData.organization_scope,
+          website_url: onboardingData.website_url
+        });
+      } else if (['distributor', 'retailer', 'supplier'].includes(onboardingData.role)) {
+        Object.assign(metadataToUpdate, {
+          business_size: onboardingData.business_size,
+          product_types: onboardingData.product_types,
+          services_offered: onboardingData.services_offered
+        });
+      }
+
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: metadataToUpdate
       });
 
       if (metadataError) {
@@ -352,10 +490,490 @@ const OnboardingFlow: React.FC = () => {
     return [...commonInterests, ...(roleSpecificInterests[role] || roleSpecificInterests['other'])];
   };
 
+  // Role-specific components for step 3
+  const renderRoleSpecificFields = () => {
+    switch (onboardingData.role) {
+      case 'farmer':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Poultry Types</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {POULTRY_TYPES.slice(0, -1).map(type => (
+                  <div key={type.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`poultry-${type.id}`} 
+                      checked={onboardingData.poultry_types.includes(type.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          toggleArrayItem('poultry_types', type.id);
+                        } else {
+                          toggleArrayItem('poultry_types', type.id);
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={`poultry-${type.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {type.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="farming_system">Farming System</Label>
+              <Select 
+                value={onboardingData.farming_system} 
+                onValueChange={(value) => handleChange('farming_system', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your farming system" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FARMING_SYSTEMS.slice(0, -1).map(system => (
+                    <SelectItem key={system.id} value={system.id}>{system.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="farming_capacity">Farming Capacity</Label>
+              <Input
+                id="farming_capacity"
+                placeholder="Number of birds your farm can accommodate"
+                value={onboardingData.farming_capacity}
+                onChange={(e) => handleChange('farming_capacity', e.target.value)}
+              />
+            </div>
+          </div>
+        );
+      
+      case 'financial':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Financial Services Offered</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {FINANCIAL_SERVICES.slice(0, -1).map(service => (
+                  <div key={service.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`service-${service.id}`} 
+                      checked={onboardingData.financial_services.includes(service.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          toggleArrayItem('financial_services', service.id);
+                        } else {
+                          toggleArrayItem('financial_services', service.id);
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={`service-${service.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {service.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="years_in_business">Years in Financial Services</Label>
+              <Input
+                id="years_in_business"
+                placeholder="How many years have you been in financial services?"
+                value={onboardingData.years_in_business}
+                onChange={(e) => handleChange('years_in_business', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website_url">Company Website (Optional)</Label>
+              <Input
+                id="website_url"
+                placeholder="Your company website URL"
+                value={onboardingData.website_url}
+                onChange={(e) => handleChange('website_url', e.target.value)}
+              />
+            </div>
+          </div>
+        );
+      
+      case 'trainer':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Training Specializations</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {TRAINING_SPECIALIZATIONS.slice(0, -1).map(specialization => (
+                  <div key={specialization.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`spec-${specialization.id}`} 
+                      checked={onboardingData.training_specializations.includes(specialization.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          toggleArrayItem('training_specializations', specialization.id);
+                        } else {
+                          toggleArrayItem('training_specializations', specialization.id);
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={`spec-${specialization.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {specialization.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Certifications (Optional)</Label>
+              <Input
+                placeholder="Enter certification and press Enter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    e.preventDefault();
+                    const newCert = e.currentTarget.value.trim();
+                    if (!onboardingData.certifications.includes(newCert)) {
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        certifications: [...prev.certifications, newCert]
+                      }));
+                    }
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+              {onboardingData.certifications.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {onboardingData.certifications.map((cert, index) => (
+                    <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center text-sm">
+                      {cert}
+                      <button 
+                        type="button" 
+                        className="ml-2 text-gray-500 hover:text-red-500"
+                        onClick={() => {
+                          setOnboardingData(prev => ({
+                            ...prev,
+                            certifications: prev.certifications.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      
+      case 'organization':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="organization_type">Organization Type</Label>
+              <Select 
+                value={onboardingData.organization_type} 
+                onValueChange={(value) => handleChange('organization_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your organization type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORGANIZATION_TYPES.map(type => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="organization_scope">Organization Scope</Label>
+              <Select 
+                value={onboardingData.organization_scope} 
+                onValueChange={(value) => handleChange('organization_scope', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your organization's scope" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="local">Local (District/City)</SelectItem>
+                  <SelectItem value="state">State-level</SelectItem>
+                  <SelectItem value="regional">Regional (Multiple States)</SelectItem>
+                  <SelectItem value="national">National</SelectItem>
+                  <SelectItem value="international">International</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website_url">Organization Website</Label>
+              <Input
+                id="website_url"
+                placeholder="Your organization's website URL"
+                value={onboardingData.website_url}
+                onChange={(e) => handleChange('website_url', e.target.value)}
+              />
+            </div>
+          </div>
+        );
+      
+      case 'distributor':
+      case 'retailer':
+      case 'supplier':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Products/Services Offered</Label>
+              <Input
+                placeholder="Enter product/service and press Enter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    e.preventDefault();
+                    const newItem = e.currentTarget.value.trim();
+                    if (!onboardingData.services_offered.includes(newItem)) {
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        services_offered: [...prev.services_offered, newItem]
+                      }));
+                    }
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+              {onboardingData.services_offered.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {onboardingData.services_offered.map((item, index) => (
+                    <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center text-sm">
+                      {item}
+                      <button 
+                        type="button" 
+                        className="ml-2 text-gray-500 hover:text-red-500"
+                        onClick={() => {
+                          setOnboardingData(prev => ({
+                            ...prev,
+                            services_offered: prev.services_offered.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Product Types</Label>
+              <Input
+                placeholder="Enter product type and press Enter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    e.preventDefault();
+                    const newItem = e.currentTarget.value.trim();
+                    if (!onboardingData.product_types.includes(newItem)) {
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        product_types: [...prev.product_types, newItem]
+                      }));
+                    }
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+              {onboardingData.product_types.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {onboardingData.product_types.map((item, index) => (
+                    <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center text-sm">
+                      {item}
+                      <button 
+                        type="button" 
+                        className="ml-2 text-gray-500 hover:text-red-500"
+                        onClick={() => {
+                          setOnboardingData(prev => ({
+                            ...prev,
+                            product_types: prev.product_types.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="years_in_business">Years in Business</Label>
+              <Input
+                id="years_in_business"
+                placeholder="How many years have you been in business?"
+                value={onboardingData.years_in_business}
+                onChange={(e) => handleChange('years_in_business', e.target.value)}
+              />
+            </div>
+          </div>
+        );
+      
+      case 'processor':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Poultry Types Processed</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {POULTRY_TYPES.slice(0, -1).map(type => (
+                  <div key={type.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`poultry-proc-${type.id}`} 
+                      checked={onboardingData.poultry_types.includes(type.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          toggleArrayItem('poultry_types', type.id);
+                        } else {
+                          toggleArrayItem('poultry_types', type.id);
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={`poultry-proc-${type.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {type.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Products Manufactured</Label>
+              <Input
+                placeholder="Enter product and press Enter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    e.preventDefault();
+                    const newItem = e.currentTarget.value.trim();
+                    if (!onboardingData.product_types.includes(newItem)) {
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        product_types: [...prev.product_types, newItem]
+                      }));
+                    }
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+              {onboardingData.product_types.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {onboardingData.product_types.map((item, index) => (
+                    <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center text-sm">
+                      {item}
+                      <button 
+                        type="button" 
+                        className="ml-2 text-gray-500 hover:text-red-500"
+                        onClick={() => {
+                          setOnboardingData(prev => ({
+                            ...prev,
+                            product_types: prev.product_types.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="processing_capacity">Processing Capacity</Label>
+              <Input
+                id="processing_capacity"
+                placeholder="Processing capacity (e.g., birds per day)"
+                value={onboardingData.farming_capacity}
+                onChange={(e) => handleChange('farming_capacity', e.target.value)}
+              />
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="years_in_business">Years in Industry</Label>
+              <Input
+                id="years_in_business"
+                placeholder="How many years have you been in the poultry industry?"
+                value={onboardingData.years_in_business}
+                onChange={(e) => handleChange('years_in_business', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Main Activities</Label>
+              <Input
+                placeholder="Enter activity and press Enter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    e.preventDefault();
+                    const newItem = e.currentTarget.value.trim();
+                    if (!onboardingData.services_offered.includes(newItem)) {
+                      setOnboardingData(prev => ({
+                        ...prev,
+                        services_offered: [...prev.services_offered, newItem]
+                      }));
+                    }
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+              {onboardingData.services_offered.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {onboardingData.services_offered.map((item, index) => (
+                    <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center text-sm">
+                      {item}
+                      <button 
+                        type="button" 
+                        className="ml-2 text-gray-500 hover:text-red-500"
+                        onClick={() => {
+                          setOnboardingData(prev => ({
+                            ...prev,
+                            services_offered: prev.services_offered.filter((_, i) => i !== index)
+                          }));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+    }
+  };
+
+  // Generate title based on the user role and current step
+  const getStepTitle = (index: number) => {
+    const baseTitles = [
+      "Basic Information",
+      "Your Role",
+      "Location & Details",
+      `${onboardingData.role ? STAKEHOLDER_ROLES.find(r => r.id === onboardingData.role)?.name || 'Role' : 'Role'}-Specific Information`,
+      "Contact & Preferences",
+      "Interests"
+    ];
+    
+    return baseTitles[index] || `Step ${index + 1}`;
+  };
+
   // Define onboarding steps
   const steps = [
     {
-      title: "Basic Information",
+      title: getStepTitle(0),
       description: "Let's start with your name and username",
       component: (
         <div className="space-y-4">
@@ -367,18 +985,25 @@ const OnboardingFlow: React.FC = () => {
               value={onboardingData.full_name}
               onChange={(e) => handleChange('full_name', e.target.value)}
               required
+              className="bg-white"
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              placeholder="Choose a unique username"
-              value={onboardingData.username}
-              onChange={(e) => handleChange('username', e.target.value)}
-              required
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-gray-500">
+                <AtSign className="h-5 w-5 text-gray-400" />
+              </span>
+              <Input
+                id="username"
+                placeholder="Choose a unique username"
+                value={onboardingData.username}
+                onChange={(e) => handleChange('username', e.target.value)}
+                required
+                className="pl-10 bg-white"
+              />
+            </div>
             <p className="text-xs text-gray-500">This will be your public identity on 22POULTRY</p>
           </div>
 
@@ -388,28 +1013,49 @@ const OnboardingFlow: React.FC = () => {
               value={onboardingData.preferred_language} 
               onValueChange={(value) => handleChange('preferred_language', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select your preferred language" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="English">English</SelectItem>
-                <SelectItem value="Hindi">Hindi</SelectItem>
-                <SelectItem value="Tamil">Tamil</SelectItem>
-                <SelectItem value="Telugu">Telugu</SelectItem>
-                <SelectItem value="Bengali">Bengali</SelectItem>
-                <SelectItem value="Marathi">Marathi</SelectItem>
-                <SelectItem value="Gujarati">Gujarati</SelectItem>
-                <SelectItem value="Kannada">Kannada</SelectItem>
-                <SelectItem value="Malayalam">Malayalam</SelectItem>
-                <SelectItem value="Punjabi">Punjabi</SelectItem>
+                {INDIAN_LANGUAGES.map(lang => (
+                  <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500">Content will be displayed in this language when available</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Secondary Languages (Optional)</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {INDIAN_LANGUAGES.filter(lang => lang !== onboardingData.preferred_language).map(lang => (
+                <div key={lang} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`lang-${lang}`} 
+                    checked={onboardingData.secondary_languages.includes(lang)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        toggleArrayItem('secondary_languages', lang);
+                      } else {
+                        toggleArrayItem('secondary_languages', lang);
+                      }
+                    }}
+                  />
+                  <label 
+                    htmlFor={`lang-${lang}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {lang}
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )
     },
     {
-      title: "Your Role",
+      title: getStepTitle(1),
       description: "Tell us about your role in the poultry industry",
       component: (
         <div className="space-y-6">
@@ -440,7 +1086,7 @@ const OnboardingFlow: React.FC = () => {
       )
     },
     {
-      title: "Location & Business Details",
+      title: getStepTitle(2),
       description: "Tell us where you're located and about your business",
       component: (
         <div className="space-y-4">
@@ -450,7 +1096,7 @@ const OnboardingFlow: React.FC = () => {
               value={onboardingData.state} 
               onValueChange={(value) => handleChange('state', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select your state" />
               </SelectTrigger>
               <SelectContent className="max-h-[240px]">
@@ -468,29 +1114,42 @@ const OnboardingFlow: React.FC = () => {
               placeholder="Your district"
               value={onboardingData.district}
               onChange={(e) => handleChange('district', e.target.value)}
+              className="bg-white"
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="location">Village/Town/City</Label>
-            <Input
-              id="location"
-              placeholder="Your village, town or city"
-              value={onboardingData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-gray-500">
+                <MapPin className="h-5 w-5 text-gray-400" />
+              </span>
+              <Input
+                id="location"
+                placeholder="Your village, town or city"
+                value={onboardingData.location}
+                onChange={(e) => handleChange('location', e.target.value)}
+                className="pl-10 bg-white"
+              />
+            </div>
           </div>
 
           {(['farmer', 'distributor', 'processor', 'retailer', 'supplier'].includes(onboardingData.role)) && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="business_name">Business/Farm Name</Label>
-                <Input
-                  id="business_name"
-                  placeholder="Your business or farm name"
-                  value={onboardingData.business_name}
-                  onChange={(e) => handleChange('business_name', e.target.value)}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-gray-500">
+                    <Building className="h-5 w-5 text-gray-400" />
+                  </span>
+                  <Input
+                    id="business_name"
+                    placeholder="Your business or farm name"
+                    value={onboardingData.business_name}
+                    onChange={(e) => handleChange('business_name', e.target.value)}
+                    className="pl-10 bg-white"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -499,7 +1158,7 @@ const OnboardingFlow: React.FC = () => {
                   value={onboardingData.business_size} 
                   onValueChange={(value) => handleChange('business_size', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Select your business size" />
                   </SelectTrigger>
                   <SelectContent>
@@ -520,7 +1179,7 @@ const OnboardingFlow: React.FC = () => {
               value={onboardingData.experience_level} 
               onValueChange={(value) => handleChange('experience_level', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select your experience level" />
               </SelectTrigger>
               <SelectContent>
@@ -536,24 +1195,111 @@ const OnboardingFlow: React.FC = () => {
       )
     },
     {
-      title: "Contact & Bio",
-      description: "Add your contact details and tell us about yourself",
+      title: getStepTitle(3),
+      description: `Tell us more about your ${onboardingData.role ? STAKEHOLDER_ROLES.find(r => r.id === onboardingData.role)?.name.toLowerCase() || 'role' : 'role'}`,
+      component: renderRoleSpecificFields()
+    },
+    {
+      title: getStepTitle(4),
+      description: "Add your contact details and preferences",
       component: (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="mobile_number">Mobile Number</Label>
-            <Input
-              id="mobile_number"
-              type="tel"
-              placeholder="10-digit mobile number"
-              value={onboardingData.mobile_number}
-              onChange={(e) => handleChange('mobile_number', e.target.value.replace(/\D/g, '').substring(0, 10))}
-              required
-              maxLength={10}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-gray-500">
+                <Phone className="h-5 w-5 text-gray-400" />
+              </span>
+              <Input
+                id="mobile_number"
+                type="tel"
+                placeholder="10-digit mobile number"
+                value={onboardingData.mobile_number}
+                onChange={(e) => handleChange('mobile_number', e.target.value.replace(/\D/g, '').substring(0, 10))}
+                required
+                maxLength={10}
+                className="pl-10 bg-white"
+              />
+            </div>
             <p className="text-xs text-gray-500">
               Your 10-digit mobile number for important updates and notifications
             </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp_number">WhatsApp Number (Optional)</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="same-number" 
+                checked={onboardingData.whatsapp_number === onboardingData.mobile_number}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    handleChange('whatsapp_number', onboardingData.mobile_number);
+                  } else {
+                    handleChange('whatsapp_number', '');
+                  }
+                }}
+              />
+              <label 
+                htmlFor="same-number"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Same as mobile number
+              </label>
+            </div>
+            {onboardingData.whatsapp_number !== onboardingData.mobile_number && (
+              <div className="mt-2 relative">
+                <span className="absolute left-3 top-2.5 text-gray-500">
+                  <Phone className="h-5 w-5 text-gray-400" />
+                </span>
+                <Input
+                  id="whatsapp_number"
+                  type="tel"
+                  placeholder="WhatsApp number if different"
+                  value={onboardingData.whatsapp_number}
+                  onChange={(e) => handleChange('whatsapp_number', e.target.value.replace(/\D/g, '').substring(0, 10))}
+                  maxLength={10}
+                  className="pl-10 bg-white"
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Notification Preferences</Label>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="email-notifications" 
+                  checked={onboardingData.email_notifications}
+                  onCheckedChange={(checked) => {
+                    handleChange('email_notifications', !!checked);
+                  }}
+                />
+                <label 
+                  htmlFor="email-notifications"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Receive email notifications
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="sms-notifications" 
+                  checked={onboardingData.sms_notifications}
+                  onCheckedChange={(checked) => {
+                    handleChange('sms_notifications', !!checked);
+                  }}
+                />
+                <label 
+                  htmlFor="sms-notifications"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Receive SMS notifications
+                </label>
+              </div>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -563,14 +1309,14 @@ const OnboardingFlow: React.FC = () => {
               placeholder="Tell us about yourself, your experience, or your business..."
               value={onboardingData.bio || ''}
               onChange={(e) => handleChange('bio', e.target.value)}
-              className="h-24"
+              className="h-24 bg-white"
             />
           </div>
         </div>
       )
     },
     {
-      title: "Interests",
+      title: getStepTitle(5),
       description: "Select topics you're interested in",
       component: (
         <div className="space-y-4">
@@ -590,7 +1336,7 @@ const OnboardingFlow: React.FC = () => {
                     'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white' : 
                     ''}
                 `}
-                onClick={() => toggleInterest(interest)}
+                onClick={() => toggleArrayItem('interests', interest)}
               >
                 {interest}
               </Button>
@@ -628,9 +1374,16 @@ const OnboardingFlow: React.FC = () => {
           </h1>
         </div>
         
-        <Card className="w-full">
+        <Card className="w-full shadow-md">
           <CardHeader>
-            <CardTitle>{steps[currentStep].title}</CardTitle>
+            <CardTitle className="text-xl">
+              {steps[currentStep].title}
+              {currentStep === 1 && !onboardingData.role && (
+                <span className="text-sm font-normal text-gray-500 ml-2">
+                  (Required)
+                </span>
+              )}
+            </CardTitle>
             <CardDescription>{steps[currentStep].description}</CardDescription>
           </CardHeader>
           
@@ -663,6 +1416,7 @@ const OnboardingFlow: React.FC = () => {
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 0}
+              className="border-gray-300"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -688,7 +1442,7 @@ const OnboardingFlow: React.FC = () => {
                     {!loading && <CheckCircle2 className="h-4 w-4 ml-2" />}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="bg-white">
                   <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-center">Complete Your Onboarding</DialogTitle>
                     <DialogDescription className="text-center py-4">

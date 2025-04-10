@@ -97,6 +97,7 @@ export function useAuthForm() {
               description: error.message,
             });
           }
+          setLoading(false);
           return;
         }
 
