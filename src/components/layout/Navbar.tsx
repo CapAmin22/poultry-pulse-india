@@ -24,12 +24,6 @@ const Navbar: React.FC = () => {
   
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'Statistics', path: '/statistics' },
-    { name: 'Financial', path: '/financial' },
-    { name: 'Training', path: '/training' },
-    { name: 'News', path: '/news' },
-    { name: 'Network', path: '/network' },
-    { name: 'Marketplace', path: '/marketplace' },
   ];
 
   const isActive = (path: string) => {
