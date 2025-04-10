@@ -13,14 +13,12 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile); // Modified initial state
   const location = useLocation();
 
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [location.pathname, isMobile]);
+    setSidebarOpen(!isMobile); // Added useEffect to synchronize with isMobile
+  }, [isMobile]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

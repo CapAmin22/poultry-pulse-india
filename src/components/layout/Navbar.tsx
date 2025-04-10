@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Search, MessageSquare, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,7 +20,9 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Added state for mobile menu
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen); // Added toggle function
+
   const navItems = [
     { name: 'Home', path: '/' },
   ];
@@ -68,7 +69,7 @@ const Navbar: React.FC = () => {
               />
               <span className="font-bold text-xl text-[#f5565c]">22POULTRY</span>
             </Link>
-            
+
             <nav className="ml-8 hidden md:flex space-x-1">
               {navItems.map((item) => (
                 <Link
@@ -100,11 +101,11 @@ const Navbar: React.FC = () => {
               <Bell className="h-5 w-5" />
               <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#f5565c]">3</Badge>
             </Button>
-            
+
             <Button variant="ghost" size="icon">
               <MessageSquare className="h-5 w-5" />
             </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -140,7 +141,7 @@ const Navbar: React.FC = () => {
             </DropdownMenu>
           </div>
         </div>
-        
+
         {/* Mobile Navigation Menu */}
         <div className="md:hidden py-2 overflow-x-auto scrollbar-hide">
           <div className="flex space-x-2">
