@@ -12,6 +12,7 @@ interface AuthFormFieldProps {
   type?: string;
   placeholder?: string;
   required?: boolean;
+  minLength?: number;
   icon?: React.ReactNode;
   rightElement?: React.ReactNode;
   className?: string;
@@ -25,6 +26,7 @@ const AuthFormField: React.FC<AuthFormFieldProps> = ({
   type = 'text',
   placeholder = '',
   required = false,
+  minLength,
   icon,
   rightElement,
   className = '',
@@ -41,6 +43,7 @@ const AuthFormField: React.FC<AuthFormFieldProps> = ({
           onChange={onChange}
           className={icon ? "pl-10" : ""}
           required={required}
+          minLength={minLength}
         />
         {icon && (
           <div className="absolute left-3 top-2.5 h-5 w-5 text-gray-400">
@@ -58,4 +61,3 @@ const AuthFormField: React.FC<AuthFormFieldProps> = ({
 };
 
 export default AuthFormField;
-
