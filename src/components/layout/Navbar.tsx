@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Search, MessageSquare, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,13 +15,29 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
+import useIsMobile from '@/hooks/use-is-mobile'; // Added import for isMobile hook
+
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Added state for mobile menu
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen); // Added toggle function
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  useEffect(() => {
+    if (!isMobile) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -85,6 +101,14 @@ const Navbar: React.FC = () => {
                 </Link>
               ))}
             </nav>
+
+            {/* Hamburger button for mobile menu */}
+            <button onClick={toggleMobileMenu} className="md:hidden">
+              {/* Add your hamburger icon here (e.g., from Lucide or another icon library) */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+              </svg>
+            </button>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -143,8 +167,8 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Navigation Menu */}
-        <div className="md:hidden py-2 overflow-x-auto scrollbar-hide">
-          <div className="flex space-x-2">
+        <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-2 overflow-x-auto scrollbar-hide`}> {/* Added conditional rendering based on isMobileMenuOpen */}
+          <div className="flex flex-col space-y-2"> {/* Changed to flex-col for vertical layout */}
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -154,6 +178,7 @@ const Navbar: React.FC = () => {
                     ? 'text-[#f5565c] bg-red-50'
                     : 'text-gray-700 bg-gray-50'
                 }`}
+                onClick={toggleMobileMenu} // Added onClick to close menu after selection
               >
                 {item.name}
               </Link>

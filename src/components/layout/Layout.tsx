@@ -13,12 +13,26 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile); // Modified initial state
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const location = useLocation();
 
   useEffect(() => {
-    setSidebarOpen(!isMobile); // Added useEffect to synchronize with isMobile
+    if (isMobile) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
   }, [isMobile]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -65,7 +79,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {/* Mobile hamburger button */}
           <div className="fixed bottom-4 right-4 z-50 md:hidden shadow-lg">
             <Button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={toggleSidebar}
               className={`rounded-full shadow-lg p-3 h-12 w-12 ${
                 sidebarOpen 
                   ? 'bg-red-100 text-[#ea384c] hover:bg-red-200' 

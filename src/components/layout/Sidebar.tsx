@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
   };
 
   return (
-    <div className="h-screen w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className={`h-screen w-64 bg-white border-r border-gray-200 flex flex-col ${isMobile ? 'shadow-xl' : ''}`}>
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
         <div className="flex items-center">
           <img 
