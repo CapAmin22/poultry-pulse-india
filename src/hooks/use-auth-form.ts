@@ -16,7 +16,7 @@ export function useAuthForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const validateSignupForm = () => {
+  const validateAuthForm = () => {
     if (!email.trim()) {
       toast({
         variant: "destructive",
@@ -65,128 +65,131 @@ export function useAuthForm() {
     return true;
   };
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateSignupForm()) {
-      return;
-    }
-    
-    setLoading(true);
-
+  const handleSignIn = async () => {
     try {
-      if (mode === 'signin') {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) {
-          console.error('Login error:', error);
-          
-          if (error.message.includes('Invalid login credentials')) {
-            toast({
-              variant: "destructive",
-              title: "Login failed",
-              description: "Invalid email or password. Please try again.",
-            });
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Login failed",
-              description: error.message,
-            });
-          }
-          setLoading(false);
-          return;
-        }
-
-        toast({
-          title: "Signed in successfully",
-          description: "Welcome back to 22POULTRY",
-        });
-
-        // Check if user has completed onboarding
-        const { data: { user: userData } } = await supabase.auth.getUser();
-        const metadata = userData?.user_metadata || {};
+      if (error) {
+        console.error('Login error:', error);
         
-        if (metadata.onboarding_completed) {
-          navigate('/');
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: "Invalid email or password. Please try again.",
+          });
         } else {
-          navigate('/onboarding');
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: error.message,
+          });
         }
+        return false;
+      }
+
+      toast({
+        title: "Signed in successfully",
+        description: "Welcome back to 22POULTRY",
+      });
+
+      // Check if user has completed onboarding
+      const { data: { user: userData } } = await supabase.auth.getUser();
+      const metadata = userData?.user_metadata || {};
+      
+      if (metadata.onboarding_completed) {
+        navigate('/');
       } else {
-        // Signup flow
-        console.log('Starting signup with:', { email, password, fullName, organization });
-        
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              organization: organization,
-              onboarding_completed: false,
-            },
+        navigate('/onboarding');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        variant: "destructive",
+        title: "Authentication error",
+        description: "An unexpected error occurred. Please try again.",
+      });
+      return false;
+    }
+  };
+
+  const handleSignUp = async () => {
+    try {
+      console.log('Starting signup with:', { email, password, fullName, organization });
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            organization: organization,
+            onboarding_completed: false,
           },
-        });
+        },
+      });
 
-        console.log('Signup response:', { data, error });
+      console.log('Signup response:', { data, error });
 
-        if (error) {
-          console.error('Registration error:', error);
-          
-          if (error.message.includes('already registered')) {
-            toast({
-              variant: "destructive",
-              title: "Email already registered",
-              description: "This email is already in use. Please try logging in instead.",
-            });
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Registration failed",
-              description: error.message,
-            });
-          }
-          setLoading(false);
-          return;
-        }
-
-        if (data.user) {
+      if (error) {
+        console.error('Registration error:', error);
+        
+        if (error.message.includes('already registered')) {
           toast({
-            title: "Registration successful",
-            description: "Your account has been created. Let's set up your profile.",
+            variant: "destructive",
+            title: "Email already registered",
+            description: "This email is already in use. Please try logging in instead.",
           });
-          
-          // Create profile record
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              username: email.split('@')[0], // Default username from email
-              bio: null
-            });
-
-          if (profileError) {
-            console.error('Error creating profile:', profileError);
-            if (!profileError.message.includes('duplicate')) {
-              toast({
-                variant: "destructive",
-                title: "Profile creation error",
-                description: "There was an issue setting up your profile, but you can continue.",
-              });
-            }
-          }
-          
-          // Always redirect to onboarding after successful signup
-          navigate('/onboarding');
         } else {
           toast({
-            title: "Email confirmation required",
-            description: "Please check your email to confirm your account before logging in.",
+            variant: "destructive",
+            title: "Registration failed",
+            description: error.message,
           });
         }
+        return false;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Registration successful",
+          description: "Your account has been created. Let's set up your profile.",
+        });
+        
+        // Create profile record
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: data.user.id,
+            username: email.split('@')[0], // Default username from email
+            bio: null
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          if (!profileError.message.includes('duplicate')) {
+            toast({
+              variant: "destructive",
+              title: "Profile creation error",
+              description: "There was an issue setting up your profile, but you can continue.",
+            });
+          }
+        }
+        
+        // Always redirect to onboarding after successful signup
+        navigate('/onboarding');
+        return true;
+      } else {
+        toast({
+          title: "Email confirmation required",
+          description: "Please check your email to confirm your account before logging in.",
+        });
+        return false;
       }
     } catch (error) {
       console.error('Authentication error:', error);
@@ -195,7 +198,38 @@ export function useAuthForm() {
         title: "Authentication error",
         description: "An unexpected error occurred. Please try again.",
       });
-    } finally {
+      return false;
+    }
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateAuthForm()) {
+      return;
+    }
+    
+    setLoading(true);
+
+    try {
+      let success = false;
+      
+      if (mode === 'signin') {
+        success = await handleSignIn();
+      } else {
+        success = await handleSignUp();
+      }
+      
+      if (!success) {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast({
+        variant: "destructive",
+        title: "Authentication error",
+        description: "An unexpected error occurred. Please try again.",
+      });
       setLoading(false);
     }
   };
