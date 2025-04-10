@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -6,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,52 +14,25 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // Close sidebar on route change, window resize, or outside click on mobile
+  const location = useLocation();
+
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false);
-      }
-    };
-
-    const handleRouteChange = () => {
-      if (isMobile) {
-        setSidebarOpen(false);
-      }
-    };
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isMobile && sidebarOpen) {
-        const sidebar = document.querySelector('[data-sidebar="sidebar"]');
-        const toggle = document.querySelector('[data-sidebar-toggle]');
-        if (sidebar && !sidebar.contains(event.target as Node) && 
-            toggle && !toggle.contains(event.target as Node)) {
-          setSidebarOpen(false);
-        }
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('click', handleClickOutside);
-    window.addEventListener('popstate', handleRouteChange);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('click', handleClickOutside);
-      window.removeEventListener('popstate', handleRouteChange);
-    };
-  }, [isMobile, sidebarOpen, setSidebarOpen]);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
-      <div className={`hidden md:block ${sidebarOpen ? 'w-64' : 'w-0'}`}>
-        <div className="fixed inset-y-0 left-0 z-20">
-          <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      {!isMobile && (
+        <div className={`hidden md:block ${sidebarOpen ? 'w-64' : 'w-0'}`}>
+          <div className="fixed inset-y-0 left-0 z-20">
+            <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          </div>
         </div>
-      </div>
-      
+      )}
+
       {/* Mobile Sidebar (with overlay) */}
       <AnimatePresence>
         {isMobile && sidebarOpen && (
@@ -69,12 +42,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-30"
             onClick={() => setSidebarOpen(false)}
-          ></motion.div>
+          />
         )}
       </AnimatePresence>
-      
+
       <AnimatePresence>
-        {isMobile && sidebarOpen && (
+        {sidebarOpen && (
           <motion.div
             initial={{ x: -280 }}
             animate={{ x: 0 }}
@@ -86,32 +59,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       <div className="flex-1 flex flex-col">
         <div className="sticky top-0 z-10">
           <Navbar />
-          
-          {/* Mobile sidebar toggle button */}
-          {isMobile && (
-            <div className="fixed bottom-5 right-5 z-20">
-              <Button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`rounded-full shadow-lg p-3 h-12 w-12 ${
-                  sidebarOpen 
-                    ? 'bg-red-100 text-[#ea384c] hover:bg-red-200' 
-                    : 'bg-[#ea384c] text-white hover:bg-[#d22f42]'
-                }`}
-              >
-                {sidebarOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </Button>
-            </div>
-          )}
+
+          {/* Mobile hamburger button */}
+          <div className="fixed bottom-5 right-5 z-50 md:hidden">
+            <Button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`rounded-full shadow-lg p-3 h-12 w-12 ${
+                sidebarOpen 
+                  ? 'bg-red-100 text-[#ea384c] hover:bg-red-200' 
+                  : 'bg-[#ea384c] text-white hover:bg-[#d22f42]'
+              }`}
+            >
+              {sidebarOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
+          </div>
         </div>
-        
+
         <main className="flex-1">
           <div className="container mx-auto px-4 py-6">
             <motion.div

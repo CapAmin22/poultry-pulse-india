@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -13,7 +12,6 @@ import {
   Phone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NavItem {
@@ -24,13 +22,13 @@ interface NavItem {
 
 interface SidebarProps {
   open: boolean;
-  setSidebarOpen?: (open: boolean) => void;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  
+
   const navigation: NavItem[] = [
     { name: 'Home', icon: <Home className="h-5 w-5" />, href: '/' },
     { name: 'Statistics', icon: <BarChart3 className="h-5 w-5" />, href: '/statistics' },
@@ -42,36 +40,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
     { name: 'Contact Us', icon: <Phone className="h-5 w-5" />, href: '/contact' },
   ];
 
-  // Animation variants
-  const sidebarVariants = {
-    hidden: { x: -280 },
-    visible: { x: 0 },
-  };
-
-  const listVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { x: -20, opacity: 0 },
-    visible: { x: 0, opacity: 1 },
+  const handleNavigate = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
   };
 
   return (
-    <motion.div 
-      className="h-screen w-64 bg-white border-r border-gray-200 flex flex-col"
-      variants={sidebarVariants}
-      initial="hidden"
-      animate="visible"
-      exit="hidden"
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-    >
+    <div className="h-screen w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
         <div className="flex items-center">
           <img 
@@ -83,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
             22POULTRY
           </h1>
         </div>
-        {isMobile && setSidebarOpen && (
+        {isMobile && (
           <Button 
             variant="ghost" 
             size="icon" 
@@ -94,49 +70,36 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
           </Button>
         )}
       </div>
-      
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
-        <motion.nav 
-          className="mt-5 px-3 space-y-1"
-          variants={listVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <motion.div key={item.name} variants={itemVariants}>
-                <Link
-                  to={item.href}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  onClick={() => setSidebarOpen?.(false)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {item.icon}
-                  <span className="font-medium">{item.name}</span>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </motion.nav>
-      </div>
-      
+
+      <nav className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 pt-5 px-3">
+        {navigation.map((item) => {
+          const isActive = location.pathname === item.href;
+
+          return (
+            <Link
+              key={item.name}
+              to={item.href}
+              onClick={handleNavigate}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-200 mb-1 ${
+                isActive 
+                  ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {item.icon}
+              <span className="font-medium">{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
       <div className="px-3 py-4 border-t border-gray-200">
         <div className="text-center text-xs text-gray-500">
           <p>© 2025 22POULTRY</p>
           <p className="mt-1">Empowering poultry farmers</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
