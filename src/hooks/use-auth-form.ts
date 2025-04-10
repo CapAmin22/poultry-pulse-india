@@ -148,10 +148,16 @@ export function useAuthForm() {
               description: error.message,
             });
           }
+          setLoading(false);
           return;
         }
 
         if (data.user) {
+          toast({
+            title: "Registration successful",
+            description: "Your account has been created. Let's set up your profile.",
+          });
+          
           // Create profile record
           const { error: profileError } = await supabase
             .from('profiles')
@@ -163,12 +169,16 @@ export function useAuthForm() {
 
           if (profileError) {
             console.error('Error creating profile:', profileError);
+            if (!profileError.message.includes('duplicate')) {
+              toast({
+                variant: "destructive",
+                title: "Profile creation error",
+                description: "There was an issue setting up your profile, but you can continue.",
+              });
+            }
           }
-
-          toast({
-            title: "Registration successful",
-            description: "Your account has been created. Let's set up your profile.",
-          });
+          
+          // Always redirect to onboarding after successful signup
           navigate('/onboarding');
         } else {
           toast({

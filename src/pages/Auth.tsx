@@ -20,15 +20,21 @@ const Auth = () => {
         }
         
         if (data.session) {
+          console.log('User is signed in, checking onboarding status');
           // Check if onboarding is completed
           const { data: { user: userData } } = await supabase.auth.getUser();
           const metadata = userData?.user_metadata || {};
           
+          console.log('User metadata:', metadata);
           if (metadata.onboarding_completed) {
+            console.log('Onboarding is completed, redirecting to home');
             navigate('/');
           } else {
+            console.log('Onboarding is not completed, redirecting to onboarding');
             navigate('/onboarding');
           }
+        } else {
+          console.log('No session found, staying on auth page');
         }
       } catch (error) {
         console.error('Error checking authentication:', error);

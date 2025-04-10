@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,16 +20,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (!loading && user) {
       const checkOnboardingStatus = async () => {
         try {
+          console.log('Checking onboarding status for user:', user.id);
           const { data: { user: userData } } = await supabase.auth.getUser();
           const metadata = userData?.user_metadata || {};
           
+          console.log('User metadata in protected route:', metadata);
+          
           // If the current path is already /onboarding, no need to redirect again
           if (location.pathname === '/onboarding') {
+            console.log('Already on onboarding page, allowing access');
             setOnboardingCompleted(true);
           } else {
             // If onboarding_completed is explicitly false, redirect to onboarding
             // If it's undefined or null (new user), also redirect to onboarding
-            setOnboardingCompleted(!!metadata.onboarding_completed);
+            const completed = !!metadata.onboarding_completed;
+            console.log('Onboarding completed:', completed);
+            setOnboardingCompleted(completed);
           }
         } catch (error) {
           console.error('Error checking onboarding status:', error);
@@ -53,7 +60,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     // Show loading spinner while checking authentication and onboarding status
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ea384c]"></div>
+        <Loader2 className="h-12 w-12 text-[#ea384c] animate-spin" />
       </div>
     );
   }
