@@ -11,19 +11,66 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ArrowLeft, ArrowRight, CheckCircle2, Briefcase, Users, Leaf, 
+  LandPlot, BarChart2, GraduationCap, Building, Beaker } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-// Define stakeholder roles
+// Define stakeholder roles with icons and descriptions
 const STAKEHOLDER_ROLES = [
-  { id: 'farmer', name: 'Poultry Farmer', description: 'Manages poultry farming operations' },
-  { id: 'distributor', name: 'Distributor', description: 'Distributes poultry products to markets' },
-  { id: 'retailer', name: 'Retailer', description: 'Sells poultry products to consumers' },
-  { id: 'processor', name: 'Processor', description: 'Processes poultry into various products' },
-  { id: 'supplier', name: 'Feed/Equipment Supplier', description: 'Supplies feed and equipment to farmers' },
-  { id: 'veterinarian', name: 'Veterinarian', description: 'Provides veterinary services' },
-  { id: 'researcher', name: 'Researcher', description: 'Conducts research in poultry industry' },
-  { id: 'other', name: 'Other', description: 'Other stakeholder role' }
+  { 
+    id: 'farmer', 
+    name: 'Poultry Farmer', 
+    description: 'I manage poultry farming operations',
+    icon: <LandPlot className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'distributor', 
+    name: 'Distributor', 
+    description: 'I distribute poultry products to markets',
+    icon: <Briefcase className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'retailer', 
+    name: 'Retailer', 
+    description: 'I sell poultry products to consumers',
+    icon: <Building className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'processor', 
+    name: 'Processor', 
+    description: 'I process poultry into various products',
+    icon: <Beaker className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'supplier', 
+    name: 'Feed/Equipment Supplier', 
+    description: 'I supply feed and equipment to farmers',
+    icon: <Leaf className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'financial', 
+    name: 'Financial Professional',
+    description: 'I provide financial services to the poultry industry',
+    icon: <BarChart2 className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'trainer', 
+    name: 'Training Provider', 
+    description: 'I provide training services to the poultry industry',
+    icon: <GraduationCap className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'organization', 
+    name: 'Organization/Association', 
+    description: 'I represent a poultry industry organization',
+    icon: <Users className="h-10 w-10 text-[#ea384c]" />
+  },
+  { 
+    id: 'other', 
+    name: 'Other', 
+    description: 'My role is not listed here',
+    icon: <Users className="h-10 w-10 text-[#ea384c]" />
+  }
 ];
 
 // Define farm/business size options
@@ -45,6 +92,15 @@ const EXPERIENCE_LEVELS = [
   { id: 'expert', name: 'Expert (10+ years)' }
 ];
 
+// Define states in India for location selection
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+].sort();
+
 interface OnboardingData {
   full_name: string;
   username: string;
@@ -53,8 +109,12 @@ interface OnboardingData {
   business_size: string;
   experience_level: string;
   location: string;
+  state: string;
+  district: string;
   interests: string[];
   bio: string;
+  preferred_language: string;
+  mobile_number: string;
 }
 
 const OnboardingFlow: React.FC = () => {
@@ -64,7 +124,6 @@ const OnboardingFlow: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-  const [interests, setInterests] = useState<string[]>([]);
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     full_name: '',
@@ -74,8 +133,12 @@ const OnboardingFlow: React.FC = () => {
     business_size: '',
     experience_level: '',
     location: '',
+    state: '',
+    district: '',
     interests: [],
-    bio: ''
+    bio: '',
+    preferred_language: 'English',
+    mobile_number: ''
   });
 
   // Check if user has already completed onboarding
@@ -107,8 +170,15 @@ const OnboardingFlow: React.FC = () => {
         setOnboardingData(prev => ({
           ...prev,
           full_name: metadata.full_name || '',
-          username: '',
-          location: metadata.location || ''
+          role: metadata.role || '',
+          business_name: metadata.business_name || '',
+          business_size: metadata.business_size || '',
+          experience_level: metadata.experience_level || '',
+          location: metadata.location || '',
+          state: metadata.state || '',
+          district: metadata.district || '',
+          mobile_number: metadata.mobile_number || '',
+          preferred_language: metadata.preferred_language || 'English'
         }));
       }
       
@@ -177,7 +247,9 @@ const OnboardingFlow: React.FC = () => {
       return !!onboardingData.role;
     } else if (currentStep === 2) {
       // Location is required but other fields might be optional based on role
-      return !!onboardingData.location;
+      return !!onboardingData.state;
+    } else if (currentStep === 3) {
+      return !!onboardingData.mobile_number;
     }
     return true;
   };
@@ -188,6 +260,17 @@ const OnboardingFlow: React.FC = () => {
       
       if (!user) return;
 
+      // Validate mobile number
+      if (!/^\d{10}$/.test(onboardingData.mobile_number)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid mobile number",
+          description: "Please enter a valid 10-digit mobile number",
+        });
+        setLoading(false);
+        return;
+      }
+
       // Update profile in profiles table
       const { error: profileError } = await supabase
         .from('profiles')
@@ -197,7 +280,10 @@ const OnboardingFlow: React.FC = () => {
         })
         .eq('user_id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        throw profileError;
+      }
 
       // Update user metadata
       const { error: metadataError } = await supabase.auth.updateUser({
@@ -208,13 +294,20 @@ const OnboardingFlow: React.FC = () => {
           business_size: onboardingData.business_size,
           experience_level: onboardingData.experience_level,
           location: onboardingData.location,
+          state: onboardingData.state,
+          district: onboardingData.district,
           interests: onboardingData.interests,
+          preferred_language: onboardingData.preferred_language,
+          mobile_number: onboardingData.mobile_number,
           onboarding_completed: true,
           onboarding_completed_at: new Date().toISOString()
         }
       });
 
-      if (metadataError) throw metadataError;
+      if (metadataError) {
+        console.error('Error updating user metadata:', metadataError);
+        throw metadataError;
+      }
 
       setCompleted(true);
       
@@ -238,6 +331,25 @@ const OnboardingFlow: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Define interests based on user role
+  const getInterestsForRole = (role: string) => {
+    const commonInterests = ['Market Prices', 'Technology', 'Sustainability', 'Networking'];
+    
+    const roleSpecificInterests: Record<string, string[]> = {
+      'farmer': ['Disease Prevention', 'Feed Management', 'Breeding', 'Housing', 'Waste Management'],
+      'distributor': ['Logistics', 'Cold Chain', 'Quality Control', 'Export Markets'],
+      'retailer': ['Consumer Trends', 'Retail Display', 'Inventory Management', 'Packaging'],
+      'processor': ['Processing Equipment', 'Food Safety', 'Product Development', 'Packaging'],
+      'supplier': ['Product Innovation', 'Supply Chain', 'Quality Assurance'],
+      'financial': ['Financing', 'Loans', 'Insurance', 'Investment', 'Risk Management'],
+      'trainer': ['Training Methods', 'Curriculum Development', 'Certification'],
+      'organization': ['Policy', 'Advocacy', 'Research', 'Industry Standards'],
+      'other': ['Best Practices', 'Equipment', 'International Trade', 'Regulations']
+    };
+    
+    return [...commonInterests, ...(roleSpecificInterests[role] || roleSpecificInterests['other'])];
   };
 
   // Define onboarding steps
@@ -269,6 +381,30 @@ const OnboardingFlow: React.FC = () => {
             />
             <p className="text-xs text-gray-500">This will be your public identity on 22POULTRY</p>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="preferred_language">Preferred Language</Label>
+            <Select 
+              value={onboardingData.preferred_language} 
+              onValueChange={(value) => handleChange('preferred_language', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select your preferred language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="English">English</SelectItem>
+                <SelectItem value="Hindi">Hindi</SelectItem>
+                <SelectItem value="Tamil">Tamil</SelectItem>
+                <SelectItem value="Telugu">Telugu</SelectItem>
+                <SelectItem value="Bengali">Bengali</SelectItem>
+                <SelectItem value="Marathi">Marathi</SelectItem>
+                <SelectItem value="Gujarati">Gujarati</SelectItem>
+                <SelectItem value="Kannada">Kannada</SelectItem>
+                <SelectItem value="Malayalam">Malayalam</SelectItem>
+                <SelectItem value="Punjabi">Punjabi</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )
     },
@@ -276,45 +412,76 @@ const OnboardingFlow: React.FC = () => {
       title: "Your Role",
       description: "Tell us about your role in the poultry industry",
       component: (
+        <div className="space-y-6">
+          <p className="text-sm text-gray-600">
+            Select the option that best describes your role in the poultry industry:
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {STAKEHOLDER_ROLES.map(role => (
+              <div
+                key={role.id}
+                className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
+                  onboardingData.role === role.id
+                    ? 'border-[#ea384c] bg-red-50 shadow-md'
+                    : 'border-gray-200 bg-white'
+                }`}
+                onClick={() => handleChange('role', role.id)}
+              >
+                <div className="flex flex-col items-center text-center space-y-2">
+                  {role.icon}
+                  <h3 className="font-medium text-gray-900">{role.name}</h3>
+                  <p className="text-xs text-gray-600">{role.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Location & Business Details",
+      description: "Tell us where you're located and about your business",
+      component: (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="role">Select your primary role</Label>
+            <Label htmlFor="state">State</Label>
             <Select 
-              value={onboardingData.role} 
-              onValueChange={(value) => handleChange('role', value)}
+              value={onboardingData.state} 
+              onValueChange={(value) => handleChange('state', value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select your role" />
+                <SelectValue placeholder="Select your state" />
               </SelectTrigger>
-              <SelectContent>
-                {STAKEHOLDER_ROLES.map(role => (
-                  <SelectItem key={role.id} value={role.id}>
-                    {role.name}
-                  </SelectItem>
+              <SelectContent className="max-h-[240px]">
+                {INDIAN_STATES.map(state => (
+                  <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           
-          {onboardingData.role && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-              <h4 className="font-medium text-gray-900">
-                {STAKEHOLDER_ROLES.find(r => r.id === onboardingData.role)?.name}
-              </h4>
-              <p className="text-sm text-gray-600 mt-1">
-                {STAKEHOLDER_ROLES.find(r => r.id === onboardingData.role)?.description}
-              </p>
-            </div>
-          )}
-        </div>
-      )
-    },
-    {
-      title: "Additional Details",
-      description: "Tell us more about your poultry business",
-      component: (
-        <div className="space-y-4">
-          {(['farmer', 'distributor', 'processor', 'retailer'].includes(onboardingData.role)) && (
+          <div className="space-y-2">
+            <Label htmlFor="district">District</Label>
+            <Input
+              id="district"
+              placeholder="Your district"
+              value={onboardingData.district}
+              onChange={(e) => handleChange('district', e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="location">Village/Town/City</Label>
+            <Input
+              id="location"
+              placeholder="Your village, town or city"
+              value={onboardingData.location}
+              onChange={(e) => handleChange('location', e.target.value)}
+            />
+          </div>
+
+          {(['farmer', 'distributor', 'processor', 'retailer', 'supplier'].includes(onboardingData.role)) && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="business_name">Business/Farm Name</Label>
@@ -365,23 +532,35 @@ const OnboardingFlow: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          
+        </div>
+      )
+    },
+    {
+      title: "Contact & Bio",
+      description: "Add your contact details and tell us about yourself",
+      component: (
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="mobile_number">Mobile Number</Label>
             <Input
-              id="location"
-              placeholder="City, State, Country"
-              value={onboardingData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
+              id="mobile_number"
+              type="tel"
+              placeholder="10-digit mobile number"
+              value={onboardingData.mobile_number}
+              onChange={(e) => handleChange('mobile_number', e.target.value.replace(/\D/g, '').substring(0, 10))}
               required
+              maxLength={10}
             />
+            <p className="text-xs text-gray-500">
+              Your 10-digit mobile number for important updates and notifications
+            </p>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="bio">Bio (Optional)</Label>
             <Textarea
               id="bio"
-              placeholder="Tell us a bit about yourself or your business..."
+              placeholder="Tell us about yourself, your experience, or your business..."
               value={onboardingData.bio || ''}
               onChange={(e) => handleChange('bio', e.target.value)}
               className="h-24"
@@ -400,12 +579,7 @@ const OnboardingFlow: React.FC = () => {
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[
-              'Market Prices', 'Disease Prevention', 'Feed Management', 
-              'Technology', 'Financing', 'Training', 
-              'Regulations', 'Sustainability', 'Networking',
-              'Best Practices', 'Equipment', 'International Trade'
-            ].map(interest => (
+            {onboardingData.role && getInterestsForRole(onboardingData.role).map(interest => (
               <Button
                 key={interest}
                 type="button"
@@ -515,21 +689,21 @@ const OnboardingFlow: React.FC = () => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <div className="py-6">
-                    <h2 className="text-xl font-bold text-center mb-4">Complete Your Onboarding</h2>
-                    <p className="text-center mb-6">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-bold text-center">Complete Your Onboarding</DialogTitle>
+                    <DialogDescription className="text-center py-4">
                       You're all set! Your profile will be created with the information you provided.
                       You can always update your details later from your profile settings.
-                    </p>
-                    <div className="flex justify-center">
-                      <Button 
-                        onClick={completeOnboarding} 
-                        disabled={loading || completed}
-                        className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white"
-                      >
-                        {loading ? 'Setting Up...' : 'Finish Setup'}
-                      </Button>
-                    </div>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={completeOnboarding} 
+                      disabled={loading || completed}
+                      className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white"
+                    >
+                      {loading ? 'Setting Up...' : 'Finish Setup'}
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>

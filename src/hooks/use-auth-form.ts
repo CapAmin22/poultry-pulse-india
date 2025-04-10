@@ -16,8 +16,62 @@ export function useAuthForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validateSignupForm = () => {
+    if (!email.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Email required",
+        description: "Please enter your email address",
+      });
+      return false;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+      });
+      return false;
+    }
+
+    if (!password) {
+      toast({
+        variant: "destructive",
+        title: "Password required",
+        description: "Please enter a password",
+      });
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Password too short",
+        description: "Password must be at least 6 characters",
+      });
+      return false;
+    }
+
+    if (mode === 'signup' && !fullName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Name required",
+        description: "Please enter your full name",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateSignupForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -28,11 +82,21 @@ export function useAuthForm() {
         });
 
         if (error) {
-          toast({
-            variant: "destructive",
-            title: "Login failed",
-            description: error.message,
-          });
+          console.error('Login error:', error);
+          
+          if (error.message.includes('Invalid login credentials')) {
+            toast({
+              variant: "destructive",
+              title: "Login failed",
+              description: "Invalid email or password. Please try again.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Login failed",
+              description: error.message,
+            });
+          }
           return;
         }
 
@@ -52,6 +116,8 @@ export function useAuthForm() {
         }
       } else {
         // Signup flow
+        console.log('Starting signup with:', { email, password, fullName, organization });
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -64,16 +130,41 @@ export function useAuthForm() {
           },
         });
 
+        console.log('Signup response:', { data, error });
+
         if (error) {
-          toast({
-            variant: "destructive",
-            title: "Registration failed",
-            description: error.message,
-          });
+          console.error('Registration error:', error);
+          
+          if (error.message.includes('already registered')) {
+            toast({
+              variant: "destructive",
+              title: "Email already registered",
+              description: "This email is already in use. Please try logging in instead.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Registration failed",
+              description: error.message,
+            });
+          }
           return;
         }
 
         if (data.user) {
+          // Create profile record
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: data.user.id,
+              username: email.split('@')[0], // Default username from email
+              bio: null
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+          }
+
           toast({
             title: "Registration successful",
             description: "Your account has been created. Let's set up your profile.",
@@ -121,4 +212,3 @@ export function useAuthForm() {
     toggleMode,
   };
 }
-

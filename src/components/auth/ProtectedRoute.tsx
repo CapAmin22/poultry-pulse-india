@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -25,10 +26,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           if (location.pathname === '/onboarding') {
             setOnboardingCompleted(true);
           } else {
+            // If onboarding_completed is explicitly false, redirect to onboarding
+            // If it's undefined or null (new user), also redirect to onboarding
             setOnboardingCompleted(!!metadata.onboarding_completed);
           }
         } catch (error) {
           console.error('Error checking onboarding status:', error);
+          toast({
+            variant: "destructive",
+            title: "Authentication error",
+            description: "There was a problem verifying your profile status.",
+          });
           setOnboardingCompleted(true); // Assume completed in case of error
         } finally {
           setCheckingOnboarding(false);
@@ -51,12 +59,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
+    console.log('User not authenticated, redirecting to auth page');
     // Redirect to login if not authenticated
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // If onboarding is not completed and not already on onboarding page, redirect to onboarding
   if (!onboardingCompleted && location.pathname !== '/onboarding') {
+    console.log('Onboarding not completed, redirecting to onboarding page');
     return <Navigate to="/onboarding" state={{ from: location }} replace />;
   }
 
