@@ -17,6 +17,8 @@ const Auth = () => {
         const { data, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error checking session:', error);
+          setLoading(false);
+          return;
         }
         
         if (data.session) {
@@ -35,10 +37,10 @@ const Auth = () => {
           }
         } else {
           console.log('No session found, staying on auth page');
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
-      } finally {
         setLoading(false);
       }
     };
@@ -62,6 +64,16 @@ const Auth = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
+        <div className="flex items-center justify-center mb-6">
+          <img
+            src="/lovable-uploads/c9a1b8a4-493d-4cb1-a1ea-8d2f8d5735a1.png"
+            alt="22POULTRY"
+            className="h-16 w-16 mr-2"
+          />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] bg-clip-text text-transparent">
+            22POULTRY
+          </h1>
+        </div>
         <AuthForm />
       </motion.div>
       <motion.div 

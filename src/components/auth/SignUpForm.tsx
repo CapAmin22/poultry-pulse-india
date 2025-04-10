@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, ArrowRight, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Mail, Lock, User, Building } from 'lucide-react';
 import AuthFormField from './AuthFormField';
 
 interface SignUpFormProps {
@@ -42,6 +42,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         onChange={(e) => setFullName(e.target.value)}
         placeholder="John Smith"
         required
+        icon={<User className="h-5 w-5" />}
       />
       
       <AuthFormField
@@ -50,6 +51,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         value={organization}
         onChange={(e) => setOrganization(e.target.value)}
         placeholder="Your Farm or Organization"
+        icon={<Building className="h-5 w-5" />}
       />
 
       <AuthFormField
@@ -117,4 +119,3 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
 };
 
 export default SignUpForm;
-

@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { OnboardingData } from './OnboardingTypes';
 import BasicInfoStep from './steps/BasicInfoStep';
@@ -74,6 +74,8 @@ const OnboardingFlow: React.FC = () => {
       const { data: { user: userData } } = await supabase.auth.getUser();
       const metadata = userData?.user_metadata || {};
       
+      console.log('User metadata in onboarding flow:', metadata);
+      
       if (metadata.onboarding_completed) {
         setOnboardingCompleted(true);
         // If onboarding is complete, redirect to dashboard
@@ -86,15 +88,6 @@ const OnboardingFlow: React.FC = () => {
         setOnboardingData(prev => ({
           ...prev,
           full_name: metadata.full_name || '',
-          role: metadata.role || '',
-          business_name: metadata.business_name || '',
-          business_size: metadata.business_size || '',
-          experience_level: metadata.experience_level || '',
-          location: metadata.location || '',
-          state: metadata.state || '',
-          district: metadata.district || '',
-          mobile_number: metadata.mobile_number || '',
-          preferred_language: metadata.preferred_language || 'English'
         }));
       }
       
@@ -290,24 +283,10 @@ const OnboardingFlow: React.FC = () => {
     }
   };
 
-  // Generate title based on the user role and current step
-  const getStepTitle = (index: number) => {
-    const baseTitles = [
-      "Basic Information",
-      "Your Role",
-      "Location & Details",
-      `${onboardingData.role ? 'Role-Specific Information' : 'Role-Specific Information'}`,
-      "Contact & Preferences",
-      "Interests"
-    ];
-    
-    return baseTitles[index] || `Step ${index + 1}`;
-  };
-
   // Define onboarding steps
   const steps = [
     {
-      title: getStepTitle(0),
+      title: "Basic Information",
       description: "Let's start with your name and username",
       component: <BasicInfoStep 
         onboardingData={onboardingData}
@@ -316,7 +295,7 @@ const OnboardingFlow: React.FC = () => {
       />
     },
     {
-      title: getStepTitle(1),
+      title: "Your Role",
       description: "Tell us about your role in the poultry industry",
       component: <RoleSelectionStep 
         onboardingData={onboardingData}
@@ -325,7 +304,7 @@ const OnboardingFlow: React.FC = () => {
       />
     },
     {
-      title: getStepTitle(2),
+      title: "Location & Details",
       description: "Tell us where you're located and about your business",
       component: <LocationStep 
         onboardingData={onboardingData}
@@ -334,8 +313,8 @@ const OnboardingFlow: React.FC = () => {
       />
     },
     {
-      title: getStepTitle(3),
-      description: `Tell us more about your ${onboardingData.role ? 'role' : 'role'}`,
+      title: `Role-Specific Information`,
+      description: `Tell us more about your ${onboardingData.role ? onboardingData.role : 'role'}`,
       component: <RoleSpecificStep 
         onboardingData={onboardingData}
         handleChange={handleChange}
@@ -343,7 +322,7 @@ const OnboardingFlow: React.FC = () => {
       />
     },
     {
-      title: getStepTitle(4),
+      title: "Contact & Preferences",
       description: "Add your contact details and preferences",
       component: <ContactStep 
         onboardingData={onboardingData}
@@ -352,7 +331,7 @@ const OnboardingFlow: React.FC = () => {
       />
     },
     {
-      title: getStepTitle(5),
+      title: "Interests",
       description: "Select topics you're interested in",
       component: <InterestsStep 
         onboardingData={onboardingData}
@@ -365,7 +344,7 @@ const OnboardingFlow: React.FC = () => {
   if (loading && !onboardingCompleted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ea384c]"></div>
+        <Loader2 className="animate-spin h-12 w-12 text-[#ea384c]" />
       </div>
     );
   }

@@ -100,6 +100,8 @@ export function useAuthForm() {
       const { data: { user: userData } } = await supabase.auth.getUser();
       const metadata = userData?.user_metadata || {};
       
+      console.log('User metadata after login:', metadata);
+      
       if (metadata.onboarding_completed) {
         navigate('/');
       } else {
@@ -185,11 +187,17 @@ export function useAuthForm() {
         navigate('/onboarding');
         return true;
       } else {
-        toast({
-          title: "Email confirmation required",
-          description: "Please check your email to confirm your account before logging in.",
-        });
-        return false;
+        // Check if email confirmation is required
+        if (data.session === null) {
+          toast({
+            title: "Email confirmation required",
+            description: "Please check your email to confirm your account before logging in.",
+          });
+        } else {
+          // If no session but no error, still redirect to onboarding
+          navigate('/onboarding');
+        }
+        return true;
       }
     } catch (error) {
       console.error('Authentication error:', error);
