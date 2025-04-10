@@ -15,21 +15,41 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Close sidebar on route change or window resize on mobile
+  // Close sidebar on route change, window resize, or outside click on mobile
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-    
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setSidebarOpen(false);
       }
     };
+
+    const handleRouteChange = () => {
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMobile && sidebarOpen) {
+        const sidebar = document.querySelector('[data-sidebar="sidebar"]');
+        const toggle = document.querySelector('[data-sidebar-toggle]');
+        if (sidebar && !sidebar.contains(event.target as Node) && 
+            toggle && !toggle.contains(event.target as Node)) {
+          setSidebarOpen(false);
+        }
+      }
+    };
     
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isMobile]);
+    window.addEventListener('click', handleClickOutside);
+    window.addEventListener('popstate', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, [isMobile, sidebarOpen, setSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

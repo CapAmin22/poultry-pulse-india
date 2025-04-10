@@ -114,7 +114,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
                       ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
-                  onClick={() => isMobile && setSidebarOpen && setSidebarOpen(false)}
+                  onClick={() => setSidebarOpen?.(false)}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white shadow-md' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
                 >
                   {item.icon}
                   <span className="font-medium">{item.name}</span>
