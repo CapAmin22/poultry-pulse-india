@@ -17,7 +17,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 });
 
 // Test connection on init
-supabase.from('_health').select('*').then(({ error }) => {
+supabase.from('profiles').select('count').single().then(({ error }) => {
   if (error) {
     console.error('Supabase connection error:', error.message);
   } else {

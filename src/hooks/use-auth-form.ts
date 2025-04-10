@@ -124,6 +124,7 @@ export function useAuthForm() {
     try {
       console.log('Starting signup with:', { email, password, fullName, organization });
       
+      console.log('Starting signup process...');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
