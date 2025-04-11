@@ -82,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </main>
 
         {/* Hamburger button */}
-        <div className="fixed bottom-4 right-4 z-50 shadow-lg">
+        <div className="fixed bottom-4 right-4 z-50 md:hidden shadow-lg">
           <Button
             onClick={toggleSidebar}
             className={`rounded-full shadow-lg p-3 h-12 w-12 ${

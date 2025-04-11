@@ -19,10 +19,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 });
 
 // Test connection on init
-supabase.from('profiles').select('count').single().then(({ error }) => {
-  if (error) {
-    console.error('Supabase connection error:', error.message);
-  } else {
-    console.log('Supabase connected successfully');
+(async () => {
+  try {
+    const { error } = await supabase.from('profiles').select('count').limit(1);
+    if (error) {
+      console.error('Supabase connection error:', error.message);
+    } else {
+      console.log('Supabase connected successfully');
+    }
+  } catch (err) {
+    console.error('Supabase connection error:', err);
   }
-});
+})();

@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, MessageSquare, User, LogOut, Menu } from 'lucide-react';
+import { Bell, Search, MessageSquare, User, LogOut, Menu, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,12 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/contexts/SidebarContext';
+import SearchBar from '@/components/search/SearchBar';
+import SearchResults from '@/components/search/SearchResults';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,7 @@ const Navbar: React.FC = () => {
   const { toggleSidebar } = useSidebar();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'New price update', message: 'Egg prices have been updated for your region', time: '10 min ago', read: false },
     { id: 2, title: 'Weather alert', message: 'Upcoming rainstorm may affect your farm area', time: '1 hour ago', read: false },
@@ -49,14 +52,20 @@ const Navbar: React.FC = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const toggleMobileSearch = () => {
+    setShowMobileSearch(!showMobileSearch);
+  };
+
   useEffect(() => {
     if (!isMobile) {
       setIsMobileMenuOpen(false);
+      setShowMobileSearch(false);
     }
   }, [isMobile]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setShowMobileSearch(false);
   }, [location.pathname]);
 
   const navItems = [
@@ -154,7 +163,7 @@ const Navbar: React.FC = () => {
               ))}
             </nav>
 
-            <button onClick={toggleMobileMenu} className="md:hidden">
+            <button onClick={toggleMobileMenu} className="md:hidden ml-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
               </svg>
@@ -162,14 +171,25 @@ const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="w-64 pl-8 bg-gray-50 focus:bg-white"
-              />
+            {/* Desktop Search */}
+            <div className="hidden md:block relative">
+              <SearchBar />
+              <SearchResults />
             </div>
+
+            {/* Mobile Search Toggle */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden"
+              onClick={toggleMobileSearch}
+            >
+              {showMobileSearch ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Search className="h-5 w-5" />
+              )}
+            </Button>
 
             <Button 
               variant="ghost" 
@@ -188,6 +208,7 @@ const Navbar: React.FC = () => {
             <Button 
               variant="ghost" 
               size="icon"
+              className="relative"
               onClick={() => setIsMessagesOpen(true)}
             >
               <MessageSquare className="h-5 w-5" />
@@ -234,6 +255,7 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-2 overflow-x-auto scrollbar-hide`}>
           <div className="flex flex-col space-y-2">
             {navItems.map((item) => (
@@ -250,6 +272,14 @@ const Navbar: React.FC = () => {
                 {item.name}
               </Link>
             ))}
+          </div>
+        </div>
+
+        {/* Mobile Search */}
+        <div className={`md:hidden ${showMobileSearch ? 'block' : 'hidden'} py-2`}>
+          <div className="relative">
+            <SearchBar isMobile={true} />
+            <SearchResults />
           </div>
         </div>
       </div>
