@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { AtSign, Building, CalendarDays, Mail, MapPin, Phone } from 'lucide-react';
+import { AtSign, Building, CalendarDays, Loader2, Mail, MapPin, Phone } from 'lucide-react';
+import { submitContactForm } from '@/lib/api';
 
 const ContactUs: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -32,17 +33,21 @@ const ContactUs: React.FC = () => {
     setFormData(prev => ({ ...prev, enquiryType: value }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Submit form data to backend
+      const result = await submitContactForm(formData);
+      
+      // Show success message
       toast({
         title: "Message Sent",
         description: "We've received your message and will get back to you soon.",
       });
-      setIsSubmitting(false);
+      
+      // Reset form
       setFormData({
         name: '',
         email: '',
@@ -51,7 +56,16 @@ const ContactUs: React.FC = () => {
         message: '',
         enquiryType: ''
       });
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: "There was a problem sending your message. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,7 +180,14 @@ const ContactUs: React.FC = () => {
                     className="w-full bg-gradient-to-r from-[#f5565c] to-[#0066b2]"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Sending..." : "Send Message"}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Message"
+                    )}
                   </Button>
                 </form>
               </CardContent>

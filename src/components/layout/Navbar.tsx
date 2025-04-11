@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, MessageSquare, User, LogOut, Menu } from 'lucide-react';
+import { Bell, Search, MessageSquare, User, LogOut, Menu, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +18,14 @@ import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/contexts/SidebarContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -26,6 +34,17 @@ const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const { toggleSidebar } = useSidebar();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'New price update', message: 'Egg prices have been updated for your region', time: '10 min ago', read: false },
+    { id: 2, title: 'Weather alert', message: 'Upcoming rainstorm may affect your farm area', time: '1 hour ago', read: false },
+    { id: 3, title: 'New training material', message: 'Check out new training resources on disease prevention', time: '3 hours ago', read: false },
+  ]);
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'Support Team', message: 'How can we help you today?', time: '2 min ago', read: false },
+    { id: 2, sender: 'Marketing', message: 'New marketplace opportunities available', time: '1 day ago', read: false },
+  ]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -73,6 +92,29 @@ const Navbar: React.FC = () => {
       .slice(0, 2)
       .toUpperCase();
   };
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications(prevNotifications => 
+      prevNotifications.map(notification => ({ ...notification, read: true }))
+    );
+    toast({
+      title: "Notifications cleared",
+      description: "All notifications have been marked as read.",
+    });
+  };
+
+  const markAllMessagesAsRead = () => {
+    setMessages(prevMessages => 
+      prevMessages.map(message => ({ ...message, read: true }))
+    );
+    toast({
+      title: "Messages cleared",
+      description: "All messages have been marked as read.",
+    });
+  };
+
+  const unreadNotificationCount = notifications.filter(n => !n.read).length;
+  const unreadMessageCount = messages.filter(m => !m.read).length;
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
@@ -131,13 +173,31 @@ const Navbar: React.FC = () => {
               />
             </div>
 
-            <Button variant="ghost" size="icon" className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => setIsNotificationsOpen(true)}
+            >
               <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#f5565c]">3</Badge>
+              {unreadNotificationCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#f5565c]">
+                  {unreadNotificationCount}
+                </Badge>
+              )}
             </Button>
 
-            <Button variant="ghost" size="icon">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsMessagesOpen(true)}
+            >
               <MessageSquare className="h-5 w-5" />
+              {unreadMessageCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#f5565c]">
+                  {unreadMessageCount}
+                </Badge>
+              )}
             </Button>
 
             <DropdownMenu>
@@ -196,6 +256,107 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Notifications Dialog */}
+      <Dialog open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex justify-between items-center">
+              <span>Notifications</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={markAllNotificationsAsRead}
+                className="text-sm text-[#f5565c] hover:text-[#d22f42] hover:bg-red-50"
+              >
+                Clear All
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              Stay updated with the latest information.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                <p>No notifications yet</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {notifications.map((notification) => (
+                  <div key={notification.id} className={`py-3 px-1 ${notification.read ? 'opacity-70' : ''}`}>
+                    <div className="flex justify-between">
+                      <h4 className="font-medium">{notification.title}</h4>
+                      <span className="text-xs text-gray-500">{notification.time}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Messages Dialog */}
+      <Dialog open={isMessagesOpen} onOpenChange={setIsMessagesOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex justify-between items-center">
+              <span>Messages</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={markAllMessagesAsRead}
+                className="text-sm text-[#f5565c] hover:text-[#d22f42] hover:bg-red-50"
+              >
+                Mark All Read
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              Messages from our support team and partners.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {messages.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                <p>No messages yet</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {messages.map((message) => (
+                  <div key={message.id} className={`py-3 px-1 ${message.read ? 'opacity-70' : ''}`}>
+                    <div className="flex justify-between">
+                      <h4 className="font-medium">{message.sender}</h4>
+                      <span className="text-xs text-gray-500">{message.time}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{message.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsMessagesOpen(false);
+                navigate('/contact');
+              }}
+            >
+              Contact Support
+            </Button>
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };
