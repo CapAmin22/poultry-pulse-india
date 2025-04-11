@@ -18,14 +18,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  }, [isMobile, setSidebarOpen]);
-
+  // Close sidebar on mobile when navigating
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -34,12 +27,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Desktop Sidebar */}
-      <div className={`${isMobile ? 'hidden' : 'block'} ${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300`}>
-        <div className="fixed inset-y-0 left-0 z-20">
-          <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      {/* Desktop Sidebar - static position */}
+      {!isMobile && (
+        <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+          <div className="fixed inset-y-0 left-0 z-20">
+            <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Sidebar (with overlay) */}
       <AnimatePresence>
@@ -54,8 +49,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
+      {/* Mobile Sidebar - slide in */}
       <AnimatePresence>
-        {sidebarOpen && (
+        {isMobile && sidebarOpen && (
           <motion.div
             initial={{ x: -280 }}
             animate={{ x: 0 }}
