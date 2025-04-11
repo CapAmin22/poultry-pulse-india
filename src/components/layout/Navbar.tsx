@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, MessageSquare, User, LogOut, Menu, X } from 'lucide-react';
+import { Bell, Search, MessageSquare, User, LogOut, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -125,7 +124,7 @@ const Navbar: React.FC = () => {
               variant="ghost" 
               size="icon" 
               onClick={toggleSidebar}
-              className="mr-2 md:flex hidden text-gray-500 hover:text-[#ea384c]"
+              className="mr-2 text-gray-500 hover:text-[#ea384c]"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -155,7 +154,6 @@ const Navbar: React.FC = () => {
               ))}
             </nav>
 
-            {/* Hamburger button for mobile menu */}
             <button onClick={toggleMobileMenu} className="md:hidden">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
@@ -236,7 +234,6 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
         <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-2 overflow-x-auto scrollbar-hide`}>
           <div className="flex flex-col space-y-2">
             {navItems.map((item) => (
@@ -257,7 +254,6 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Notifications Dialog */}
       <Dialog open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -303,7 +299,6 @@ const Navbar: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Messages Dialog */}
       <Dialog open={isMessagesOpen} onOpenChange={setIsMessagesOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

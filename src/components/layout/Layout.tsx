@@ -27,10 +27,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Desktop Sidebar - static position */}
+      {/* Desktop Sidebar - controlled by sidebarOpen state */}
       {!isMobile && (
         <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden`}>
-          <div className="fixed inset-y-0 left-0 z-20">
+          <div className={`fixed inset-y-0 left-0 z-20 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300`}>
             <Sidebar open={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           </div>
         </div>
@@ -67,24 +67,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col">
         <div className="sticky top-0 z-10">
           <Navbar />
-
-          {/* Hamburger button */}
-          <div className="fixed bottom-4 right-4 z-50 shadow-lg">
-            <Button
-              onClick={toggleSidebar}
-              className={`rounded-full shadow-lg p-3 h-12 w-12 ${
-                sidebarOpen 
-                  ? 'bg-red-100 text-[#ea384c] hover:bg-red-200' 
-                  : 'bg-[#ea384c] text-white hover:bg-[#d22f42]'
-              }`}
-            >
-              {sidebarOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </Button>
-          </div>
         </div>
 
         <main className="flex-1">
@@ -98,6 +80,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </motion.div>
           </div>
         </main>
+
+        {/* Hamburger button */}
+        <div className="fixed bottom-4 right-4 z-50 shadow-lg">
+          <Button
+            onClick={toggleSidebar}
+            className={`rounded-full shadow-lg p-3 h-12 w-12 ${
+              sidebarOpen 
+                ? 'bg-red-100 text-[#ea384c] hover:bg-red-200' 
+                : 'bg-[#ea384c] text-white hover:bg-[#d22f42]'
+            }`}
+          >
+            {sidebarOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

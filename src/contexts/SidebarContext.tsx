@@ -16,11 +16,13 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Initialize sidebar state based on device
+    // On desktop, sidebar should be open by default
+    // On mobile, sidebar should be closed by default
     setSidebarOpen(!isMobile);
   }, [isMobile]);
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    setSidebarOpen(prevState => !prevState);
   };
 
   return (
