@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, MessageSquare, User, LogOut } from 'lucide-react';
+import { Bell, Search, MessageSquare, User, LogOut, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
-import useIsMobile from '@/hooks/use-is-mobile'; // Updated import path
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { toggleSidebar } = useSidebar();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -77,6 +79,15 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleSidebar}
+              className="mr-2 md:flex hidden text-gray-500 hover:text-[#ea384c]"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            
             <Link to="/" className="flex items-center space-x-2">
               <img
                 src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png"
@@ -104,7 +115,6 @@ const Navbar: React.FC = () => {
 
             {/* Hamburger button for mobile menu */}
             <button onClick={toggleMobileMenu} className="md:hidden">
-              {/* Add your hamburger icon here (e.g., from Lucide or another icon library) */}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
               </svg>
@@ -167,8 +177,8 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Navigation Menu */}
-        <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-2 overflow-x-auto scrollbar-hide`}> {/* Added conditional rendering based on isMobileMenuOpen */}
-          <div className="flex flex-col space-y-2"> {/* Changed to flex-col for vertical layout */}
+        <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-2 overflow-x-auto scrollbar-hide`}>
+          <div className="flex flex-col space-y-2">
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -178,7 +188,7 @@ const Navbar: React.FC = () => {
                     ? 'text-[#f5565c] bg-red-50'
                     : 'text-gray-700 bg-gray-50'
                 }`}
-                onClick={toggleMobileMenu} // Added onClick to close menu after selection
+                onClick={toggleMobileMenu}
               >
                 {item.name}
               </Link>

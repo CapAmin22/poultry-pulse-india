@@ -1,4 +1,5 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+
+import React, { ReactNode, useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLocation } from 'react-router-dom';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,7 +15,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
   useEffect(() => {
@@ -22,17 +24,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     } else {
       setSidebarOpen(true);
     }
-  }, [isMobile]);
+  }, [isMobile, setSidebarOpen]);
 
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
     }
-  }, [location.pathname, isMobile]);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  }, [location.pathname, isMobile, setSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
