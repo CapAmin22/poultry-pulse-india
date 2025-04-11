@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Search, MessageSquare, User, LogOut } from 'lucide-react';
@@ -15,8 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
-import useIsMobile from '@/hooks/use-is-mobile'; // Added import for isMobile hook
-
+import useIsMobile from '@/hooks/use-is-mobile'; // Updated import path
 
 const Navbar: React.FC = () => {
   const location = useLocation();
