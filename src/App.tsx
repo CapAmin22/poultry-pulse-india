@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
