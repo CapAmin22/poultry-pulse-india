@@ -18,6 +18,7 @@ export interface ProfileData {
 export const useProfileForm = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
     username: '',
     bio: null,
@@ -39,6 +40,8 @@ export const useProfileForm = () => {
 
       if (!user) return;
 
+      console.log('Fetching profile for user:', user.id);
+
       // Get profile data from the profiles table
       const { data, error } = await supabase
         .from('profiles')
@@ -48,26 +51,48 @@ export const useProfileForm = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        return;
+        // If profile doesn't exist yet, create one
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating a new one');
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert([
+              { user_id: user.id, username: '', bio: null }
+            ]);
+          
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+            throw insertError;
+          }
+        } else {
+          throw error;
+        }
       }
 
       // Get user metadata for additional fields
       const { data: { user: userData } } = await supabase.auth.getUser();
       const metadata = userData?.user_metadata || {};
 
-      if (data) {
-        setProfileData({
-          username: data.username || '',
-          bio: data.bio,
-          // Get avatar_url and additional fields from user metadata
-          avatar_url: metadata.avatar_url || null,
-          full_name: metadata.full_name || '',
-          organization: metadata.organization || '',
-          location: metadata.location || '',
-        });
-      }
+      console.log('Fetched user metadata:', metadata);
+
+      setProfileData({
+        username: data?.username || '',
+        bio: data?.bio || null,
+        // Get avatar_url and additional fields from user metadata
+        avatar_url: metadata.avatar_url || null,
+        full_name: metadata.full_name || '',
+        organization: metadata.organization || '',
+        location: metadata.location || '',
+      });
+
+      setInitialLoadComplete(true);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      toast({
+        variant: "destructive",
+        title: "Error loading profile",
+        description: "There was a problem loading your profile data.",
+      });
     } finally {
       setLoading(false);
     }
@@ -81,16 +106,20 @@ export const useProfileForm = () => {
       
       if (!user) return;
 
+      console.log('Updating profile for user:', user.id);
+      console.log('Profile data to update:', profileData);
+
       // Update profile fields in the profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           username: profileData.username,
           bio: profileData.bio,
-        })
-        .eq('user_id', user.id);
+        }, { onConflict: 'user_id' });
 
       if (profileError) {
+        console.error('Profile update failed:', profileError);
         toast({
           variant: "destructive",
           title: "Profile update failed",
@@ -110,6 +139,7 @@ export const useProfileForm = () => {
       });
 
       if (metadataError) {
+        console.error('Profile metadata update failed:', metadataError);
         toast({
           variant: "destructive",
           title: "Profile update failed",
@@ -145,6 +175,7 @@ export const useProfileForm = () => {
   return {
     profileData,
     loading,
+    initialLoadComplete,
     updateProfile,
     handleFieldChange,
     updateAvatarUrl,

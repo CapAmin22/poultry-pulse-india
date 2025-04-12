@@ -6,16 +6,49 @@ import ProfileAvatar from './ProfileAvatar';
 import ProfileFormField from './ProfileFormField';
 import { useProfileForm } from '@/hooks/use-profile-form';
 import { toast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const UserProfileForm: React.FC = () => {
-  const { profileData, loading, updateProfile, handleFieldChange, updateAvatarUrl, user } = useProfileForm();
+  const { 
+    profileData, 
+    loading, 
+    initialLoadComplete,
+    updateProfile, 
+    handleFieldChange, 
+    updateAvatarUrl, 
+    user 
+  } = useProfileForm();
+  
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   useEffect(() => {
-    setHasChanges(false);
-  }, [profileData]);
+    if (initialLoadComplete) {
+      setHasChanges(false);
+    }
+  }, [initialLoadComplete, profileData]);
+
+  // Check connection to Supabase on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('count').limit(1);
+        if (error) {
+          console.error('Supabase connection issue:', error);
+          setServerError('Unable to connect to the server. Some features may not work correctly.');
+        } else {
+          setServerError(null);
+        }
+      } catch (err) {
+        console.error('Connection check error:', err);
+        setServerError('Server connection error. Please try again later.');
+      }
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     handleFieldChange(field as any, value);
@@ -25,6 +58,7 @@ const UserProfileForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setServerError(null);
     
     try {
       await updateProfile(e);
@@ -34,18 +68,19 @@ const UserProfileForm: React.FC = () => {
         description: "Your profile has been updated successfully.",
       });
     } catch (error) {
+      console.error("Profile update error:", error);
+      setServerError('Failed to update profile. Please try again.');
       toast({
         variant: "destructive",
         title: "Update failed",
         description: "An error occurred while updating your profile.",
       });
-      console.error("Profile update error:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (loading) {
+  if (loading && !initialLoadComplete) {
     return (
       <Card className="w-full max-w-2xl mx-auto">
         <CardContent className="pt-6 flex justify-center">
@@ -65,6 +100,13 @@ const UserProfileForm: React.FC = () => {
         <CardDescription>Manage your profile information</CardDescription>
       </CardHeader>
       <CardContent>
+        {serverError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start text-red-800">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+            <p className="text-sm">{serverError}</p>
+          </div>
+        )}
+        
         <div className="flex flex-col sm:flex-row gap-6 mb-6">
           <ProfileAvatar 
             avatarUrl={profileData.avatar_url} 

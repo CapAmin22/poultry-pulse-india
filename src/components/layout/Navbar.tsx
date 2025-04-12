@@ -14,6 +14,7 @@ import NotificationsDialog from './navbar/NotificationsDialog';
 import MessagesDialog from './navbar/MessagesDialog';
 import UserMenu from './navbar/UserMenu';
 import MobileMenu from './navbar/MobileMenu';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar: React.FC = () => {
   const location = useLocation();

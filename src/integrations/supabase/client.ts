@@ -20,19 +20,44 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     params: {
       eventsPerSecond: 10
     }
+  },
+  global: {
+    headers: {
+      'x-application-name': '22POULTRY'
+    }
   }
 });
+
+// Create a proper connection test function that can be called from anywhere
+export const testSupabaseConnection = async () => {
+  try {
+    console.log('Testing Supabase connection...');
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error('Supabase connection error:', error.message);
+      return { success: false, error };
+    }
+    
+    console.log('Supabase connected successfully');
+    return { success: true, data };
+  } catch (err) {
+    console.error('Supabase connection error:', err);
+    return { success: false, error: err };
+  }
+};
 
 // Test connection on init
 (async () => {
   try {
-    const { error } = await supabase.from('profiles').select('count').limit(1);
-    if (error) {
-      console.error('Supabase connection error:', error.message);
-    } else {
-      console.log('Supabase connected successfully');
+    const result = await testSupabaseConnection();
+    if (!result.success) {
+      console.warn('Supabase connection warning: Connection test failed, some features may not work correctly.');
     }
   } catch (err) {
-    console.error('Supabase connection error:', err);
+    console.error('Supabase connection test failed:', err);
   }
 })();

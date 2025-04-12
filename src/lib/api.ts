@@ -71,10 +71,31 @@ export const uploadProfileImage = async (file: File, userId: string) => {
       throw new Error('No file selected');
     }
 
+    // First, check if the avatars bucket exists
+    const { data: buckets, error: bucketsError } = await supabase
+      .storage
+      .listBuckets();
+    
+    // If bucket doesn't exist, create it
+    if (!bucketsError && !buckets?.find(b => b.name === 'avatars')) {
+      // Create avatars bucket
+      const { error: createBucketError } = await supabase
+        .storage
+        .createBucket('avatars', {
+          public: true,
+          fileSizeLimit: 1024 * 1024 * 2, // 2MB
+        });
+      
+      if (createBucketError) {
+        console.error('Error creating avatars bucket:', createBucketError);
+        throw createBucketError;
+      }
+    }
+
     // Create a unique file name
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}-${uuidv4()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
+    const filePath = `${fileName}`;
 
     // Upload the file to Supabase Storage
     const { data, error } = await supabase.storage
