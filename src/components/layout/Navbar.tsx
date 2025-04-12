@@ -1,37 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, MessageSquare, User, LogOut, Menu, X } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Link, useLocation } from 'react-router-dom';
+import { Bell, Search, MessageSquare, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
-import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/contexts/SidebarContext';
 import SearchBar from '@/components/search/SearchBar';
 import SearchResults from '@/components/search/SearchResults';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { getNotifications, getMessages, markNotificationsAsRead, markMessagesAsRead } from '@/lib/api';
+import NotificationsDialog from './navbar/NotificationsDialog';
+import MessagesDialog from './navbar/MessagesDialog';
+import UserMenu from './navbar/UserMenu';
+import MobileMenu from './navbar/MobileMenu';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const { toggleSidebar } = useSidebar();
@@ -47,6 +33,33 @@ const Navbar: React.FC = () => {
     { id: 1, sender: 'Support Team', message: 'How can we help you today?', time: '2 min ago', read: false },
     { id: 2, sender: 'Marketing', message: 'New marketplace opportunities available', time: '1 day ago', read: false },
   ]);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        // Fetch user avatar
+        const { data: { user: userData } } = await supabase.auth.getUser();
+        if (userData && userData.user_metadata) {
+          setUserAvatar(userData.user_metadata.avatar_url || null);
+        }
+
+        // Fetch notifications and messages
+        // In a real app, these would come from the API
+        const notificationsResponse = await getNotifications(user.id);
+        if (notificationsResponse.success) {
+          setNotifications(notificationsResponse.data);
+        }
+
+        const messagesResponse = await getMessages(user.id);
+        if (messagesResponse.success) {
+          setMessages(messagesResponse.data);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -72,53 +85,26 @@ const Navbar: React.FC = () => {
     { name: 'Home', path: '/' },
   ];
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of 22POULTRY.",
-      });
-      navigate('/auth');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: "An error occurred while signing out.",
-      });
+  const markAllNotificationsAsRead = async () => {
+    if (user) {
+      const result = await markNotificationsAsRead(user.id);
+      if (result.success) {
+        setNotifications(prevNotifications => 
+          prevNotifications.map(notification => ({ ...notification, read: true }))
+        );
+      }
     }
   };
 
-  const getInitials = (email: string) => {
-    return email
-      .split('@')[0]
-      .slice(0, 2)
-      .toUpperCase();
-  };
-
-  const markAllNotificationsAsRead = () => {
-    setNotifications(prevNotifications => 
-      prevNotifications.map(notification => ({ ...notification, read: true }))
-    );
-    toast({
-      title: "Notifications cleared",
-      description: "All notifications have been marked as read.",
-    });
-  };
-
-  const markAllMessagesAsRead = () => {
-    setMessages(prevMessages => 
-      prevMessages.map(message => ({ ...message, read: true }))
-    );
-    toast({
-      title: "Messages cleared",
-      description: "All messages have been marked as read.",
-    });
+  const markAllMessagesAsRead = async () => {
+    if (user) {
+      const result = await markMessagesAsRead(user.id);
+      if (result.success) {
+        setMessages(prevMessages => 
+          prevMessages.map(message => ({ ...message, read: true }))
+        );
+      }
+    }
   };
 
   const unreadNotificationCount = notifications.filter(n => !n.read).length;
@@ -153,7 +139,7 @@ const Navbar: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    isActive(item.path)
+                    location.pathname === item.path
                       ? 'text-[#f5565c] bg-red-50'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
@@ -219,61 +205,16 @@ const Navbar: React.FC = () => {
               )}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://i.pravatar.cc/150?u=johnfarmer" alt="User" />
-                    <AvatarFallback className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white">
-                      {user ? getInitials(user.email || '') : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer flex w-full">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/contact" className="cursor-pointer flex w-full">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Contact Us
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-500 focus:text-red-500">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserMenu userAvatar={userAvatar || undefined} />
           </div>
         </div>
 
         {/* Mobile Menu */}
-        <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-2 overflow-x-auto scrollbar-hide`}>
-          <div className="flex flex-col space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md ${
-                  isActive(item.path)
-                    ? 'text-[#f5565c] bg-red-50'
-                    : 'text-gray-700 bg-gray-50'
-                }`}
-                onClick={toggleMobileMenu}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <MobileMenu 
+          isOpen={isMobileMenuOpen} 
+          navItems={navItems} 
+          onItemClick={() => setIsMobileMenuOpen(false)} 
+        />
 
         {/* Mobile Search */}
         <div className={`md:hidden ${showMobileSearch ? 'block' : 'hidden'} py-2`}>
@@ -284,104 +225,21 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      <Dialog open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex justify-between items-center">
-              <span>Notifications</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={markAllNotificationsAsRead}
-                className="text-sm text-[#f5565c] hover:text-[#d22f42] hover:bg-red-50"
-              >
-                Clear All
-              </Button>
-            </DialogTitle>
-            <DialogDescription>
-              Stay updated with the latest information.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                <p>No notifications yet</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className={`py-3 px-1 ${notification.read ? 'opacity-70' : ''}`}>
-                    <div className="flex justify-between">
-                      <h4 className="font-medium">{notification.title}</h4>
-                      <span className="text-xs text-gray-500">{notification.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Notification Dialog */}
+      <NotificationsDialog 
+        isOpen={isNotificationsOpen}
+        onOpenChange={setIsNotificationsOpen}
+        notifications={notifications}
+        onClearAll={markAllNotificationsAsRead}
+      />
 
-      <Dialog open={isMessagesOpen} onOpenChange={setIsMessagesOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex justify-between items-center">
-              <span>Messages</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={markAllMessagesAsRead}
-                className="text-sm text-[#f5565c] hover:text-[#d22f42] hover:bg-red-50"
-              >
-                Mark All Read
-              </Button>
-            </DialogTitle>
-            <DialogDescription>
-              Messages from our support team and partners.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {messages.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                <p>No messages yet</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {messages.map((message) => (
-                  <div key={message.id} className={`py-3 px-1 ${message.read ? 'opacity-70' : ''}`}>
-                    <div className="flex justify-between">
-                      <h4 className="font-medium">{message.sender}</h4>
-                      <span className="text-xs text-gray-500">{message.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{message.message}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsMessagesOpen(false);
-                navigate('/contact');
-              }}
-            >
-              Contact Support
-            </Button>
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Messages Dialog */}
+      <MessagesDialog 
+        isOpen={isMessagesOpen}
+        onOpenChange={setIsMessagesOpen}
+        messages={messages}
+        onMarkAllRead={markAllMessagesAsRead}
+      />
     </header>
   );
 };

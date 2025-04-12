@@ -138,11 +138,16 @@ export const useProfileForm = () => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
+  const updateAvatarUrl = (url: string) => {
+    setProfileData(prev => ({ ...prev, avatar_url: url }));
+  };
+
   return {
     profileData,
     loading,
     updateProfile,
     handleFieldChange,
+    updateAvatarUrl,
     user
   };
 };

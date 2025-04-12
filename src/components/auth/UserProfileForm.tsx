@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const UserProfileForm: React.FC = () => {
-  const { profileData, loading, updateProfile, handleFieldChange, user } = useProfileForm();
+  const { profileData, loading, updateProfile, handleFieldChange, updateAvatarUrl, user } = useProfileForm();
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -69,6 +69,7 @@ const UserProfileForm: React.FC = () => {
           <ProfileAvatar 
             avatarUrl={profileData.avatar_url} 
             fullName={profileData.full_name}
+            onAvatarUpdate={updateAvatarUrl}
           />
 
           <div className="flex-1">
