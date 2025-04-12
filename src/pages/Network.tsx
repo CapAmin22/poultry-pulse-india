@@ -1,45 +1,86 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Building, Calendar, Check, Filter, Globe, MapPin, MessageSquare, 
-  Phone, Search, ThumbsUp, User, UserPlus, Users, Send, 
-  Plus, Loader2, X, ListPlus
-} from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/use-auth';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { toast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, CheckIcon, Heart, MessageCircle, Search, User, Users, Calendar as CalendarIcon2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 
-// Type definitions
+// Define the schemas for forms
+const farmerProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  location: z.string().min(2, "Location is required"),
+  experience: z.string(),
+  farmSize: z.string(),
+  farmType: z.string(),
+  expertise: z.array(z.string()).nonempty("Please select at least one area of expertise"),
+  contactNumber: z.string().optional(),
+  imageUrl: z.string().optional(),
+});
+
+const expertProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  title: z.string().min(2, "Title is required"),
+  organization: z.string().min(2, "Organization is required"),
+  expertise: z.array(z.string()).nonempty("Please select at least one area of expertise"),
+  experience: z.string(),
+  imageUrl: z.string().optional(),
+});
+
+const discussionSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  content: z.string().min(10, "Content must be at least 10 characters"),
+  category: z.string(),
+});
+
+const eventSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  organizer: z.string().min(2, "Organizer is required"),
+  date: z.date({
+    required_error: "Date is required",
+  }),
+  location: z.string().min(2, "Location is required"),
+  type: z.string(),
+  description: z.string().optional(),
+});
+
+// Define types for data
 interface Farmer {
   id: string;
-  user_id: string;
   name: string;
   location: string;
   experience: string;
   farm_size: string;
   farm_type: string;
   expertise: string[];
+  contact_number?: string;
   image_url?: string;
   created_at: string;
+  user_id: string;
 }
 
 interface Expert {
   id: string;
-  user_id: string;
   name: string;
   title: string;
   organization: string;
@@ -48,20 +89,21 @@ interface Expert {
   verified: boolean;
   image_url?: string;
   created_at: string;
+  user_id: string;
 }
 
-interface DiscussionThread {
+interface Discussion {
   id: string;
-  user_id: string;
   title: string;
   content: string;
   category: string;
-  is_pinned: boolean;
-  replies_count: number;
-  likes_count: number;
-  author_name: string;
-  author_image?: string;
+  user_id: string;
   created_at: string;
+  updated_at: string;
+  likes_count: number;
+  replies_count: number;
+  is_pinned: boolean;
+  user_name?: string;
 }
 
 interface Event {
@@ -71,96 +113,76 @@ interface Event {
   date: string;
   location: string;
   type: string;
+  description?: string;
   attendees_count: number;
-  description: string;
   created_at: string;
 }
-
-interface Connection {
-  id: string;
-  user_id: string;
-  connected_user_id: string;
-  created_at: string;
-}
-
-// Form schemas
-const farmerFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  location: z.string().min(3, "Location is required"),
-  experience: z.string().min(1, "Experience is required"),
-  farmSize: z.string().min(1, "Farm size is required"),
-  farmType: z.string().min(1, "Farm type is required"),
-  expertise: z.string().min(5, "Expertise details are required"),
-  contactNumber: z.string().optional(),
-});
-
-const threadFormSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  category: z.string().min(1, "Category is required"),
-  content: z.string().min(20, "Content must be at least 20 characters"),
-});
-
-const eventFormSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  organizer: z.string().min(2, "Organizer is required"),
-  date: z.string().min(5, "Date is required"),
-  location: z.string().min(3, "Location is required"),
-  type: z.string().min(1, "Event type is required"),
-  description: z.string().min(20, "Description must be at least 20 characters"),
-});
 
 const Network: React.FC = () => {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [connectedUserIds, setConnectedUserIds] = useState<string[]>([]);
-  
-  // Data states
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("farmers");
+  const [searchQuery, setSearchQuery] = useState("");
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [experts, setExperts] = useState<Expert[]>([]);
-  const [threads, setThreads] = useState<DiscussionThread[]>([]);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  
-  // UI states
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [farmerDialogOpen, setFarmerDialogOpen] = useState(false);
-  const [threadDialogOpen, setThreadDialogOpen] = useState(false);
+  const [expertDialogOpen, setExpertDialogOpen] = useState(false);
+  const [discussionDialogOpen, setDiscussionDialogOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
-  
-  // Forms
-  const farmerForm = useForm<z.infer<typeof farmerFormSchema>>({
-    resolver: zodResolver(farmerFormSchema),
+  const [userHasFarmerProfile, setUserHasFarmerProfile] = useState(false);
+  const [userHasExpertProfile, setUserHasExpertProfile] = useState(false);
+
+  // Initialize form
+  const farmerForm = useForm<z.infer<typeof farmerProfileSchema>>({
+    resolver: zodResolver(farmerProfileSchema),
     defaultValues: {
       name: "",
       location: "",
-      experience: "",
+      experience: "0-2_years",
       farmSize: "small",
-      farmType: "broiler",
-      expertise: "",
+      farmType: "layer",
+      expertise: [],
       contactNumber: "",
-    }
+      imageUrl: "",
+    },
   });
-  
-  const threadForm = useForm<z.infer<typeof threadFormSchema>>({
-    resolver: zodResolver(threadFormSchema),
+
+  const expertForm = useForm<z.infer<typeof expertProfileSchema>>({
+    resolver: zodResolver(expertProfileSchema),
+    defaultValues: {
+      name: "",
+      title: "",
+      organization: "",
+      expertise: [],
+      experience: "0-2_years",
+      imageUrl: "",
+    },
+  });
+
+  const discussionForm = useForm<z.infer<typeof discussionSchema>>({
+    resolver: zodResolver(discussionSchema),
     defaultValues: {
       title: "",
-      category: "farm_management",
       content: "",
-    }
+      category: "general",
+    },
   });
-  
-  const eventForm = useForm<z.infer<typeof eventFormSchema>>({
-    resolver: zodResolver(eventFormSchema),
+
+  const eventForm = useForm<z.infer<typeof eventSchema>>({
+    resolver: zodResolver(eventSchema),
     defaultValues: {
       title: "",
       organizer: "",
-      date: "",
+      date: new Date(),
       location: "",
-      type: "conference",
+      type: "workshop",
       description: "",
-    }
+    },
   });
-  
+
   // Fetch user connections
   useEffect(() => {
     const fetchConnections = async () => {
@@ -184,7 +206,7 @@ const Network: React.FC = () => {
     
     fetchConnections();
   }, [user]);
-  
+
   // Fetch network data
   useEffect(() => {
     const fetchNetworkData = async () => {
@@ -229,7 +251,7 @@ const Network: React.FC = () => {
           replies_count: thread.replies_count || 0,
           likes_count: thread.likes_count || 0,
           author_name: thread.profiles?.username || 'Unknown User',
-          author_image: null, // We would need to fetch this separately if needed
+          author_image: null,
           created_at: thread.created_at,
         }));
         
@@ -257,7 +279,7 @@ const Network: React.FC = () => {
     
     fetchNetworkData();
   }, []);
-  
+
   // Toggle connection with a farmer
   const toggleConnection = async (userId: string) => {
     if (!user) {
@@ -315,7 +337,7 @@ const Network: React.FC = () => {
       });
     }
   };
-  
+
   // Handle messaging a user
   const handleMessageUser = (userId: string, name: string) => {
     if (!user) {
@@ -334,7 +356,7 @@ const Network: React.FC = () => {
     
     // In a real implementation, this would open a messaging interface
   };
-  
+
   // Handle consulting an expert
   const handleConsultExpert = (expertId: string, name: string) => {
     if (!user) {
@@ -353,7 +375,7 @@ const Network: React.FC = () => {
     
     // In a real implementation, this would send a consultation request
   };
-  
+
   // Handle viewing a discussion thread
   const handleViewThread = (threadId: string) => {
     toast({
@@ -363,7 +385,7 @@ const Network: React.FC = () => {
     
     // In a real implementation, this would navigate to the thread detail page
   };
-  
+
   // Handle registering for an event
   const handleRegisterEvent = (eventId: string, title: string) => {
     if (!user) {
@@ -382,9 +404,9 @@ const Network: React.FC = () => {
     
     // In a real implementation, this would register the user for the event
   };
-  
+
   // Submit new farmer profile
-  const onSubmitFarmer = async (values: z.infer<typeof farmerFormSchema>) => {
+  const onSubmitFarmer = async (values: z.infer<typeof farmerProfileSchema>) => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -404,8 +426,9 @@ const Network: React.FC = () => {
           experience: values.experience,
           farm_size: values.farmSize,
           farm_type: values.farmType,
-          expertise: values.expertise.split(',').map(item => item.trim()),
+          expertise: values.expertise.map(item => item.trim()),
           contact_number: values.contactNumber,
+          image_url: values.imageUrl,
         });
         
       if (error) throw error;
@@ -437,9 +460,9 @@ const Network: React.FC = () => {
       });
     }
   };
-  
+
   // Submit new discussion thread
-  const onSubmitThread = async (values: z.infer<typeof threadFormSchema>) => {
+  const onSubmitThread = async (values: z.infer<typeof discussionSchema>) => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -495,8 +518,8 @@ const Network: React.FC = () => {
       }
       
       // Reset form and close dialog
-      threadForm.reset();
-      setThreadDialogOpen(false);
+      discussionForm.reset();
+      setDiscussionDialogOpen(false);
     } catch (error) {
       console.error('Error creating discussion thread:', error);
       toast({
@@ -506,9 +529,9 @@ const Network: React.FC = () => {
       });
     }
   };
-  
+
   // Submit new event
-  const onSubmitEvent = async (values: z.infer<typeof eventFormSchema>) => {
+  const onSubmitEvent = async (values: z.infer<typeof eventSchema>) => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -560,36 +583,36 @@ const Network: React.FC = () => {
       });
     }
   };
-  
+
   // Filter data based on search term
   const filteredFarmers = farmers.filter(farmer => 
-    searchTerm === '' || 
-    farmer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    farmer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    farmer.farm_type.toLowerCase().includes(searchTerm.toLowerCase())
+    searchQuery === '' || 
+    farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    farmer.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    farmer.farm_type.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const filteredExperts = experts.filter(expert => 
-    searchTerm === '' || 
-    expert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    expert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    expert.organization.toLowerCase().includes(searchTerm.toLowerCase())
+    searchQuery === '' || 
+    expert.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    expert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    expert.organization.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
-  const filteredThreads = threads.filter(thread => 
-    searchTerm === '' || 
-    thread.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    thread.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    thread.category.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const filteredDiscussions = discussions.filter(thread => 
+    searchQuery === '' || 
+    thread.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    thread.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    thread.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const filteredEvents = events.filter(event => 
-    searchTerm === '' || 
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.organizer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchTerm.toLowerCase())
+    searchQuery === '' || 
+    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.organizer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -598,61 +621,18 @@ const Network: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-bold">Networking</h1>
-          <p className="text-gray-500 mt-1">
-            Connect with fellow poultry farmers, experts, and participate in discussions
-          </p>
+          <h1 className="text-3xl font-bold">Network</h1>
+          <p className="text-gray-500 mt-1">Connect with farmers, experts, and industry professionals</p>
         </motion.div>
-        
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input 
-              placeholder="Search for farmers, experts or discussions..." 
-              className="pl-9 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <Button variant="outline" className="gap-2 w-full md:w-auto">
-            <Filter className="h-4 w-4" />
-            Filter Results
-          </Button>
-        </div>
-        
-        <Tabs defaultValue="farmers" className="w-full">
-          <TabsList className="grid w-full sm:w-auto grid-cols-2 md:grid-cols-4 bg-gray-100">
-            <TabsTrigger 
-              value="farmers" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <Users className="h-4 w-4 mr-2 hidden sm:block" />
-              Farmers Network
-            </TabsTrigger>
-            <TabsTrigger 
-              value="experts" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <User className="h-4 w-4 mr-2 hidden sm:block" />
-              Experts
-            </TabsTrigger>
-            <TabsTrigger 
-              value="forum" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <MessageSquare className="h-4 w-4 mr-2 hidden sm:block" />
-              Discussion Forum
-            </TabsTrigger>
-            <TabsTrigger 
-              value="events" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <Calendar className="h-4 w-4 mr-2 hidden sm:block" />
-              Events
-            </TabsTrigger>
+
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsTrigger value="farmers">Farmers</TabsTrigger>
+            <TabsTrigger value="experts">Experts</TabsTrigger>
+            <TabsTrigger value="discussions">Discussions</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
-          
+
           {/* Farmers Network Tab */}
           <TabsContent value="farmers" className="mt-6 space-y-6">
             <div className="flex justify-end">
@@ -803,6 +783,20 @@ const Network: React.FC = () => {
                         )}
                       />
                       
+                      <FormField
+                        control={farmerForm.control}
+                        name="imageUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Profile Image URL (optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter image URL" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
                       <DialogFooter>
                         <Button 
                           type="button" 
@@ -832,7 +826,7 @@ const Network: React.FC = () => {
               </Dialog>
             </div>
             
-            {isLoading ? (
+            {loading ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
               </div>
@@ -865,7 +859,7 @@ const Network: React.FC = () => {
                             </div>
                             <Badge className={
                               farmer.farm_type === 'layer' 
-                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' 
+                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-100'
                                 : farmer.farm_type === 'broiler'
                                 ? 'bg-amber-100 text-amber-800 hover:bg-amber-100'
                                 : farmer.farm_type === 'integrated'
@@ -923,7 +917,7 @@ const Network: React.FC = () => {
                           >
                             {isConnected ? (
                               <>
-                                <Check className="h-4 w-4 mr-2" />
+                                <CheckIcon className="h-4 w-4 mr-2" />
                                 Connected
                               </>
                             ) : (
@@ -961,7 +955,7 @@ const Network: React.FC = () => {
           
           {/* Experts Tab */}
           <TabsContent value="experts" className="mt-6 space-y-6">
-            {isLoading ? (
+            {loading ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
               </div>
@@ -987,7 +981,7 @@ const Network: React.FC = () => {
                                 <CardTitle className="text-lg">{expert.name}</CardTitle>
                                 {expert.verified && (
                                   <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                                    <Check className="h-3 w-3 mr-1" />
+                                    <CheckIcon className="h-3 w-3 mr-1" />
                                     Verified
                                   </Badge>
                                 )}
@@ -1059,10 +1053,10 @@ const Network: React.FC = () => {
           </TabsContent>
           
           {/* Discussion Forum Tab */}
-          <TabsContent value="forum" className="mt-6 space-y-6">
+          <TabsContent value="discussions" className="mt-6 space-y-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Recent Discussions</h3>
-              <Dialog open={threadDialogOpen} onOpenChange={setThreadDialogOpen}>
+              <Dialog open={discussionDialogOpen} onOpenChange={setDiscussionDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
                     className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90"
@@ -1078,10 +1072,10 @@ const Network: React.FC = () => {
                       Share your thoughts, questions, or insights with the community.
                     </DialogDescription>
                   </DialogHeader>
-                  <Form {...threadForm}>
-                    <form onSubmit={threadForm.handleSubmit(onSubmitThread)} className="space-y-4">
+                  <Form {...discussionForm}>
+                    <form onSubmit={discussionForm.handleSubmit(onSubmitThread)} className="space-y-4">
                       <FormField
-                        control={threadForm.control}
+                        control={discussionForm.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
@@ -1095,7 +1089,7 @@ const Network: React.FC = () => {
                       />
                       
                       <FormField
-                        control={threadForm.control}
+                        control={discussionForm.control}
                         name="category"
                         render={({ field }) => (
                           <FormItem>
@@ -1123,7 +1117,7 @@ const Network: React.FC = () => {
                       />
                       
                       <FormField
-                        control={threadForm.control}
+                        control={discussionForm.control}
                         name="content"
                         render={({ field }) => (
                           <FormItem>
@@ -1144,16 +1138,16 @@ const Network: React.FC = () => {
                         <Button 
                           type="button" 
                           variant="outline" 
-                          onClick={() => setThreadDialogOpen(false)}
+                          onClick={() => setDiscussionDialogOpen(false)}
                         >
                           Cancel
                         </Button>
                         <Button 
                           type="submit"
                           className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90"
-                          disabled={threadForm.formState.isSubmitting}
+                          disabled={discussionForm.formState.isSubmitting}
                         >
-                          {threadForm.formState.isSubmitting ? (
+                          {discussionForm.formState.isSubmitting ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin mr-2" />
                               Posting...
@@ -1169,13 +1163,13 @@ const Network: React.FC = () => {
               </Dialog>
             </div>
             
-            {isLoading ? (
+            {loading ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
               </div>
-            ) : filteredThreads.length > 0 ? (
+            ) : filteredDiscussions.length > 0 ? (
               <div className="space-y-4">
-                {filteredThreads.map((thread) => (
+                {filteredDiscussions.map((thread) => (
                   <motion.div 
                     key={thread.id}
                     initial={{ opacity: 0 }}
@@ -1251,7 +1245,7 @@ const Network: React.FC = () => {
               <div className="py-12 text-center">
                 <p className="text-gray-500 mb-4">No discussions found</p>
                 <Button 
-                  onClick={() => setThreadDialogOpen(true)}
+                  onClick={() => setDiscussionDialogOpen(true)}
                   className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -1260,7 +1254,7 @@ const Network: React.FC = () => {
               </div>
             )}
             
-            {filteredThreads.length > 0 && (
+            {filteredDiscussions.length > 0 && (
               <div className="flex justify-center">
                 <Button variant="outline">Load More Discussions</Button>
               </div>
@@ -1422,7 +1416,7 @@ const Network: React.FC = () => {
               </Dialog>
             </div>
             
-            {isLoading ? (
+            {loading ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
               </div>

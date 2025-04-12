@@ -9,6 +9,327 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      financial_transactions: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          customer: string | null
+          description: string
+          id: string
+          notes: string | null
+          transaction_date: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          customer?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          transaction_date: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          customer?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          transaction_date?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loan_applications: {
+        Row: {
+          additional_info: string | null
+          amount: number
+          annual_revenue: number
+          collateral: string
+          contact_number: string | null
+          created_at: string
+          duration: string
+          existing_loans: string | null
+          farm_size: string
+          farm_type: string
+          id: string
+          purpose: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_info?: string | null
+          amount: number
+          annual_revenue: number
+          collateral: string
+          contact_number?: string | null
+          created_at?: string
+          duration: string
+          existing_loans?: string | null
+          farm_size: string
+          farm_type: string
+          id?: string
+          purpose: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_info?: string | null
+          amount?: number
+          annual_revenue?: number
+          collateral?: string
+          contact_number?: string | null
+          created_at?: string
+          duration?: string
+          existing_loans?: string | null
+          farm_size?: string
+          farm_type?: string
+          id?: string
+          purpose?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      marketplace_listings: {
+        Row: {
+          category: string
+          condition: string | null
+          contact_number: string | null
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          location: string
+          price: string
+          subcategory: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          condition?: string | null
+          contact_number?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          location: string
+          price: string
+          subcategory?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          condition?: string | null
+          contact_number?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          location?: string
+          price?: string
+          subcategory?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      network_connections: {
+        Row: {
+          connected_user_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          connected_user_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          connected_user_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      network_discussions: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          likes_count: number | null
+          replies_count: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          replies_count?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          replies_count?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      network_events: {
+        Row: {
+          attendees_count: number | null
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          location: string
+          organizer: string
+          title: string
+          type: string
+          updated_by: string | null
+        }
+        Insert: {
+          attendees_count?: number | null
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          location: string
+          organizer: string
+          title: string
+          type: string
+          updated_by?: string | null
+        }
+        Update: {
+          attendees_count?: number | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          location?: string
+          organizer?: string
+          title?: string
+          type?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      network_experts: {
+        Row: {
+          created_at: string
+          experience: string
+          expertise: string[]
+          id: string
+          image_url: string | null
+          name: string
+          organization: string
+          title: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          experience: string
+          expertise: string[]
+          id?: string
+          image_url?: string | null
+          name: string
+          organization: string
+          title: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          experience?: string
+          expertise?: string[]
+          id?: string
+          image_url?: string | null
+          name?: string
+          organization?: string
+          title?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      network_farmers: {
+        Row: {
+          contact_number: string | null
+          created_at: string
+          experience: string
+          expertise: string[]
+          farm_size: string
+          farm_type: string
+          id: string
+          image_url: string | null
+          location: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          contact_number?: string | null
+          created_at?: string
+          experience: string
+          expertise: string[]
+          farm_size: string
+          farm_type: string
+          id?: string
+          image_url?: string | null
+          location: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          contact_number?: string | null
+          created_at?: string
+          experience?: string
+          expertise?: string[]
+          farm_size?: string
+          farm_type?: string
+          id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
