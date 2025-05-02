@@ -82,9 +82,7 @@ const Navbar: React.FC = () => {
               </Button>
               
               {/* Messages */}
-              <Button variant="ghost" size="icon" className="mr-2 text-gray-600 hover:text-[#f5565c]" onClick={toggleMessages}>
-                <Mail className="h-5 w-5" />
-              </Button>
+              
               
               {/* User Menu */}
               <UserMenu user={user} onSignOut={handleSignOut} />
