@@ -1,14 +1,20 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AuthForm from '@/components/auth/AuthForm';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
+interface LocationState {
+  initialMode?: 'signin' | 'signup';
+}
+
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const state = location.state as LocationState;
 
   useEffect(() => {
     // Check if user is already signed in
@@ -29,8 +35,8 @@ const Auth = () => {
           
           console.log('User metadata:', metadata);
           if (metadata.onboarding_completed) {
-            console.log('Onboarding is completed, redirecting to home');
-            navigate('/');
+            console.log('Onboarding is completed, redirecting to dashboard');
+            navigate('/dashboard');
           } else {
             console.log('Onboarding is not completed, redirecting to onboarding');
             navigate('/onboarding');
@@ -66,7 +72,7 @@ const Auth = () => {
       >
         <div className="flex items-center justify-center mb-6">
           <img
-            src="/lovable-uploads/c9a1b8a4-493d-4cb1-a1ea-8d2f8d5735a1.png"
+            src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png"
             alt="22POULTRY"
             className="h-16 w-16 mr-2"
           />
@@ -74,7 +80,7 @@ const Auth = () => {
             22POULTRY
           </h1>
         </div>
-        <AuthForm />
+        <AuthForm initialMode={state?.initialMode} />
       </motion.div>
       <motion.div 
         initial={{ opacity: 0 }}
@@ -82,7 +88,7 @@ const Auth = () => {
         transition={{ delay: 0.5, duration: 0.5 }}
         className="mt-8 text-center text-gray-500 text-sm"
       >
-        <p>© 2025 22POULTRY. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} 22POULTRY. All rights reserved.</p>
         <p className="mt-1">Empowering poultry stakeholders across India</p>
       </motion.div>
     </div>

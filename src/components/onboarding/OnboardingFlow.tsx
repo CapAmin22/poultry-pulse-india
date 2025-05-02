@@ -29,7 +29,7 @@ const OnboardingFlow: React.FC = () => {
     full_name: '',
     username: '',
     role: '',
-    business_name: '',
+    business_name: '', // Will only require if organization or business
     business_size: '',
     poultry_types: [],
     farming_system: '',
@@ -118,6 +118,18 @@ const OnboardingFlow: React.FC = () => {
       ...prev,
       [field]: value
     }));
+
+    // Special case: If role changes, do additional handling
+    if (field === 'role' && value !== 'organization') {
+      // If user is not representing an organization, clear the organization fields
+      setOnboardingData(prev => ({
+        ...prev,
+        [field]: value,
+        business_name: '',
+        organization_type: '',
+        organization_scope: ''
+      }));
+    }
   };
 
   const toggleArrayItem = (field: keyof OnboardingData, item: string) => {
@@ -158,7 +170,10 @@ const OnboardingFlow: React.FC = () => {
       // Location is required but other fields might be optional based on role
       return !!onboardingData.state;
     } else if (currentStep === 3) {
-      // Role-specific validations could be added here
+      // For organization role, require business_name
+      if (onboardingData.role === 'organization' && !onboardingData.business_name) {
+        return false;
+      }
       return true;
     } else if (currentStep === 4) {
       // Contact info - require mobile number
@@ -202,7 +217,6 @@ const OnboardingFlow: React.FC = () => {
       const metadataToUpdate = {
         full_name: onboardingData.full_name,
         role: onboardingData.role,
-        business_name: onboardingData.business_name,
         experience_level: onboardingData.experience_level,
         location: onboardingData.location,
         state: onboardingData.state,
@@ -217,6 +231,13 @@ const OnboardingFlow: React.FC = () => {
         onboarding_completed: true,
         onboarding_completed_at: new Date().toISOString()
       };
+
+      // Only add business_name if provided (should be required for organizations)
+      if (onboardingData.business_name) {
+        Object.assign(metadataToUpdate, {
+          business_name: onboardingData.business_name
+        });
+      }
 
       // Add role-specific fields to metadata
       if (['farmer', 'processor'].includes(onboardingData.role)) {
@@ -359,7 +380,7 @@ const OnboardingFlow: React.FC = () => {
       >
         <div className="flex items-center justify-center mb-4">
           <img
-            src="/lovable-uploads/c9a1b8a4-493d-4cb1-a1ea-8d2f8d5735a1.png"
+            src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png"
             alt="22POULTRY"
             className="h-10 w-10 mr-2"
           />

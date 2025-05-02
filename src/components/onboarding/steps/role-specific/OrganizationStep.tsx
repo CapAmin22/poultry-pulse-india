@@ -10,6 +10,17 @@ const OrganizationStep: React.FC<StepProps> = ({ onboardingData, handleChange })
   return (
     <div className="space-y-4">
       <div className="space-y-2">
+        <Label htmlFor="business_name">Organization Name <span className="text-red-500">*</span></Label>
+        <Input
+          id="business_name"
+          placeholder="Name of your organization"
+          value={onboardingData.business_name}
+          onChange={(e) => handleChange('business_name', e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="organization_type">Organization Type</Label>
         <Select 
           value={onboardingData.organization_type} 

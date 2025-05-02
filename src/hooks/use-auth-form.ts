@@ -6,8 +6,8 @@ import { toast } from '@/hooks/use-toast';
 
 type AuthMode = 'signin' | 'signup';
 
-export function useAuthForm() {
-  const [mode, setMode] = useState<AuthMode>('signin');
+export function useAuthForm(initialMode?: AuthMode) {
+  const [mode, setMode] = useState<AuthMode>(initialMode || 'signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -103,7 +103,7 @@ export function useAuthForm() {
       console.log('User metadata after login:', metadata);
       
       if (metadata.onboarding_completed) {
-        navigate('/');
+        navigate('/dashboard');
       } else {
         navigate('/onboarding');
       }

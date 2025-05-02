@@ -1,84 +1,80 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { User, LogOut, Settings, UserCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, MessageSquare } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
-import { toast } from '@/hooks/use-toast';
 
 interface UserMenuProps {
   userAvatar?: string;
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ userAvatar }) => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
-
-  const getInitials = (email: string) => {
-    return email
-      .split('@')[0]
-      .slice(0, 2)
-      .toUpperCase();
-  };
-
+  
+  const initials = user?.user_metadata?.full_name 
+    ? user.user_metadata.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    : (user?.email?.charAt(0).toUpperCase() || 'U');
+    
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of 22POULTRY.",
-      });
-      navigate('/auth');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: "An error occurred while signing out.",
-      });
-    }
+    await signOut();
+    navigate('/');
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={userAvatar || "https://i.pravatar.cc/150?u=johnfarmer"} alt="User" />
-            <AvatarFallback className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white">
-              {user ? getInitials(user.email || '') : 'U'}
-            </AvatarFallback>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8 border border-gray-200">
+            <AvatarImage src={userAvatar} alt={userName} />
+            <AvatarFallback className="bg-[#ea384c] text-white">{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{userName}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user?.email}
+            </p>
+            {isAdmin && (
+              <p className="text-xs text-[#ea384c] font-semibold mt-1">Administrator</p>
+            )}
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/profile" className="cursor-pointer flex w-full">
-            <User className="mr-2 h-4 w-4" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/contact" className="cursor-pointer flex w-full">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Contact Us
-          </Link>
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => navigate('/profile')}>
+            <UserCircle className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
+            <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-500 focus:text-red-500">
+        <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          Log out
+          <span>Log out</span>
+          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

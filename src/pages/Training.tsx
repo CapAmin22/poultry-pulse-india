@@ -1,203 +1,308 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { BookOpen, Calendar, ChevronRight, Clock, Filter, GraduationCap, MapPin, Search, Star, Users, Video } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2, Search, Filter, Plus, BookOpen, Video, FileText, Download, Calendar, Clock, User, Trash2, Edit, Eye } from 'lucide-react';
 
-// Sample data for training courses
-const courses = [
-  {
-    id: 1,
-    title: 'Modern Poultry Farm Management',
-    instructor: 'Dr. Anita Sharma',
-    institution: 'National Poultry Research Institute',
-    duration: '8 weeks',
-    level: 'Intermediate',
-    rating: 4.8,
-    reviews: 124,
-    enrolled: 1289,
-    format: 'online',
-    image: 'https://i.pravatar.cc/150?img=1',
-    topics: ['Poultry Housing', 'Ventilation Systems', 'Feed Management', 'Disease Prevention'],
-    description: 'A comprehensive course covering all aspects of running a modern poultry farm efficiently and profitably.'
-  },
-  {
-    id: 2,
-    title: 'Advanced Poultry Health Management',
-    instructor: 'Dr. Rajesh Kumar',
-    institution: 'Veterinary College of India',
-    duration: '6 weeks',
-    level: 'Advanced',
-    rating: 4.9,
-    reviews: 87,
-    enrolled: 845,
-    format: 'online',
-    image: 'https://i.pravatar.cc/150?img=2',
-    topics: ['Disease Diagnosis', 'Vaccination Programs', 'Biosecurity', 'Health Monitoring'],
-    description: 'Learn advanced techniques to manage poultry health and prevent disease outbreaks in your farm.'
-  },
-  {
-    id: 3,
-    title: 'Organic Poultry Farming',
-    instructor: 'Prof. Meena Patel',
-    institution: 'Sustainable Agriculture Institute',
-    duration: '4 weeks',
-    level: 'Beginner',
-    rating: 4.7,
-    reviews: 56,
-    enrolled: 623,
-    format: 'hybrid',
-    image: 'https://i.pravatar.cc/150?img=3',
-    topics: ['Organic Feed', 'Free-Range Systems', 'Natural Health', 'Certification'],
-    description: 'Master the principles and practices of organic poultry farming for premium market opportunities.'
-  },
-  {
-    id: 4,
-    title: 'Poultry Nutrition and Feed Formulation',
-    instructor: 'Dr. Sanjay Verma',
-    institution: 'Agricultural University',
-    duration: '5 weeks',
-    level: 'Intermediate',
-    rating: 4.6,
-    reviews: 92,
-    enrolled: 958,
-    format: 'online',
-    image: 'https://i.pravatar.cc/150?img=4',
-    topics: ['Feed Ingredients', 'Ration Formulation', 'Nutrition Requirements', 'Feed Manufacturing'],
-    description: 'Learn to formulate cost-effective, nutritionally balanced feeds for different poultry age groups.'
-  }
-];
+interface TrainingResource {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  url: string;
+  created_at: string;
+  author_id: string;
+  author_name: string;
+  likes_count: number;
+  downloads_count: number;
+  file_size?: string;
+  duration?: string;
+  featured?: boolean;
+}
 
-// Sample data for workshops and seminars
-const workshops = [
-  {
-    id: 1,
-    title: 'Layer Farm Management Workshop',
-    organizer: 'Indian Poultry Association',
-    date: 'June 15-16, 2025',
-    location: 'Delhi',
-    type: 'In-person',
-    price: '₹2,500',
-    spots: 50,
-    remaining: 12,
-    topics: ['Layer Housing', 'Egg Production', 'Quality Management'],
-    description: 'A hands-on workshop for layer farm owners and managers to optimize production.'
-  },
-  {
-    id: 2,
-    title: 'Broiler Production Masterclass',
-    organizer: 'Poultry Technology Institute',
-    date: 'July 8-9, 2025',
-    location: 'Hyderabad',
-    type: 'In-person',
-    price: '₹3,000',
-    spots: 40,
-    remaining: 8,
-    topics: ['Growth Management', 'Feed Efficiency', 'Processing Standards'],
-    description: 'Intensive training on modern broiler production techniques for commercial farms.'
-  },
-  {
-    id: 3,
-    title: 'Poultry Disease Management Seminar',
-    organizer: 'Veterinary Council of India',
-    date: 'May 25, 2025',
-    location: 'Online',
-    type: 'Virtual',
-    price: '₹1,200',
-    spots: 100,
-    remaining: 43,
-    topics: ['Disease Diagnosis', 'Treatment Protocols', 'Biosecurity'],
-    description: 'Learn from leading veterinarians about managing common and emerging poultry diseases.'
-  },
-  {
-    id: 4,
-    title: 'Poultry Farm Financial Management',
-    organizer: 'Agricultural Finance Institute',
-    date: 'August 12, 2025',
-    location: 'Mumbai',
-    type: 'Hybrid',
-    price: '₹2,000',
-    spots: 60,
-    remaining: 22,
-    topics: ['Cost Analysis', 'Profit Optimization', 'Financial Planning'],
-    description: 'Master the financial aspects of running a successful poultry business.'
-  }
-];
-
-// Sample data for resources
-const resources = [
-  {
-    id: 1,
-    title: 'The Complete Guide to Poultry Farming',
-    author: 'Indian Council of Agricultural Research',
-    type: 'PDF',
-    size: '8.5 MB',
-    pages: 245,
-    topics: ['Farm Setup', 'Management', 'Health', 'Marketing'],
-    downloads: 12580
-  },
-  {
-    id: 2,
-    title: 'Poultry Vaccination Schedule & Techniques',
-    author: 'National Poultry Research Institute',
-    type: 'PDF',
-    size: '4.2 MB',
-    pages: 68,
-    topics: ['Vaccination', 'Health Management', 'Disease Prevention'],
-    downloads: 9845
-  },
-  {
-    id: 3,
-    title: 'Layer Farm Management Video Series',
-    author: 'Agricultural Extension Services',
-    type: 'Video',
-    size: '1.2 GB',
-    duration: '120 minutes',
-    topics: ['Housing', 'Feeding', 'Egg Collection', 'Grading'],
-    views: 25670
-  },
-  {
-    id: 4,
-    title: 'Poultry Feed Formulation Calculator',
-    author: 'Animal Nutrition Institute',
-    type: 'Spreadsheet',
-    size: '3.8 MB',
-    topics: ['Feed Formulation', 'Nutrition', 'Cost Calculation'],
-    downloads: 7630
-  }
-];
-
-const Training: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+const TrainingPage: React.FC = () => {
+  const { user, isAdmin } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [resources, setResources] = useState<TrainingResource[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [showAddResourceForm, setShowAddResourceForm] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
   
-  const handleCourseEnroll = (courseId: number) => {
-    toast({
-      title: "Course Enrollment Initiated",
-      description: "You've begun the enrollment process for this course.",
-    });
+  // New resource form state
+  const [newResource, setNewResource] = useState<Partial<TrainingResource>>({
+    title: "",
+    description: "",
+    type: "",
+    category: "",
+    url: "",
+    file_size: "",
+    duration: "",
+  });
+  
+  const resourceTypes = ["Article", "Video", "PDF", "Presentation", "Webinar Recording"];
+  const resourceCategories = ["Poultry Health", "Feed Management", "Housing", "Breeding", "Processing", "Marketing", "Regulations", "Best Practices"];
+
+  useEffect(() => {
+    fetchTrainingResources();
+  }, []);
+
+  const fetchTrainingResources = async () => {
+    setLoading(true);
+    try {
+      // In a real app, this would fetch from a 'training_resources' table
+      // For now, we'll simulate data for demonstration
+      const mockResources: TrainingResource[] = [
+        {
+          id: "1",
+          title: "Introduction to Poultry Health Management",
+          description: "Learn the basics of poultry health management including disease prevention and treatment strategies.",
+          type: "Article",
+          category: "Poultry Health",
+          url: "#",
+          created_at: "2025-04-15T10:30:00Z",
+          author_id: "admin",
+          author_name: "22POULTRY Team",
+          likes_count: 24,
+          downloads_count: 186,
+          featured: true
+        },
+        {
+          id: "2",
+          title: "Modern Poultry Housing Systems",
+          description: "Explore different housing systems for poultry farms and learn about their pros and cons.",
+          type: "PDF",
+          category: "Housing",
+          url: "#",
+          created_at: "2025-04-10T14:20:00Z",
+          author_id: "admin",
+          author_name: "22POULTRY Team",
+          likes_count: 18,
+          downloads_count: 145,
+          file_size: "2.4 MB",
+          featured: true
+        },
+        {
+          id: "3",
+          title: "Feed Formulation Techniques",
+          description: "Learn how to formulate balanced feeds for different types of poultry at various growth stages.",
+          type: "Video",
+          category: "Feed Management",
+          url: "#",
+          created_at: "2025-04-05T09:15:00Z",
+          author_id: "expert1",
+          author_name: "Dr. Rajesh Kumar",
+          likes_count: 32,
+          downloads_count: 210,
+          duration: "45 minutes"
+        },
+        {
+          id: "4",
+          title: "Biosecurity Measures for Poultry Farms",
+          description: "Essential biosecurity measures that every poultry farmer should implement to prevent disease outbreaks.",
+          type: "Presentation",
+          category: "Poultry Health",
+          url: "#",
+          created_at: "2025-03-28T11:45:00Z",
+          author_id: "admin",
+          author_name: "22POULTRY Team",
+          likes_count: 29,
+          downloads_count: 178,
+          file_size: "5.7 MB"
+        },
+        {
+          id: "5",
+          title: "Marketing Strategies for Poultry Products",
+          description: "Effective strategies to market your poultry products and reach a wider customer base.",
+          type: "Webinar Recording",
+          category: "Marketing",
+          url: "#",
+          created_at: "2025-03-20T15:30:00Z",
+          author_id: "expert2",
+          author_name: "Priya Sharma",
+          likes_count: 15,
+          downloads_count: 89,
+          duration: "60 minutes"
+        }
+      ];
+      
+      setResources(mockResources);
+      
+      // In a real implementation, we would fetch from Supabase like this:
+      /*
+      const { data, error } = await supabase
+        .from('training_resources')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      setResources(data || []);
+      */
+    } catch (error) {
+      console.error("Error fetching training resources:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load training resources. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  const handleWorkshopRegister = (workshopId: number) => {
-    toast({
-      title: "Registration Started",
-      description: "You've started the registration process for this workshop.",
-    });
+
+  const handleAddResource = async () => {
+    if (!newResource.title || !newResource.type || !newResource.category || !newResource.url) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+      });
+      return;
+    }
+
+    setFormSubmitting(true);
+    try {
+      // In a real implementation, we would save to Supabase
+      const mockResource: TrainingResource = {
+        id: `new-${Date.now()}`,
+        title: newResource.title,
+        description: newResource.description || "",
+        type: newResource.type,
+        category: newResource.category,
+        url: newResource.url,
+        created_at: new Date().toISOString(),
+        author_id: user?.id || "anonymous",
+        author_name: user?.user_metadata?.full_name || "Anonymous User",
+        likes_count: 0,
+        downloads_count: 0,
+        file_size: newResource.file_size,
+        duration: newResource.duration,
+        featured: isAdmin ? newResource.featured : false
+      };
+
+      // Add to local state for demo
+      setResources([mockResource, ...resources]);
+
+      toast({
+        title: "Resource Added",
+        description: "Your training resource has been added successfully.",
+      });
+
+      setShowAddResourceForm(false);
+      setNewResource({
+        title: "",
+        description: "",
+        type: "",
+        category: "",
+        url: "",
+        file_size: "",
+        duration: "",
+      });
+    } catch (error) {
+      console.error("Error adding resource:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add resource. Please try again.",
+      });
+    } finally {
+      setFormSubmitting(false);
+    }
   };
-  
-  const handleResourceDownload = (resourceId: number) => {
-    toast({
-      title: "Download Started",
-      description: "Your resource is being downloaded.",
-    });
+
+  const handleDeleteResource = async (id: string) => {
+    try {
+      // In a real implementation, we would delete from Supabase
+      setResources(resources.filter(resource => resource.id !== id));
+      
+      toast({
+        title: "Resource Deleted",
+        description: "The training resource has been deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete resource. Please try again.",
+      });
+    }
   };
-  
+
+  const handleResourceAction = (id: string, action: 'view' | 'download' | 'like') => {
+    const updatedResources = resources.map(resource => {
+      if (resource.id === id) {
+        if (action === 'download') {
+          return { ...resource, downloads_count: resource.downloads_count + 1 };
+        } else if (action === 'like') {
+          return { ...resource, likes_count: resource.likes_count + 1 };
+        }
+      }
+      return resource;
+    });
+    
+    setResources(updatedResources);
+    
+    if (action === 'view') {
+      toast({
+        title: "Opening Resource",
+        description: "The resource will open in a new tab.",
+      });
+    } else if (action === 'download') {
+      toast({
+        title: "Downloading",
+        description: "Your download has started.",
+      });
+    } else if (action === 'like') {
+      toast({
+        title: "Resource Liked",
+        description: "You've liked this resource.",
+      });
+    }
+  };
+
+  const filteredResources = resources.filter(resource => {
+    const matchesSearch = 
+      resource.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      resource.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !filterCategory || resource.category === filterCategory;
+    const matchesType = !filterType || resource.type === filterType;
+    return matchesSearch && matchesCategory && matchesType;
+  });
+
+  const featuredResources = resources.filter(resource => resource.featured);
+
+  const getResourceTypeIcon = (type: string) => {
+    switch (type) {
+      case "Article":
+        return <BookOpen className="h-5 w-5" />;
+      case "Video":
+        return <Video className="h-5 w-5" />;
+      case "PDF":
+        return <FileText className="h-5 w-5" />;
+      case "Presentation":
+        return <FileText className="h-5 w-5" />;
+      case "Webinar Recording":
+        return <Video className="h-5 w-5" />;
+      default:
+        return <FileText className="h-5 w-5" />;
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -207,326 +312,421 @@ const Training: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-3xl font-bold">Training & Education</h1>
-          <p className="text-gray-500 mt-1">
-            Enhance your poultry farming knowledge with courses, workshops, and resources
-          </p>
+          <p className="text-gray-500 mt-1">Access educational resources and training materials</p>
         </motion.div>
         
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+          <div className="relative w-full md:w-1/2">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <Input 
-              placeholder="Search for courses, workshops, or resources..." 
-              className="pl-9 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search resources..." 
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           
-          <Button variant="outline" className="gap-2 w-full md:w-auto">
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Badge className="bg-[#ea384c]">Admin Mode</Badge>
+            )}
+            
+            <Dialog open={showAddResourceForm} onOpenChange={setShowAddResourceForm}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus size={16} className="mr-2" />
+                  Add Resource
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Add Training Resource</DialogTitle>
+                  <DialogDescription>
+                    Add a new training resource to share with the community.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="resource-title">Title</Label>
+                      <Input 
+                        id="resource-title"
+                        value={newResource.title}
+                        onChange={(e) => setNewResource({...newResource, title: e.target.value})}
+                        placeholder="Resource title"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="resource-url">URL / Link</Label>
+                      <Input 
+                        id="resource-url"
+                        value={newResource.url}
+                        onChange={(e) => setNewResource({...newResource, url: e.target.value})}
+                        placeholder="https://example.com/resource"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="resource-type">Type</Label>
+                      <Select
+                        value={newResource.type}
+                        onValueChange={(value) => setNewResource({...newResource, type: value})}
+                      >
+                        <SelectTrigger id="resource-type">
+                          <SelectValue placeholder="Select resource type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {resourceTypes.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="resource-category">Category</Label>
+                      <Select
+                        value={newResource.category}
+                        onValueChange={(value) => setNewResource({...newResource, category: value})}
+                      >
+                        <SelectTrigger id="resource-category">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {resourceCategories.map(category => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(newResource.type === 'PDF' || newResource.type === 'Presentation') && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="resource-filesize">File Size</Label>
+                        <Input 
+                          id="resource-filesize"
+                          value={newResource.file_size}
+                          onChange={(e) => setNewResource({...newResource, file_size: e.target.value})}
+                          placeholder="e.g. 2.5 MB"
+                        />
+                      </div>
+                    )}
+                    {(newResource.type === 'Video' || newResource.type === 'Webinar Recording') && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="resource-duration">Duration</Label>
+                        <Input 
+                          id="resource-duration"
+                          value={newResource.duration}
+                          onChange={(e) => setNewResource({...newResource, duration: e.target.value})}
+                          placeholder="e.g. 45 minutes"
+                        />
+                      </div>
+                    )}
+                    {isAdmin && (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="resource-featured"
+                          checked={!!newResource.featured}
+                          onChange={(e) => setNewResource({...newResource, featured: e.target.checked})}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="resource-featured">Feature this resource</Label>
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="resource-description">Description</Label>
+                    <Textarea 
+                      id="resource-description"
+                      value={newResource.description}
+                      onChange={(e) => setNewResource({...newResource, description: e.target.value})}
+                      placeholder="Describe this resource..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowAddResourceForm(false)}>Cancel</Button>
+                  <Button onClick={handleAddResource} disabled={formSubmitting}>
+                    {formSubmitting ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</>
+                    ) : (
+                      <>Add Resource</>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-        
-        <Tabs defaultValue="courses" className="w-full">
-          <TabsList className="grid w-full md:w-auto grid-cols-3 bg-gray-100">
-            <TabsTrigger 
-              value="courses" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <GraduationCap className="h-4 w-4 mr-2 hidden sm:block" />
-              Courses
-            </TabsTrigger>
-            <TabsTrigger 
-              value="workshops" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <Users className="h-4 w-4 mr-2 hidden sm:block" />
-              Workshops
-            </TabsTrigger>
-            <TabsTrigger 
-              value="resources" 
-              className="data-[state=active]:bg-white data-[state=active]:text-[#ea384c]"
-            >
-              <BookOpen className="h-4 w-4 mr-2 hidden sm:block" />
-              Resources
-            </TabsTrigger>
+
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">All Resources</TabsTrigger>
+            <TabsTrigger value="featured">Featured</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
           </TabsList>
-          
-          {/* Courses Tab */}
-          <TabsContent value="courses" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courses.map((course) => (
-                <motion.div 
-                  key={course.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-xl">{course.title}</CardTitle>
-                          <CardDescription className="mt-1 flex items-center">
-                            <img 
-                              src={course.image} 
-                              alt={course.instructor} 
-                              className="h-6 w-6 rounded-full mr-2"
-                            />
-                            {course.instructor}, {course.institution}
-                          </CardDescription>
-                        </div>
-                        <Badge className={
-                          course.format === 'online' 
-                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' 
-                            : course.format === 'hybrid'
-                            ? 'bg-purple-100 text-purple-800 hover:bg-purple-100'
-                            : 'bg-green-100 text-green-800 hover:bg-green-100'
-                        }>
-                          {course.format === 'online' ? 'Online' : 
-                           course.format === 'hybrid' ? 'Hybrid' : 'In-person'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-2 flex-grow">
-                      <p className="text-sm text-gray-600 mb-4">{course.description}</p>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <p>{course.duration}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-amber-500" />
-                          <p>{course.rating} ({course.reviews} reviews)</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4 text-gray-500" />
-                          <p>{course.level}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-gray-500" />
-                          <p>{course.enrolled.toLocaleString()} enrolled</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        {course.topics.map((topic, index) => (
-                          <Badge key={index} variant="outline" className="font-normal text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-2 flex justify-end">
-                      <Button 
-                        className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90"
-                        onClick={() => handleCourseEnroll(course.id)}
-                      >
-                        Enroll Now
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-            <div className="flex justify-center">
-              <Button variant="outline">Load More Courses</Button>
-            </div>
-          </TabsContent>
-          
-          {/* Workshops Tab */}
-          <TabsContent value="workshops" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {workshops.map((workshop) => (
-                <motion.div 
-                  key={workshop.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-xl">{workshop.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            Organized by {workshop.organizer}
-                          </CardDescription>
-                        </div>
-                        <Badge className={
-                          workshop.type === 'In-person' 
-                            ? 'bg-green-100 text-green-800 hover:bg-green-100' 
-                            : workshop.type === 'Virtual'
-                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-100'
-                            : 'bg-purple-100 text-purple-800 hover:bg-purple-100'
-                        }>
-                          {workshop.type}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-2 flex-grow">
-                      <p className="text-sm text-gray-600 mb-4">{workshop.description}</p>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <p>{workshop.date}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-gray-500" />
-                          <p>{workshop.location}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-gray-500" />
-                          <p>{workshop.remaining} spots left</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{workshop.price}</span>
-                          <p>per person</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        {workshop.topics.map((topic, index) => (
-                          <Badge key={index} variant="outline" className="font-normal text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-2 flex justify-between">
-                      <p className={`text-sm ${workshop.remaining < 10 ? 'text-amber-600 font-medium' : 'text-gray-500'}`}>
-                        {workshop.remaining < 10 
-                          ? `Only ${workshop.remaining} seats remaining!` 
-                          : `${workshop.remaining} of ${workshop.spots} spots available`}
-                      </p>
-                      <Button 
-                        className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90"
-                        onClick={() => handleWorkshopRegister(workshop.id)}
-                      >
-                        Register
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-            <div className="flex justify-center">
-              <Button variant="outline">View All Events</Button>
-            </div>
-          </TabsContent>
-          
-          {/* Resources Tab */}
-          <TabsContent value="resources" className="mt-6 space-y-6">
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex items-center gap-2 text-sm">
-                <h3 className="font-medium">Filter by type:</h3>
-                <div className="flex items-center gap-2">
-                  <Checkbox id="pdf" />
-                  <label htmlFor="pdf">PDF</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox id="video" />
-                  <label htmlFor="video">Video</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox id="spreadsheet" />
-                  <label htmlFor="spreadsheet">Spreadsheet</label>
-                </div>
+
+          {/* All Resources Tab */}
+          <TabsContent value="all" className="mt-4">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative w-full md:w-1/3">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="pl-10">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Types</SelectItem>
+                    {resourceTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="relative w-full md:w-1/3">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="pl-10">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Categories</SelectItem>
+                    {resourceCategories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {resources.map((resource) => (
-                <motion.div 
-                  key={resource.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{resource.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            By {resource.author}
-                          </CardDescription>
+
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredResources.length > 0 ? (
+                  filteredResources.map((resource) => (
+                    <Card key={resource.id} className={`overflow-hidden hover:shadow-md transition-shadow ${resource.featured ? 'border-[#ea384c]' : ''}`}>
+                      <CardHeader className="pb-4">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="p-2 rounded-full bg-gray-100">
+                                {getResourceTypeIcon(resource.type)}
+                              </span>
+                              <Badge>{resource.type}</Badge>
+                              {resource.featured && (
+                                <Badge variant="outline" className="border-[#ea384c] text-[#ea384c]">
+                                  Featured
+                                </Badge>
+                              )}
+                            </div>
+                            <CardTitle className="text-lg mt-2">{resource.title}</CardTitle>
+                          </div>
                         </div>
-                        <Badge className={
-                          resource.type === 'PDF' 
-                            ? 'bg-red-100 text-red-800 hover:bg-red-100' 
-                            : resource.type === 'Video'
-                            ? 'bg-purple-100 text-purple-800 hover:bg-purple-100'
-                            : 'bg-green-100 text-green-800 hover:bg-green-100'
-                        }>
-                          {resource.type}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-2 flex-grow">
-                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                        <div className="flex items-center gap-2">
-                          <p className="text-gray-500">Size:</p>
-                          <p>{resource.size}</p>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <Badge variant="outline" className="mb-2">{resource.category}</Badge>
+                        <p className="text-gray-700 line-clamp-2 mb-4">{resource.description}</p>
+
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                          {resource.file_size && (
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 mr-1" />
+                              {resource.file_size}
+                            </div>
+                          )}
+                          {resource.duration && (
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {resource.duration}
+                            </div>
+                          )}
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            {new Date(resource.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-1" />
+                            {resource.author_name}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {resource.type === 'Video' ? (
-                            <>
-                              <Clock className="h-4 w-4 text-gray-500" />
-                              <p>{resource.duration}</p>
-                            </>
-                          ) : resource.pages ? (
-                            <>
-                              <BookOpen className="h-4 w-4 text-gray-500" />
-                              <p>{resource.pages} pages</p>
-                            </>
-                          ) : null}
+                      </CardContent>
+                      <CardFooter className="flex justify-between border-t pt-4">
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-gray-500"
+                            onClick={() => handleResourceAction(resource.id, 'view')}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-gray-500"
+                            onClick={() => handleResourceAction(resource.id, 'download')}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            {resource.downloads_count}
+                          </Button>
                         </div>
-                        <div className="flex items-center gap-2 col-span-2">
-                          {resource.type === 'Video' ? (
+                        <div className="flex gap-2">
+                          {isAdmin && (
                             <>
-                              <Video className="h-4 w-4 text-gray-500" />
-                              <p>{resource.views?.toLocaleString()} views</p>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDeleteResource(resource.id)}
+                                className="text-red-500"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-blue-500"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
                             </>
-                          ) : resource.downloads ? (
-                            <>
-                              <p className="text-gray-500">Downloads:</p>
-                              <p>{resource.downloads.toLocaleString()}</p>
-                            </>
-                          ) : null}
+                          )}
                         </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        {resource.topics.map((topic, index) => (
-                          <Badge key={index} variant="outline" className="font-normal text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-2 flex justify-end">
-                      <Button 
-                        className="bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] hover:opacity-90"
-                        onClick={() => handleResourceDownload(resource.id)}
-                      >
-                        {resource.type === 'Video' ? 'Watch Now' : 'Download'}
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-            <div className="flex justify-center">
-              <Button variant="outline">Browse Resource Library</Button>
-            </div>
+                      </CardFooter>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-gray-500">No resources found. Try changing your search criteria or add a new resource.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Featured Tab */}
+          <TabsContent value="featured" className="mt-4">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
+              </div>
+            ) : (
+              <>
+                {featuredResources.length > 0 ? (
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-semibold">Featured Resources</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {featuredResources.map((resource) => (
+                        <Card key={resource.id} className="overflow-hidden hover:shadow-md transition-shadow border-[#ea384c]">
+                          <CardHeader className="pb-4">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <div className="flex items-center space-x-2">
+                                  <span className="p-2 rounded-full bg-gray-100">
+                                    {getResourceTypeIcon(resource.type)}
+                                  </span>
+                                  <Badge>{resource.type}</Badge>
+                                  <Badge variant="outline" className="border-[#ea384c] text-[#ea384c]">
+                                    Featured
+                                  </Badge>
+                                </div>
+                                <CardTitle className="text-lg mt-2">{resource.title}</CardTitle>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pb-4">
+                            <Badge variant="outline" className="mb-2">{resource.category}</Badge>
+                            <p className="text-gray-700 line-clamp-2 mb-4">{resource.description}</p>
+                          </CardContent>
+                          <CardFooter className="flex justify-between border-t pt-4">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-gray-500"
+                              onClick={() => handleResourceAction(resource.id, 'view')}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-gray-500"
+                              onClick={() => handleResourceAction(resource.id, 'download')}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              {resource.downloads_count}
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-10">
+                    <p className="text-gray-500">No featured resources available.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </TabsContent>
+          
+          {/* Categories Tab */}
+          <TabsContent value="categories" className="mt-4">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {resourceCategories.map((category) => {
+                  const categoryResources = resources.filter(r => r.category === category);
+                  return (
+                    <Card key={category} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <CardTitle>{category}</CardTitle>
+                        <CardDescription>{categoryResources.length} resources available</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {categoryResources.slice(0, 3).map((resource) => (
+                            <div key={resource.id} className="flex items-center gap-2">
+                              <span className="p-1 rounded-full bg-gray-100">
+                                {getResourceTypeIcon(resource.type)}
+                              </span>
+                              <span className="text-sm truncate">{resource.title}</span>
+                            </div>
+                          ))}
+                          {categoryResources.length > 3 && (
+                            <p className="text-sm text-gray-500">+ {categoryResources.length - 3} more resources</p>
+                          )}
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => {
+                            setFilterCategory(category);
+                            setFilterType("");
+                            document.querySelector('[value="all"]')?.dispatchEvent(new Event('click', { bubbles: true }));
+                          }}
+                        >
+                          Browse Category
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -534,4 +734,4 @@ const Training: React.FC = () => {
   );
 };
 
-export default Training;
+export default TrainingPage;

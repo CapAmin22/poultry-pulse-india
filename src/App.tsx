@@ -21,6 +21,7 @@ import Marketplace from "./pages/Marketplace";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import LandingPage from "./pages/LandingPage";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <Routes>
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route 
                   path="/onboarding" 
@@ -45,7 +47,7 @@ const App = () => (
                   } 
                 />
                 <Route 
-                  path="/" 
+                  path="/dashboard" 
                   element={
                     <ProtectedRoute>
                       <Index />
@@ -102,11 +104,7 @@ const App = () => (
                 />
                 <Route 
                   path="/contact" 
-                  element={
-                    <ProtectedRoute>
-                      <ContactUs />
-                    </ProtectedRoute>
-                  } 
+                  element={<ContactUs />}
                 />
                 <Route 
                   path="/profile" 

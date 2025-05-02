@@ -7,7 +7,11 @@ import AuthFooter from './AuthFooter';
 import SignInForm from './SignInForm';
 import SignUpForm from './SignUpForm';
 
-const AuthForm: React.FC = () => {
+interface AuthFormProps {
+  initialMode?: 'signin' | 'signup';
+}
+
+const AuthForm: React.FC<AuthFormProps> = ({ initialMode }) => {
   const {
     mode,
     email,
@@ -23,7 +27,7 @@ const AuthForm: React.FC = () => {
     loading,
     handleAuth,
     toggleMode,
-  } = useAuthForm();
+  } = useAuthForm(initialMode);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -65,4 +69,3 @@ const AuthForm: React.FC = () => {
 };
 
 export default AuthForm;
-
