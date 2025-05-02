@@ -1,202 +1,193 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Bell, Search, MessageSquare, Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  Bell, 
+  Mail, 
+  Search,
+  Menu,
+  X
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/use-auth';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useSidebar } from '@/contexts/SidebarContext';
-import SearchBar from '@/components/search/SearchBar';
-import SearchResults from '@/components/search/SearchResults';
-import { getNotifications, getMessages, markNotificationsAsRead, markMessagesAsRead } from '@/lib/api';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 import NotificationsDialog from './navbar/NotificationsDialog';
 import MessagesDialog from './navbar/MessagesDialog';
-import UserMenu from './navbar/UserMenu';
 import MobileMenu from './navbar/MobileMenu';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
+import SearchBar from '../search/SearchBar';
+import UserMenu from './navbar/UserMenu';
+
 const Navbar: React.FC = () => {
-  const location = useLocation();
-  const {
-    user
-  } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
-  const {
-    toggleSidebar
-  } = useSidebar();
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [notifications, setNotifications] = useState([{
-    id: 1,
-    title: 'New price update',
-    message: 'Egg prices have been updated for your region',
-    time: '10 min ago',
-    read: false
-  }, {
-    id: 2,
-    title: 'Weather alert',
-    message: 'Upcoming rainstorm may affect your farm area',
-    time: '1 hour ago',
-    read: false
-  }, {
-    id: 3,
-    title: 'New training material',
-    message: 'Check out new training resources on disease prevention',
-    time: '3 hours ago',
-    read: false
-  }]);
-  const [messages, setMessages] = useState([{
-    id: 1,
-    sender: 'Support Team',
-    message: 'How can we help you today?',
-    time: '2 min ago',
-    read: false
-  }, {
-    id: 2,
-    sender: 'Marketing',
-    message: 'New marketplace opportunities available',
-    time: '1 day ago',
-    read: false
-  }]);
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user) {
-        // Fetch user avatar
-        const {
-          data: {
-            user: userData
-          }
-        } = await supabase.auth.getUser();
-        if (userData && userData.user_metadata) {
-          setUserAvatar(userData.user_metadata.avatar_url || null);
-        }
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
 
-        // Fetch notifications and messages
-        // In a real app, these would come from the API
-        const notificationsResponse = await getNotifications(user.id);
-        if (notificationsResponse.success) {
-          setNotifications(notificationsResponse.data);
-        }
-        const messagesResponse = await getMessages(user.id);
-        if (messagesResponse.success) {
-          setMessages(messagesResponse.data);
-        }
-      }
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
     };
-    fetchUserData();
-  }, [user]);
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const handleSignIn = () => {
+    navigate('/auth');
+  };
+
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setShowMobileMenu(!showMobileMenu);
   };
-  const toggleMobileSearch = () => {
-    setShowMobileSearch(!showMobileSearch);
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
   };
-  useEffect(() => {
-    if (!isMobile) {
-      setIsMobileMenuOpen(false);
-      setShowMobileSearch(false);
-    }
-  }, [isMobile]);
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setShowMobileSearch(false);
-  }, [location.pathname]);
-  const navItems = [{
-    name: 'Home',
-    path: '/'
-  }];
-  const markAllNotificationsAsRead = async () => {
-    if (user) {
-      const result = await markNotificationsAsRead(user.id);
-      if (result.success) {
-        setNotifications(prevNotifications => prevNotifications.map(notification => ({
-          ...notification,
-          read: true
-        })));
-      }
-    }
+
+  const toggleMessages = () => {
+    setShowMessages(!showMessages);
   };
-  const markAllMessagesAsRead = async () => {
-    if (user) {
-      const result = await markMessagesAsRead(user.id);
-      if (result.success) {
-        setMessages(prevMessages => prevMessages.map(message => ({
-          ...message,
-          read: true
-        })));
-      }
-    }
-  };
-  const unreadNotificationCount = notifications.filter(n => !n.read).length;
-  const unreadMessageCount = messages.filter(m => !m.read).length;
-  return <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 text-gray-500 hover:text-[#ea384c]">
-              <Menu className="h-5 w-5" />
-            </Button>
-            
-            <Link to="/" className="flex items-center space-x-2">
-              <img src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png" alt="22POULTRY" className="h-8 w-auto" />
-              <span className="font-bold text-xl text-[#f5565c]">22POULTRY</span>
-            </Link>
 
-            <nav className="ml-8 hidden md:flex space-x-1">
-              {navItems.map(item => {})}
-            </nav>
-
-            <button onClick={toggleMobileMenu} className="md:hidden ml-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Desktop Search */}
-            <div className="hidden md:block relative">
-              <SearchBar />
-              <SearchResults />
-            </div>
-
-            {/* Mobile Search Toggle */}
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleMobileSearch}>
-              {showMobileSearch ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-            </Button>
-
-            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsNotificationsOpen(true)}>
-              <Bell className="h-5 w-5" />
-              {unreadNotificationCount > 0 && <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-[#f5565c]">
-                  {unreadNotificationCount}
-                </Badge>}
-            </Button>
-
-            
-
-            <UserMenu userAvatar={userAvatar || undefined} />
-          </div>
+  return (
+    <header className={`fixed top-0 left-0 w-full z-40 transition-all duration-200 ${isScrolled ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-sm'}`}>
+      <div className="container mx-auto flex justify-between items-center px-4 h-16">
+        <div className="flex items-center">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png" 
+              alt="22POULTRY" 
+              className="h-10 w-auto mr-2" 
+            />
+            <span className="font-bold text-xl text-[#f5565c]">22POULTRY</span>
+          </Link>
         </div>
 
-        {/* Mobile Menu */}
-        <MobileMenu isOpen={isMobileMenuOpen} navItems={navItems} onItemClick={() => setIsMobileMenuOpen(false)} />
+        {/* Main Navigation - Desktop Only */}
+        <nav className="hidden md:flex items-center space-x-1">
+          <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            Home
+          </Link>
+          <Link to="/statistics" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            Statistics
+          </Link>
+          <Link to="/marketplace" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            Marketplace
+          </Link>
+          <Link to="/financial" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            Financial
+          </Link>
+          <Link to="/network" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            Network
+          </Link>
+          <Link to="/training" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            Training
+          </Link>
+          <Link to="/news" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-[#f5565c] hover:bg-gray-100">
+            News
+          </Link>
+        </nav>
 
-        {/* Mobile Search */}
-        <div className={`md:hidden ${showMobileSearch ? 'block' : 'hidden'} py-2`}>
-          <div className="relative">
-            <SearchBar isMobile={true} />
-            <SearchResults />
+        {/* Right Side Navigation */}
+        <div className="flex items-center">
+          {/* Search */}
+          <div className="hidden md:block mr-4">
+            <SearchBar />
           </div>
+
+          {/* Authenticated User Options */}
+          {user ? (
+            <div className="flex items-center">
+              {/* Notifications */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="mr-1 text-gray-600 hover:text-[#f5565c]"
+                onClick={toggleNotifications}
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500" />
+              </Button>
+              
+              {/* Messages */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="mr-2 text-gray-600 hover:text-[#f5565c]"
+                onClick={toggleMessages}
+              >
+                <Mail className="h-5 w-5" />
+              </Button>
+              
+              {/* User Menu */}
+              <UserMenu user={user} onSignOut={handleSignOut} />
+              
+              {/* Mobile menu button */}
+              <div className="md:hidden ml-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={toggleMobileMenu}
+                >
+                  {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <Button 
+                variant="outline" 
+                className="mr-2 border-[#f5565c] text-[#f5565c] hover:bg-[#f5565c] hover:text-white hidden md:block"
+                onClick={handleSignIn}
+              >
+                Sign In
+              </Button>
+              <Button 
+                className="bg-[#f5565c] hover:bg-[#d02f3d] text-white hidden md:block"
+                onClick={() => navigate('/auth', { state: { initialMode: 'signup' } })}
+              >
+                Sign Up
+              </Button>
+              
+              {/* Mobile menu button */}
+              <div className="md:hidden">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={toggleMobileMenu}
+                >
+                  {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Notification Dialog */}
-      <NotificationsDialog isOpen={isNotificationsOpen} onOpenChange={setIsNotificationsOpen} notifications={notifications} onClearAll={markAllNotificationsAsRead} />
-
-      {/* Messages Dialog */}
-      <MessagesDialog isOpen={isMessagesOpen} onOpenChange={setIsMessagesOpen} messages={messages} onMarkAllRead={markAllMessagesAsRead} />
-    </header>;
+      {/* Mobile menu, dialogs */}
+      {showMobileMenu && <MobileMenu isAuthenticated={!!user} onClose={toggleMobileMenu} onSignIn={handleSignIn} />}
+      
+      {/* This is where the error was - the component renders conditionally */}
+      {showNotifications && <NotificationsDialog open={showNotifications} onClose={toggleNotifications} />}
+      {showMessages && <MessagesDialog open={showMessages} onClose={toggleMessages} />}
+    </header>
+  );
 };
+
 export default Navbar;

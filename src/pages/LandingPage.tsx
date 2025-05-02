@@ -9,7 +9,8 @@ import {
   DollarSign,
   BarChart2,
   MessageSquare,
-  Check
+  Check,
+  Play
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -97,15 +98,30 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-white to-red-50 py-20">
-        <div className="container mx-auto px-4">
+      <section className="relative overflow-hidden py-20">
+        {/* Video Background */}
+        <div className="absolute inset-0 w-full h-full z-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
+          <video 
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+          >
+            <source src="https://player.vimeo.com/progressive_redirect/playback/771259686/rendition/1080p/file.mp4?loc=external&signature=9499cbcee67a79afe753c581916e3ee8c9b10c1345739efbec175441fe06c1c8" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-20">
           <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="md:w-1/2 mb-10 md:mb-0">
+            <div className="md:w-1/2 mb-10 md:mb-0 text-white">
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 transition={{ duration: 0.5 }}
-                className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight"
+                className="text-4xl md:text-5xl font-bold mb-6 leading-tight"
               >
                 Empowering India's <span className="text-[#ea384c]">Poultry Industry</span> Through Digital Innovation
               </motion.h1>
@@ -113,7 +129,7 @@ const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-lg text-gray-600 mb-8"
+                className="text-lg text-gray-200 mb-8"
               >
                 Join India's first integrated digital platform connecting farmers, distributors, processors, and service providers across the poultry value chain.
               </motion.p>
@@ -132,26 +148,69 @@ const LandingPage: React.FC = () => {
                 </Button>
                 <Button 
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                  className="border-white text-white hover:bg-white/20"
                   onClick={() => navigate('/contact')}
                 >
                   Learn More
                 </Button>
               </motion.div>
+              
+              <div className="mt-8 bg-white/10 backdrop-blur-md p-4 rounded-lg inline-block">
+                <div className="flex items-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="rounded-full bg-white/20 border-0 text-white hover:bg-white/30 mr-3"
+                  >
+                    <Play className="h-4 w-4" />
+                  </Button>
+                  <div>
+                    <p className="text-white font-medium">Watch our intro</p>
+                    <p className="text-white/70 text-sm">See how we're transforming the industry</p>
+                  </div>
+                </div>
+              </div>
             </div>
+            
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }} 
               animate={{ opacity: 1, scale: 1 }} 
               transition={{ duration: 0.5, delay: 0.3 }}
               className="md:w-1/2 relative"
             >
-              <img 
-                src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png"
-                alt="22POULTRY Platform Preview" 
-                className="w-full max-w-lg mx-auto rounded-lg shadow-xl"
-              />
-              <div className="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-red-200 to-blue-200 rounded-full opacity-20 blur-3xl"></div>
+              <div className="bg-white/10 backdrop-blur-md p-3 rounded-lg">
+                <img 
+                  src="https://images.unsplash.com/photo-1583367371-5ad24d59f642?q=80&w=2670&auto=format&fit=crop"
+                  alt="Modern Poultry Farm" 
+                  className="w-full rounded-lg shadow-2xl"
+                />
+                <div className="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-red-200/30 to-blue-200/30 rounded-full opacity-20 blur-3xl"></div>
+              </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics Bar */}
+      <section className="bg-gradient-to-r from-[#ea384c] to-[#d02f3d] text-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <h3 className="text-3xl font-bold">5,000+</h3>
+              <p className="text-white/80">Registered Farmers</p>
+            </div>
+            <div>
+              <h3 className="text-3xl font-bold">₹50Cr+</h3>
+              <p className="text-white/80">Financial Assistance</p>
+            </div>
+            <div>
+              <h3 className="text-3xl font-bold">200+</h3>
+              <p className="text-white/80">Industry Experts</p>
+            </div>
+            <div>
+              <h3 className="text-3xl font-bold">25+</h3>
+              <p className="text-white/80">States Covered</p>
+            </div>
           </div>
         </div>
       </section>
@@ -183,6 +242,58 @@ const LandingPage: React.FC = () => {
                 </Card>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Image Showcase Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-gray-800 text-center mb-12">See 22POULTRY In Action</h2>
+          
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 md:col-span-8">
+              <img 
+                src="https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?q=80&w=2574&auto=format&fit=crop"
+                alt="Modern poultry farm" 
+                className="w-full h-[400px] object-cover rounded-lg shadow-md"
+              />
+            </div>
+            <div className="col-span-12 md:col-span-4 grid grid-rows-2 gap-4">
+              <img 
+                src="https://images.unsplash.com/photo-1626263020748-235deef60aac?q=80&w=2574&auto=format&fit=crop"
+                alt="Poultry care" 
+                className="w-full h-full object-cover rounded-lg shadow-md"
+              />
+              <img 
+                src="https://images.unsplash.com/photo-1507434965515-61642818318c?q=80&w=2574&auto=format&fit=crop"
+                alt="Healthy chickens" 
+                className="w-full h-full object-cover rounded-lg shadow-md"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-12 gap-4 mt-4">
+            <div className="col-span-12 md:col-span-3">
+              <div className="bg-[#ea384c] h-full rounded-lg shadow-md p-6 text-white flex flex-col justify-center">
+                <h3 className="text-xl font-bold mb-2">Data-Driven Decisions</h3>
+                <p className="text-white/80">Access real-time market analytics to optimize your operations</p>
+              </div>
+            </div>
+            <div className="col-span-12 md:col-span-5">
+              <img 
+                src="https://images.unsplash.com/photo-1563599205636-efa4d5a3c1e2?q=80&w=2574&auto=format&fit=crop"
+                alt="Farm technology" 
+                className="w-full h-full object-cover rounded-lg shadow-md"
+              />
+            </div>
+            <div className="col-span-12 md:col-span-4">
+              <img 
+                src="https://images.pexels.com/photos/3750717/pexels-photo-3750717.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                alt="Poultry processing" 
+                className="w-full h-full object-cover rounded-lg shadow-md"
+              />
+            </div>
           </div>
         </div>
       </section>

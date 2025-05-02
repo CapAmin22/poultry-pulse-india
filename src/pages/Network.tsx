@@ -2,1075 +2,1492 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
-import { Loader2, Plus, Search, Filter, Calendar, MessageCircle, Users, Award, UserCheck } from "lucide-react";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { 
+  Users, 
+  Calendar, 
+  User, 
+  Briefcase,
+  MessageCircle,
+  Search,
+  FileText,
+  MapPin,
+  Building,
+  Clock,
+  Award,
+  CheckCircle,
+  Plus,
+  Heart,
+  Share2,
+  Send
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { Farmer, Expert, Event, JobListing, NetworkPost } from '@/types/network';
 
-interface NetworkProfile {
-  id: string;
-  name: string;
-  location: string;
-  experience: string;
-  image_url?: string;
-}
-
-interface Farmer extends NetworkProfile {
-  farm_size: string;
-  farm_type: string;
-  expertise: string[];
-  contact_number?: string;
-}
-
-interface Expert extends NetworkProfile {
-  title: string;
-  organization: string;
-  expertise: string[];
-  verified: boolean;
-}
-
-interface Discussion {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  created_at: string;
-  likes_count: number;
-  replies_count: number;
-  is_pinned: boolean;
-  user_id: string;
-}
-
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  type: string;
-  organizer: string;
-  description?: string;
-  attendees_count: number;
-}
-
-const NetworkPage: React.FC = () => {
+const Network: React.FC = () => {
   const { user, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState("farmers");
-  const [loading, setLoading] = useState(true);
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [experts, setExperts] = useState<Expert[]>([]);
-  const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
+  const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [posts, setPosts] = useState<NetworkPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedExpertise, setSelectedExpertise] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
 
-  // New form states
-  const [showFarmerForm, setShowFarmerForm] = useState(false);
-  const [showExpertForm, setShowExpertForm] = useState(false);
-  const [showDiscussionForm, setShowDiscussionForm] = useState(false);
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [formSubmitting, setFormSubmitting] = useState(false);
+  // Profile registration state
+  const [showFarmerProfile, setShowFarmerProfile] = useState(false);
+  const [showExpertProfile, setShowExpertProfile] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profileLocation, setProfileLocation] = useState('');
+  const [farmType, setFarmType] = useState('');
+  const [farmSize, setFarmSize] = useState('');
+  const [expertise, setExpertise] = useState<string[]>([]);
+  const [experience, setExperience] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [title, setTitle] = useState('');
 
-  // New farmer form
-  const [newFarmer, setNewFarmer] = useState<Partial<Farmer>>({
-    name: "",
-    location: "",
-    experience: "",
-    farm_size: "",
-    farm_type: "",
-    expertise: [],
-    contact_number: "",
-    image_url: ""
-  });
+  // New post state
+  const [showPostDialog, setShowPostDialog] = useState(false);
+  const [postContent, setPostContent] = useState('');
+  const [postImage, setPostImage] = useState('');
 
-  // New expert form
-  const [newExpert, setNewExpert] = useState<Partial<Expert>>({
-    name: "",
-    title: "",
-    organization: "",
-    location: "",
-    experience: "",
-    expertise: [],
-    verified: false,
-    image_url: ""
-  });
-
-  // New discussion form
-  const [newDiscussion, setNewDiscussion] = useState({
-    title: "",
-    category: "",
-    content: ""
-  });
-
-  // New event form
-  const [newEvent, setNewEvent] = useState({
-    title: "",
-    date: "",
-    location: "",
-    type: "",
-    organizer: "",
-    description: ""
-  });
+  // Event & job dialog state
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [showJobDialog, setShowJobDialog] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventImage, setEventImage] = useState('');
+  const [eventOrganizer, setEventOrganizer] = useState('');
+  const [eventContact, setEventContact] = useState('');
+  const [eventCategory, setEventCategory] = useState('');
+  
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobCompany, setJobCompany] = useState('');
+  const [jobLocation, setJobLocation] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [jobRequirements, setJobRequirements] = useState<string[]>([]);
+  const [jobSalary, setJobSalary] = useState('');
+  const [jobContactEmail, setJobContactEmail] = useState('');
 
   useEffect(() => {
-    const fetchNetworkData = async () => {
-      setLoading(true);
-      try {
-        // Fetch farmers
-        const { data: farmersData, error: farmersError } = await supabase
-          .from('network_farmers')
-          .select('*');
-
-        if (farmersError) throw farmersError;
-        setFarmers(farmersData || []);
-
-        // Fetch experts
-        const { data: expertsData, error: expertsError } = await supabase
-          .from('network_experts')
-          .select('*');
-
-        if (expertsError) throw expertsError;
-        setExperts(expertsData || []);
-
-        // Fetch discussions
-        const { data: discussionsData, error: discussionsError } = await supabase
-          .from('network_discussions')
-          .select('*')
-          .order('is_pinned', { ascending: false })
-          .order('created_at', { ascending: false });
-
-        if (discussionsError) throw discussionsError;
-        setDiscussions(discussionsData || []);
-
-        // Fetch events
-        const { data: eventsData, error: eventsError } = await supabase
-          .from('network_events')
-          .select('*')
-          .order('date', { ascending: true });
-
-        if (eventsError) throw eventsError;
-        setEvents(eventsData || []);
-
-      } catch (error) {
-        console.error("Error fetching network data:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load network data. Please try again.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNetworkData();
-  }, []);
-
-  const handleAddFarmer = async () => {
-    if (!newFarmer.name || !newFarmer.location || !newFarmer.farm_type) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-      });
-      return;
+    if (user) {
+      fetchNetworkData();
     }
+  }, [user]);
 
-    setFormSubmitting(true);
+  const fetchNetworkData = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('network_farmers')
-        .insert({
-          ...newFarmer,
-          user_id: user?.id || null,
-        })
-        .select();
-
-      if (error) throw error;
-
-      toast({
-        title: "Farmer Profile Added",
-        description: "The farmer profile has been added successfully.",
-      });
-
-      if (data) {
-        setFarmers([...farmers, data[0] as Farmer]);
-      }
-
-      setShowFarmerForm(false);
-      setNewFarmer({
-        name: "",
-        location: "",
-        experience: "",
-        farm_size: "",
-        farm_type: "",
-        expertise: [],
-        contact_number: "",
-        image_url: ""
-      });
+      await Promise.all([
+        fetchFarmers(),
+        fetchExperts(),
+        fetchEvents(),
+        fetchJobs(),
+        fetchPosts()
+      ]);
     } catch (error) {
-      console.error("Error adding farmer:", error);
+      console.error('Error fetching network data:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to add farmer profile. Please try again.",
+        title: "Error fetching network data",
+        description: "Please try refreshing the page."
       });
     } finally {
-      setFormSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const handleAddExpert = async () => {
-    if (!newExpert.name || !newExpert.title || !newExpert.organization) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-      });
-      return;
-    }
+  const fetchFarmers = async () => {
+    const { data, error } = await supabase.from('farmers').select('*');
+    if (error) throw error;
+    setFarmers(data as Farmer[]);
+  };
 
-    setFormSubmitting(true);
+  const fetchExperts = async () => {
+    const { data, error } = await supabase.from('experts').select('*');
+    if (error) throw error;
+    // Make sure each expert has the required 'location' field even if it's missing
+    const typedData = data.map(expert => ({
+      ...expert,
+      location: expert.location || 'Not specified'
+    })) as Expert[];
+    setExperts(typedData);
+  };
+
+  const fetchEvents = async () => {
+    const { data, error } = await supabase.from('events').select('*');
+    if (error) throw error;
+    setEvents(data as Event[]);
+  };
+
+  const fetchJobs = async () => {
+    const { data, error } = await supabase.from('job_listings').select('*');
+    if (error) throw error;
+    setJobs(data as JobListing[]);
+  };
+
+  const fetchPosts = async () => {
+    const { data, error } = await supabase.from('network_posts').select('*');
+    if (error) throw error;
+    setPosts(data as NetworkPost[]);
+  };
+
+  const handleAddFarmerProfile = async () => {
+    if (!user) return;
+    
     try {
-      // If admin is adding an expert, they can mark it as verified
-      const expertData = {
-        ...newExpert,
-        verified: isAdmin ? true : false,
-        user_id: user?.id || null,
+      const farmerProfile: Farmer = {
+        user_id: user.id,
+        name: profileName,
+        location: profileLocation,
+        farm_type: farmType,
+        farm_size: farmSize,
+        expertise: expertise,
+        experience: experience,
+        contact_number: contactNumber,
+        image_url: profileImage
       };
-
+      
       const { data, error } = await supabase
-        .from('network_experts')
-        .insert(expertData)
-        .select();
-
+        .from('farmers')
+        .insert(farmerProfile);
+      
       if (error) throw error;
-
+      
       toast({
-        title: "Expert Profile Added",
-        description: "The expert profile has been added successfully.",
+        title: "Profile created",
+        description: "Your farmer profile has been created successfully."
       });
-
-      if (data) {
-        setExperts([...experts, data[0] as Expert]);
-      }
-
-      setShowExpertForm(false);
-      setNewExpert({
-        name: "",
-        title: "",
-        organization: "",
-        location: "",
-        experience: "",
-        expertise: [],
-        verified: false,
-        image_url: ""
-      });
+      
+      setShowFarmerProfile(false);
+      fetchFarmers();
+      
+      // Reset form
+      resetProfileForm();
     } catch (error) {
-      console.error("Error adding expert:", error);
+      console.error('Error creating farmer profile:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to add expert profile. Please try again.",
+        title: "Error creating profile",
+        description: "Please try again later."
       });
-    } finally {
-      setFormSubmitting(false);
     }
   };
 
-  const handleAddDiscussion = async () => {
-    if (!newDiscussion.title || !newDiscussion.category || !newDiscussion.content) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-      });
-      return;
-    }
-
-    setFormSubmitting(true);
+  const handleAddExpertProfile = async () => {
+    if (!user) return;
+    
     try {
+      const expertProfile: Expert = {
+        user_id: user.id,
+        name: profileName,
+        title: title,
+        organization: organization,
+        expertise: expertise,
+        experience: experience,
+        location: profileLocation,
+        image_url: profileImage,
+        verified: false
+      };
+      
       const { data, error } = await supabase
-        .from('network_discussions')
-        .insert({
-          ...newDiscussion,
-          user_id: user?.id,
-          is_pinned: isAdmin ? true : false, // Only admin can pin discussions by default
-          likes_count: 0,
-          replies_count: 0
-        })
-        .select();
-
+        .from('experts')
+        .insert(expertProfile);
+      
       if (error) throw error;
-
+      
       toast({
-        title: "Discussion Added",
-        description: "Your discussion has been posted successfully.",
+        title: "Profile created",
+        description: "Your expert profile has been created successfully. It will be verified by an admin."
       });
-
-      if (data) {
-        setDiscussions([data[0] as Discussion, ...discussions]);
-      }
-
-      setShowDiscussionForm(false);
-      setNewDiscussion({
-        title: "",
-        category: "",
-        content: ""
-      });
+      
+      setShowExpertProfile(false);
+      fetchExperts();
+      
+      // Reset form
+      resetProfileForm();
     } catch (error) {
-      console.error("Error adding discussion:", error);
+      console.error('Error creating expert profile:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to post discussion. Please try again.",
+        title: "Error creating profile",
+        description: "Please try again later."
       });
-    } finally {
-      setFormSubmitting(false);
     }
   };
-
+  
   const handleAddEvent = async () => {
-    if (!newEvent.title || !newEvent.date || !newEvent.location || !newEvent.type) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-      });
-      return;
-    }
-
-    setFormSubmitting(true);
+    if (!user) return;
+    
     try {
+      const newEvent: Omit<Event, 'id'> = {
+        title: eventTitle,
+        description: eventDescription,
+        date: eventDate,
+        location: eventLocation,
+        image_url: eventImage,
+        organizer: eventOrganizer,
+        contact: eventContact,
+        category: eventCategory
+      };
+      
       const { data, error } = await supabase
-        .from('network_events')
-        .insert({
-          ...newEvent,
-          updated_by: user?.id,
-          attendees_count: 0
-        })
-        .select();
-
+        .from('events')
+        .insert(newEvent);
+      
       if (error) throw error;
-
+      
       toast({
-        title: "Event Added",
-        description: "The event has been added successfully.",
+        title: "Event added",
+        description: "The event has been added successfully."
       });
-
-      if (data) {
-        setEvents([...events, data[0] as Event]);
-      }
-
-      setShowEventForm(false);
-      setNewEvent({
-        title: "",
-        date: "",
-        location: "",
-        type: "",
-        organizer: "",
-        description: ""
-      });
+      
+      setShowEventDialog(false);
+      fetchEvents();
+      
+      // Reset form
+      resetEventForm();
     } catch (error) {
-      console.error("Error adding event:", error);
+      console.error('Error adding event:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to add event. Please try again.",
+        title: "Error adding event",
+        description: "Please try again later."
       });
-    } finally {
-      setFormSubmitting(false);
     }
   };
+  
+  const handleAddJob = async () => {
+    if (!user) return;
+    
+    try {
+      const newJob: Omit<JobListing, 'id'> = {
+        title: jobTitle,
+        company: jobCompany,
+        location: jobLocation,
+        description: jobDescription,
+        requirements: jobRequirements,
+        salary_range: jobSalary,
+        contact_email: jobContactEmail
+      };
+      
+      const { data, error } = await supabase
+        .from('job_listings')
+        .insert(newJob);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Job listing added",
+        description: "The job listing has been added successfully."
+      });
+      
+      setShowJobDialog(false);
+      fetchJobs();
+      
+      // Reset form
+      resetJobForm();
+    } catch (error) {
+      console.error('Error adding job listing:', error);
+      toast({
+        variant: "destructive",
+        title: "Error adding job listing",
+        description: "Please try again later."
+      });
+    }
+  };
+  
+  const handleAddPost = async () => {
+    if (!user) return;
+    
+    try {
+      const newPost: Omit<NetworkPost, 'id' | 'likes' | 'comments'> = {
+        user_id: user.id,
+        author_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Anonymous',
+        author_image: user.user_metadata?.avatar_url || '',
+        content: postContent,
+        image_url: postImage,
+        created_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabase
+        .from('network_posts')
+        .insert({
+          ...newPost,
+          likes: 0,
+          comments: 0
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Post published",
+        description: "Your post has been published successfully."
+      });
+      
+      setShowPostDialog(false);
+      fetchPosts();
+      
+      // Reset form
+      setPostContent('');
+      setPostImage('');
+    } catch (error) {
+      console.error('Error publishing post:', error);
+      toast({
+        variant: "destructive",
+        title: "Error publishing post",
+        description: "Please try again later."
+      });
+    }
+  };
+  
+  // Helper function to reset form fields
+  const resetProfileForm = () => {
+    setProfileName('');
+    setProfileLocation('');
+    setFarmType('');
+    setFarmSize('');
+    setExpertise([]);
+    setExperience('');
+    setContactNumber('');
+    setProfileImage('');
+    setOrganization('');
+    setTitle('');
+  };
+  
+  const resetEventForm = () => {
+    setEventTitle('');
+    setEventDescription('');
+    setEventDate('');
+    setEventLocation('');
+    setEventImage('');
+    setEventOrganizer('');
+    setEventContact('');
+    setEventCategory('');
+  };
+  
+  const resetJobForm = () => {
+    setJobTitle('');
+    setJobCompany('');
+    setJobLocation('');
+    setJobDescription('');
+    setJobRequirements([]);
+    setJobSalary('');
+    setJobContactEmail('');
+  };
 
+  // Filter functions
   const filteredFarmers = farmers.filter(farmer => {
-    const searchIn = (farmer.name + farmer.location + farmer.farm_type).toLowerCase();
-    return searchIn.includes(searchQuery.toLowerCase());
+    const matchesSearch = farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         farmer.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         farmer.farm_type.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesExpertise = selectedExpertise === 'all' || 
+                            (farmer.expertise && farmer.expertise.includes(selectedExpertise));
+    
+    const matchesLocation = selectedLocation === 'all' ||
+                           farmer.location.toLowerCase().includes(selectedLocation.toLowerCase());
+    
+    return matchesSearch && matchesExpertise && matchesLocation;
   });
 
   const filteredExperts = experts.filter(expert => {
-    const searchIn = (expert.name + expert.title + expert.organization).toLowerCase();
-    return searchIn.includes(searchQuery.toLowerCase());
+    const matchesSearch = expert.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         expert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         expert.organization.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesExpertise = selectedExpertise === 'all' || 
+                            expert.expertise.includes(selectedExpertise);
+    
+    const matchesLocation = selectedLocation === 'all' ||
+                           expert.location.toLowerCase().includes(selectedLocation.toLowerCase());
+    
+    return matchesSearch && matchesExpertise && matchesLocation;
   });
 
-  const filteredDiscussions = discussions.filter(discussion => {
-    const matchesSearch = discussion.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !filterCategory || discussion.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Get unique locations and expertise areas for filters
+  const locations = [...new Set([
+    ...farmers.map(farmer => farmer.location),
+    ...experts.map(expert => expert.location)
+  ])].filter(location => location);
 
-  const filteredEvents = events.filter(event => {
-    const searchIn = (event.title + event.location + event.organizer).toLowerCase();
-    return searchIn.includes(searchQuery.toLowerCase());
-  });
-
-  const discussionCategories = ["General", "Technical", "Market", "Health", "Equipment", "Feed", "Regulations"];
-  const expertiseOptions = ["Poultry Health", "Feed Management", "Breeding", "Marketing", "Processing", "Farm Design"];
-  const eventTypes = ["Workshop", "Conference", "Webinar", "Exhibition", "Networking"];
-  const farmTypes = ["Layer", "Broiler", "Mixed", "Organic", "Free-range"];
-  const farmSizes = ["Small (<500 birds)", "Medium (500-2000 birds)", "Large (2000-10000 birds)", "Enterprise (>10000 birds)"];
-  const experienceLevels = ["Beginner (<2 years)", "Intermediate (2-5 years)", "Experienced (5-10 years)", "Expert (10+ years)"];
+  const expertiseAreas = [...new Set([
+    ...farmers.flatMap(farmer => farmer.expertise || []),
+    ...experts.flatMap(expert => expert.expertise)
+  ])].filter(exp => exp);
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8">
+        {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 md:p-8 shadow-sm border border-gray-100"
         >
-          <h1 className="text-3xl font-bold">Network</h1>
-          <p className="text-gray-500 mt-1">Connect with farmers, experts, and industry professionals</p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Poultry Network</h1>
+              <p className="text-gray-600 mt-2">Connect with farmers, experts, and industry professionals</p>
+            </div>
+            <div className="flex space-x-3 mt-4 md:mt-0">
+              <Button 
+                variant="outline"
+                className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
+                onClick={() => setShowPostDialog(true)}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" /> Create Post
+              </Button>
+              {isAdmin && (
+                <>
+                  <Button 
+                    variant="outline"
+                    className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                    onClick={() => setShowEventDialog(true)}
+                  >
+                    <Calendar className="h-4 w-4 mr-2" /> Add Event
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                    onClick={() => setShowJobDialog(true)}
+                  >
+                    <Briefcase className="h-4 w-4 mr-2" /> Add Job
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </motion.div>
-        
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-          <div className="relative w-full md:w-1/2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input 
-              placeholder="Search..." 
-              className="pl-10"
+
+        {/* Create Profile Card - if user doesn't have a profile */}
+        {user && !loading && !farmers.some(f => f.user_id === user.id) && !experts.some(e => e.user_id === user.id) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+          >
+            <h2 className="text-lg font-medium mb-3">Complete Your Network Profile</h2>
+            <p className="text-gray-600 mb-4">Creating a profile helps you connect with others in the poultry industry and showcase your expertise.</p>
+            
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                onClick={() => setShowFarmerProfile(true)}
+                className="bg-[#ea384c] hover:bg-[#d02f3d]"
+              >
+                Create Farmer Profile
+              </Button>
+              <Button 
+                variant="outline"
+                className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
+                onClick={() => setShowExpertProfile(true)}
+              >
+                Create Expert Profile
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Search and Filter Section */}
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search network..."
+              className="pl-10 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
-          {isAdmin && (
-            <div className="flex gap-2">
-              <Badge className="bg-[#ea384c]">Admin Mode</Badge>
-            </div>
-          )}
+          <div className="flex gap-3 w-full md:w-auto">
+            <Select
+              value={selectedExpertise}
+              onValueChange={setSelectedExpertise}
+            >
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Expertise" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Expertise</SelectItem>
+                {expertiseAreas.map((exp, i) => (
+                  <SelectItem key={i} value={exp}>{exp}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={selectedLocation}
+              onValueChange={setSelectedLocation}
+            >
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.map((loc, i) => (
+                  <SelectItem key={i} value={loc}>{loc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        
-        <Tabs defaultValue="farmers" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="farmers">Farmers</TabsTrigger>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="community" className="w-full">
+          <TabsList className="grid grid-cols-4 md:w-[600px]">
+            <TabsTrigger value="community">Community</TabsTrigger>
             <TabsTrigger value="experts">Experts</TabsTrigger>
-            <TabsTrigger value="discussions">Discussions</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="jobs">Jobs</TabsTrigger>
           </TabsList>
 
-          {/* Farmers Tab */}
-          <TabsContent value="farmers" className="mt-4">
-            <div className="flex justify-between mb-6">
-              <h2 className="text-xl font-semibold">Poultry Farmers</h2>
-              <Dialog open={showFarmerForm} onOpenChange={setShowFarmerForm}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus size={16} className="mr-2" />
-                    Add Farmer
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Add Farmer Profile</DialogTitle>
-                    <DialogDescription>
-                      Add a new farmer to the network. {isAdmin && "As an admin, you can add farmers on behalf of users."}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="farmer-name">Name</Label>
-                      <Input 
-                        id="farmer-name"
-                        value={newFarmer.name}
-                        onChange={(e) => setNewFarmer({...newFarmer, name: e.target.value})}
-                        placeholder="Full name"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="farmer-location">Location</Label>
-                      <Input 
-                        id="farmer-location"
-                        value={newFarmer.location}
-                        onChange={(e) => setNewFarmer({...newFarmer, location: e.target.value})}
-                        placeholder="City, State"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="farmer-contact">Contact Number (Optional)</Label>
-                      <Input 
-                        id="farmer-contact"
-                        value={newFarmer.contact_number || ''}
-                        onChange={(e) => setNewFarmer({...newFarmer, contact_number: e.target.value})}
-                        placeholder="Phone number"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="farmer-farm-type">Farm Type</Label>
-                      <Select
-                        value={newFarmer.farm_type}
-                        onValueChange={(value) => setNewFarmer({...newFarmer, farm_type: value})}
-                      >
-                        <SelectTrigger id="farmer-farm-type">
-                          <SelectValue placeholder="Select farm type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {farmTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="farmer-farm-size">Farm Size</Label>
-                      <Select
-                        value={newFarmer.farm_size}
-                        onValueChange={(value) => setNewFarmer({...newFarmer, farm_size: value})}
-                      >
-                        <SelectTrigger id="farmer-farm-size">
-                          <SelectValue placeholder="Select farm size" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {farmSizes.map(size => (
-                            <SelectItem key={size} value={size}>{size}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="farmer-experience">Experience</Label>
-                      <Select
-                        value={newFarmer.experience}
-                        onValueChange={(value) => setNewFarmer({...newFarmer, experience: value})}
-                      >
-                        <SelectTrigger id="farmer-experience">
-                          <SelectValue placeholder="Select experience level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {experienceLevels.map(exp => (
-                            <SelectItem key={exp} value={exp}>{exp}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowFarmerForm(false)}>Cancel</Button>
-                    <Button onClick={handleAddFarmer} disabled={formSubmitting}>
-                      {formSubmitting ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</>
-                      ) : (
-                        <>Add Farmer</>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-
+          <TabsContent value="community" className="pt-6 space-y-6">
             {loading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading community members...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredFarmers.length > 0 ? (
-                  filteredFarmers.map((farmer) => (
-                    <Card key={farmer.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                            {farmer.image_url ? (
-                              <img src={farmer.image_url} alt={farmer.name} className="h-full w-full object-cover" />
-                            ) : (
-                              <Users className="h-6 w-6 text-gray-500" />
-                            )}
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">{farmer.name}</CardTitle>
-                            <p className="text-sm text-gray-500">{farmer.location}</p>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Farm Type:</span>
-                            <span className="text-sm">{farmer.farm_type}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Farm Size:</span>
-                            <span className="text-sm">{farmer.farm_size}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Experience:</span>
-                            <span className="text-sm">{farmer.experience}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full">View Profile</Button>
-                      </CardFooter>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-10">
-                    <p className="text-gray-500">No farmers found. Try changing your search criteria.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Experts Tab */}
-          <TabsContent value="experts" className="mt-4">
-            <div className="flex justify-between mb-6">
-              <h2 className="text-xl font-semibold">Industry Experts</h2>
-              <Dialog open={showExpertForm} onOpenChange={setShowExpertForm}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus size={16} className="mr-2" />
-                    Add Expert
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Add Expert Profile</DialogTitle>
-                    <DialogDescription>
-                      Add a new expert to the network. {isAdmin && "As an admin, experts you add will be verified automatically."}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="expert-name">Name</Label>
-                      <Input 
-                        id="expert-name"
-                        value={newExpert.name}
-                        onChange={(e) => setNewExpert({...newExpert, name: e.target.value})}
-                        placeholder="Full name"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="expert-title">Title/Designation</Label>
-                      <Input 
-                        id="expert-title"
-                        value={newExpert.title}
-                        onChange={(e) => setNewExpert({...newExpert, title: e.target.value})}
-                        placeholder="e.g. Poultry Consultant, Veterinarian"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="expert-org">Organization</Label>
-                      <Input 
-                        id="expert-org"
-                        value={newExpert.organization}
-                        onChange={(e) => setNewExpert({...newExpert, organization: e.target.value})}
-                        placeholder="Company or organization name"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="expert-location">Location</Label>
-                      <Input 
-                        id="expert-location"
-                        value={newExpert.location || ''}
-                        onChange={(e) => setNewExpert({...newExpert, location: e.target.value})}
-                        placeholder="City, State"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="expert-experience">Experience</Label>
-                      <Select
-                        value={newExpert.experience}
-                        onValueChange={(value) => setNewExpert({...newExpert, experience: value})}
+              <>
+                <div>
+                  <h2 className="text-xl font-semibold mb-4">Community Posts</h2>
+                  {posts.length === 0 ? (
+                    <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
+                      <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <h3 className="text-lg font-medium text-gray-700">No posts yet</h3>
+                      <p className="text-gray-500 mt-1 max-w-md mx-auto">
+                        Be the first to create a post in the community!
+                      </p>
+                      <Button
+                        className="mt-4 bg-[#ea384c] hover:bg-[#d02f3d]"
+                        onClick={() => setShowPostDialog(true)}
                       >
-                        <SelectTrigger id="expert-experience">
-                          <SelectValue placeholder="Select experience level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {experienceLevels.map(exp => (
-                            <SelectItem key={exp} value={exp}>{exp}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowExpertForm(false)}>Cancel</Button>
-                    <Button onClick={handleAddExpert} disabled={formSubmitting}>
-                      {formSubmitting ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</>
-                      ) : (
-                        <>Add Expert</>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredExperts.length > 0 ? (
-                  filteredExperts.map((expert) => (
-                    <Card key={expert.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                            {expert.image_url ? (
-                              <img src={expert.image_url} alt={expert.name} className="h-full w-full object-cover" />
-                            ) : (
-                              <Award className="h-6 w-6 text-gray-500" />
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center">
-                              <CardTitle className="text-lg">{expert.name}</CardTitle>
-                              {expert.verified && (
-                                <span className="ml-2" title="Verified Expert">
-                                  <UserCheck className="h-4 w-4 text-green-500" />
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-500">{expert.title}</p>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Organization:</span>
-                            <span className="text-sm">{expert.organization}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Location:</span>
-                            <span className="text-sm">{expert.location}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Experience:</span>
-                            <span className="text-sm">{expert.experience}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full">View Profile</Button>
-                      </CardFooter>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-10">
-                    <p className="text-gray-500">No experts found. Try changing your search criteria.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Discussions Tab */}
-          <TabsContent value="discussions" className="mt-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-              <h2 className="text-xl font-semibold">Community Discussions</h2>
-              
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  <Select value={filterCategory} onValueChange={setFilterCategory}>
-                    <SelectTrigger className="pl-10 w-[180px]">
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
-                      {discussionCategories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <Dialog open={showDiscussionForm} onOpenChange={setShowDiscussionForm}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus size={16} className="mr-2" />
-                      New Discussion
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                      <DialogTitle>Start a New Discussion</DialogTitle>
-                      <DialogDescription>
-                        Share your question or topic with the community
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="discussion-title">Title</Label>
-                        <Input 
-                          id="discussion-title"
-                          value={newDiscussion.title}
-                          onChange={(e) => setNewDiscussion({...newDiscussion, title: e.target.value})}
-                          placeholder="Discussion title"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="discussion-category">Category</Label>
-                        <Select
-                          value={newDiscussion.category}
-                          onValueChange={(value) => setNewDiscussion({...newDiscussion, category: value})}
-                        >
-                          <SelectTrigger id="discussion-category">
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {discussionCategories.map(category => (
-                              <SelectItem key={category} value={category}>{category}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="discussion-content">Content</Label>
-                        <Textarea 
-                          id="discussion-content"
-                          value={newDiscussion.content}
-                          onChange={(e) => setNewDiscussion({...newDiscussion, content: e.target.value})}
-                          placeholder="Write your discussion here..."
-                          className="min-h-[150px]"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setShowDiscussionForm(false)}>Cancel</Button>
-                      <Button onClick={handleAddDiscussion} disabled={formSubmitting}>
-                        {formSubmitting ? (
-                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Posting...</>
-                        ) : (
-                          <>Post Discussion</>
-                        )}
+                        Create Post
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {posts.map(post => (
+                        <Card key={post.id} className="overflow-hidden">
+                          <CardHeader className="pb-3 pt-4">
+                            <div className="flex items-center space-x-3">
+                              <Avatar>
+                                <AvatarImage src={post.author_image} />
+                                <AvatarFallback>{post.author_name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{post.author_name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(post.created_at).toLocaleDateString()} · {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-0 pb-2">
+                            <p className="whitespace-pre-line">{post.content}</p>
+                            {post.image_url && (
+                              <div className="mt-3">
+                                <img 
+                                  src={post.image_url} 
+                                  alt="Post attachment" 
+                                  className="rounded-md max-h-[300px] w-auto object-cover" 
+                                />
+                              </div>
+                            )}
+                          </CardContent>
+                          <CardFooter className="border-t border-gray-100 bg-gray-50 py-2">
+                            <div className="flex w-full justify-between">
+                              <Button variant="ghost" size="sm" className="text-gray-600">
+                                <Heart className="h-4 w-4 mr-1" /> {post.likes || 0}
+                              </Button>
+                              <Button variant="ghost" size="sm" className="text-gray-600">
+                                <MessageCircle className="h-4 w-4 mr-1" /> {post.comments || 0}
+                              </Button>
+                              <Button variant="ghost" size="sm" className="text-gray-600">
+                                <Share2 className="h-4 w-4 mr-1" /> Share
+                              </Button>
+                            </div>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-            {loading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredDiscussions.length > 0 ? (
-                  filteredDiscussions.map((discussion) => (
-                    <Card key={discussion.id} className={`overflow-hidden hover:shadow-md transition-shadow ${discussion.is_pinned ? 'border-[#ea384c] bg-red-50' : ''}`}>
-                      <CardHeader className="pb-4">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-1">
-                            <div className="flex items-center">
-                              {discussion.is_pinned && (
-                                <span className="mr-2 text-[#ea384c]" title="Pinned by administrator">
-                                  📌
-                                </span>
-                              )}
-                              <CardTitle className="text-lg">{discussion.title}</CardTitle>
+                <div>
+                  <h2 className="text-xl font-semibold mb-4">Community Members</h2>
+                  {filteredFarmers.length === 0 ? (
+                    <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
+                      <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <h3 className="text-lg font-medium text-gray-700">No farmers found</h3>
+                      <p className="text-gray-500 mt-1 max-w-md mx-auto">
+                        No farmers match your search criteria. Try changing your filters.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {filteredFarmers.map(farmer => (
+                        <Card key={farmer.id} className="overflow-hidden">
+                          <CardContent className="p-0">
+                            <div className="p-5">
+                              <div className="flex items-center space-x-3">
+                                <Avatar className="h-14 w-14 border-2 border-gray-100">
+                                  <AvatarImage src={farmer.image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(farmer.name)} />
+                                  <AvatarFallback>{farmer.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium">{farmer.name}</p>
+                                  <p className="text-sm text-gray-500 flex items-center">
+                                    <MapPin className="h-3 w-3 mr-1" /> {farmer.location}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="mt-4 space-y-2">
+                                <div className="flex items-start">
+                                  <Building className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
+                                  <div>
+                                    <p className="text-sm font-medium">Farm Type</p>
+                                    <p className="text-xs text-gray-600">{farmer.farm_type}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start">
+                                  <Clock className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
+                                  <div>
+                                    <p className="text-sm font-medium">Farm Size</p>
+                                    <p className="text-xs text-gray-600">{farmer.farm_size}</p>
+                                  </div>
+                                </div>
+                                {farmer.expertise && farmer.expertise.length > 0 && (
+                                  <div>
+                                    <p className="text-sm font-medium mb-1">Expertise</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {farmer.expertise.map((exp, idx) => (
+                                        <Badge key={idx} variant="outline" className="text-xs bg-gray-50">
+                                          {exp}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center space-x-2 text-sm text-gray-500">
-                              <Badge variant="outline">{discussion.category}</Badge>
-                              <span>• {new Date(discussion.created_at).toLocaleDateString()}</span>
+                            
+                            <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end">
+                              <Button variant="outline" size="sm">
+                                Connect
+                              </Button>
                             </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <span className="flex items-center text-sm text-gray-500">
-                              <MessageSquare className="h-4 w-4 mr-1" />
-                              {discussion.replies_count}
-                            </span>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <p className="text-gray-700 line-clamp-3">{discussion.content}</p>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <Button variant="ghost" size="sm" className="text-gray-500">
-                          View Replies ({discussion.replies_count})
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Reply
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-10">
-                    <p className="text-gray-500">No discussions found. Start a new discussion!</p>
-                  </div>
-                )}
-              </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </TabsContent>
 
-          {/* Events Tab */}
-          <TabsContent value="events" className="mt-4">
-            <div className="flex justify-between mb-6">
-              <h2 className="text-xl font-semibold">Industry Events</h2>
-              
-              <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus size={16} className="mr-2" />
-                    Add Event
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Add New Event</DialogTitle>
-                    <DialogDescription>
-                      Share an upcoming industry event with the community
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="event-title">Event Title</Label>
-                      <Input 
-                        id="event-title"
-                        value={newEvent.title}
-                        onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                        placeholder="Event title"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="event-date">Date</Label>
-                      <Input 
-                        id="event-date"
-                        type="date"
-                        value={newEvent.date}
-                        onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="event-location">Location</Label>
-                      <Input 
-                        id="event-location"
-                        value={newEvent.location}
-                        onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                        placeholder="Event location"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="event-type">Event Type</Label>
-                      <Select
-                        value={newEvent.type}
-                        onValueChange={(value) => setNewEvent({...newEvent, type: value})}
-                      >
-                        <SelectTrigger id="event-type">
-                          <SelectValue placeholder="Select event type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {eventTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="event-organizer">Organizer</Label>
-                      <Input 
-                        id="event-organizer"
-                        value={newEvent.organizer}
-                        onChange={(e) => setNewEvent({...newEvent, organizer: e.target.value})}
-                        placeholder="Event organizer"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="event-description">Description</Label>
-                      <Textarea 
-                        id="event-description"
-                        value={newEvent.description}
-                        onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-                        placeholder="Event description (optional)"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowEventForm(false)}>Cancel</Button>
-                    <Button onClick={handleAddEvent} disabled={formSubmitting}>
-                      {formSubmitting ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</>
-                      ) : (
-                        <>Add Event</>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-10 w-10 animate-spin text-[#ea384c]" />
+          <TabsContent value="experts" className="pt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Industry Experts</h2>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEvents.length > 0 ? (
-                  filteredEvents.map((event) => (
-                    <Card key={event.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{event.title}</CardTitle>
-                          <Badge>{event.type}</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start">
-                            <Calendar className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0 mt-0.5" />
+              
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Loading experts...</p>
+                </div>
+              ) : filteredExperts.length === 0 ? (
+                <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
+                  <User className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <h3 className="text-lg font-medium text-gray-700">No experts found</h3>
+                  <p className="text-gray-500 mt-1 max-w-md mx-auto">
+                    No experts match your search criteria. Try changing your filters.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {filteredExperts.map(expert => (
+                    <Card key={expert.id} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="p-5">
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-14 w-14 border-2 border-gray-100">
+                              <AvatarImage src={expert.image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(expert.name)} />
+                              <AvatarFallback>{expert.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
                             <div>
-                              <p className="text-sm font-medium">Date</p>
-                              <p className="text-sm text-gray-500">{new Date(event.date).toLocaleDateString()}</p>
+                              <div className="flex items-center">
+                                <p className="font-medium">{expert.name}</p>
+                                {expert.verified && (
+                                  <CheckCircle className="h-4 w-4 text-blue-500 ml-1" />
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600">{expert.title}</p>
+                              <p className="text-xs text-gray-500">{expert.organization}</p>
                             </div>
                           </div>
                           
-                          <div className="flex items-start">
-                            <MapPin className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium">Location</p>
-                              <p className="text-sm text-gray-500">{event.location}</p>
+                          <div className="mt-4 space-y-2">
+                            <div className="flex items-start">
+                              <MapPin className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
+                              <div>
+                                <p className="text-sm font-medium">Location</p>
+                                <p className="text-xs text-gray-600">{expert.location}</p>
+                              </div>
                             </div>
-                          </div>
-                          
-                          <div className="flex items-start">
-                            <Users className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0 mt-0.5" />
+                            <div className="flex items-start">
+                              <Award className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
+                              <div>
+                                <p className="text-sm font-medium">Experience</p>
+                                <p className="text-xs text-gray-600">{expert.experience}</p>
+                              </div>
+                            </div>
                             <div>
-                              <p className="text-sm font-medium">Organizer</p>
-                              <p className="text-sm text-gray-500">{event.organizer}</p>
+                              <p className="text-sm font-medium mb-1">Expertise</p>
+                              <div className="flex flex-wrap gap-1">
+                                {expert.expertise.map((exp, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs bg-gray-50">
+                                    {exp}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         </div>
                         
-                        {event.description && (
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <p className="text-sm text-gray-700 line-clamp-2">{event.description}</p>
-                          </div>
-                        )}
+                        <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end">
+                          <Button variant="outline" size="sm">
+                            Contact
+                          </Button>
+                        </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button className="w-full">Register Interest</Button>
-                      </CardFooter>
                     </Card>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-10">
-                    <p className="text-gray-500">No events found. Add a new event to get started!</p>
-                  </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="events" className="pt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Upcoming Events</h2>
+                {isAdmin && (
+                  <Button 
+                    onClick={() => setShowEventDialog(true)}
+                    className="bg-[#ea384c] hover:bg-[#d02f3d]"
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Add Event
+                  </Button>
                 )}
               </div>
-            )}
+              
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Loading events...</p>
+                </div>
+              ) : events.length === 0 ? (
+                <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
+                  <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <h3 className="text-lg font-medium text-gray-700">No events found</h3>
+                  <p className="text-gray-500 mt-1 max-w-md mx-auto">
+                    There are no upcoming events at this time. Check back later for new events.
+                  </p>
+                  {isAdmin && (
+                    <Button 
+                      className="mt-4 bg-[#ea384c] hover:bg-[#d02f3d]"
+                      onClick={() => setShowEventDialog(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Add Event
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {events.map(event => (
+                    <Card key={event.id} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="h-40 overflow-hidden">
+                          <img 
+                            src={event.image_url || 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80'} 
+                            alt={event.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        
+                        <div className="p-5">
+                          <h3 className="font-semibold text-lg">{event.title}</h3>
+                          <div className="mt-2 space-y-2">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                              <p className="text-sm text-gray-600">
+                                {new Date(event.date).toLocaleDateString('en-US', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })}
+                              </p>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 text-gray-500 mr-2" />
+                              <p className="text-sm text-gray-600">{event.location}</p>
+                            </div>
+                            {event.organizer && (
+                              <div className="flex items-center">
+                                <Building className="h-4 w-4 text-gray-500 mr-2" />
+                                <p className="text-sm text-gray-600">{event.organizer}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 mt-3 line-clamp-3">
+                            {event.description}
+                          </p>
+                          
+                          {event.category && (
+                            <Badge className="mt-3" variant="secondary">
+                              {event.category}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-between">
+                          <Button variant="ghost" size="sm">
+                            Share
+                          </Button>
+                          <Button className="bg-[#ea384c] hover:bg-[#d02f3d]">
+                            Register
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="jobs" className="pt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Job Opportunities</h2>
+                {isAdmin && (
+                  <Button 
+                    onClick={() => setShowJobDialog(true)}
+                    className="bg-[#ea384c] hover:bg-[#d02f3d]"
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Post Job
+                  </Button>
+                )}
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
+                  <p className="mt-2 text-gray-500">Loading job listings...</p>
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
+                  <Briefcase className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <h3 className="text-lg font-medium text-gray-700">No job listings found</h3>
+                  <p className="text-gray-500 mt-1 max-w-md mx-auto">
+                    There are no job opportunities available at this time. Check back later for new listings.
+                  </p>
+                  {isAdmin && (
+                    <Button 
+                      className="mt-4 bg-[#ea384c] hover:bg-[#d02f3d]"
+                      onClick={() => setShowJobDialog(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Post Job
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {jobs.map(job => (
+                    <Card key={job.id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{job.title}</CardTitle>
+                            <CardDescription>
+                              {job.company} · {job.location}
+                            </CardDescription>
+                          </div>
+                          {job.salary_range && (
+                            <Badge variant="secondary">
+                              {job.salary_range}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                          {job.description}
+                        </p>
+                        
+                        {job.requirements && job.requirements.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium mb-2">Requirements:</h4>
+                            <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                              {job.requirements.slice(0, 3).map((req, idx) => (
+                                <li key={idx}>{req}</li>
+                              ))}
+                              {job.requirements.length > 3 && (
+                                <li className="text-[#ea384c]">+{job.requirements.length - 3} more</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        <p className="text-xs text-gray-500">
+                          Posted {new Date(job.created_at || '').toLocaleDateString()}
+                        </p>
+                      </CardContent>
+                      <CardFooter className="pt-0 flex justify-end">
+                        <Button className="bg-[#ea384c] hover:bg-[#d02f3d]">
+                          Apply Now
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Farmer Profile Dialog */}
+      <Dialog open={showFarmerProfile} onOpenChange={setShowFarmerProfile}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Farmer Profile</DialogTitle>
+            <DialogDescription>
+              Fill out your profile to connect with other industry professionals.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="profile-name">Full Name</Label>
+              <Input 
+                id="profile-name"
+                placeholder="Your name"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="profile-location">Location</Label>
+              <Input 
+                id="profile-location"
+                placeholder="City, State"
+                value={profileLocation}
+                onChange={(e) => setProfileLocation(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="farm-type">Farm Type</Label>
+              <Select value={farmType} onValueChange={setFarmType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select farm type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Layer Farm">Layer Farm</SelectItem>
+                  <SelectItem value="Broiler Farm">Broiler Farm</SelectItem>
+                  <SelectItem value="Breeding Farm">Breeding Farm</SelectItem>
+                  <SelectItem value="Hatchery">Hatchery</SelectItem>
+                  <SelectItem value="Mixed Farm">Mixed Farm</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="farm-size">Farm Size</Label>
+              <Select value={farmSize} onValueChange={setFarmSize}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select farm size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Small (<5,000 birds)">Small (&lt;5,000 birds)</SelectItem>
+                  <SelectItem value="Medium (5,000-20,000 birds)">Medium (5,000-20,000 birds)</SelectItem>
+                  <SelectItem value="Large (20,000-50,000 birds)">Large (20,000-50,000 birds)</SelectItem>
+                  <SelectItem value="Very Large (>50,000 birds)">Very Large (&gt;50,000 birds)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Areas of Expertise</Label>
+              <div className="flex flex-wrap gap-2">
+                {['Broiler Management', 'Layer Production', 'Poultry Health', 'Feed Management', 'Breeding', 'Marketing', 'Processing'].map(exp => (
+                  <Button 
+                    key={exp}
+                    type="button"
+                    variant={expertise.includes(exp) ? "default" : "outline"}
+                    className={expertise.includes(exp) ? "bg-[#ea384c] hover:bg-[#d02f3d]" : ""}
+                    size="sm"
+                    onClick={() => {
+                      if (expertise.includes(exp)) {
+                        setExpertise(expertise.filter(e => e !== exp));
+                      } else {
+                        setExpertise([...expertise, exp]);
+                      }
+                    }}
+                  >
+                    {exp}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="experience">Years of Experience</Label>
+              <Select value={experience} onValueChange={setExperience}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
+                  <SelectItem value="1-5 years">1-5 years</SelectItem>
+                  <SelectItem value="6-10 years">6-10 years</SelectItem>
+                  <SelectItem value="11-20 years">11-20 years</SelectItem>
+                  <SelectItem value="More than 20 years">More than 20 years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="contact-number">Contact Number (Optional)</Label>
+              <Input 
+                id="contact-number"
+                placeholder="Your contact number"
+                value={contactNumber}
+                onChange={(e) => setContactNumber(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="profile-image">Profile Image URL (Optional)</Label>
+              <Input 
+                id="profile-image"
+                placeholder="URL to your profile image"
+                value={profileImage}
+                onChange={(e) => setProfileImage(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFarmerProfile(false)}>Cancel</Button>
+            <Button onClick={handleAddFarmerProfile} className="bg-[#ea384c] hover:bg-[#d02f3d]">Create Profile</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expert Profile Dialog */}
+      <Dialog open={showExpertProfile} onOpenChange={setShowExpertProfile}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Expert Profile</DialogTitle>
+            <DialogDescription>
+              Fill out your expert profile to share your knowledge with the community.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="profile-name">Full Name</Label>
+              <Input 
+                id="profile-name"
+                placeholder="Your name"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="profile-title">Professional Title</Label>
+              <Input 
+                id="profile-title"
+                placeholder="e.g. Poultry Veterinarian, Nutritionist"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="profile-organization">Organization</Label>
+              <Input 
+                id="profile-organization"
+                placeholder="Your organization or company"
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="profile-location">Location</Label>
+              <Input 
+                id="profile-location"
+                placeholder="City, State"
+                value={profileLocation}
+                onChange={(e) => setProfileLocation(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Areas of Expertise</Label>
+              <div className="flex flex-wrap gap-2">
+                {['Poultry Health', 'Nutrition', 'Farm Management', 'Biosecurity', 'Breeding', 'Processing', 'Economics', 'Research', 'Marketing', 'Technology'].map(exp => (
+                  <Button 
+                    key={exp}
+                    type="button"
+                    variant={expertise.includes(exp) ? "default" : "outline"}
+                    className={expertise.includes(exp) ? "bg-[#ea384c] hover:bg-[#d02f3d]" : ""}
+                    size="sm"
+                    onClick={() => {
+                      if (expertise.includes(exp)) {
+                        setExpertise(expertise.filter(e => e !== exp));
+                      } else {
+                        setExpertise([...expertise, exp]);
+                      }
+                    }}
+                  >
+                    {exp}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="experience">Years of Experience</Label>
+              <Select value={experience} onValueChange={setExperience}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
+                  <SelectItem value="1-5 years">1-5 years</SelectItem>
+                  <SelectItem value="6-10 years">6-10 years</SelectItem>
+                  <SelectItem value="11-20 years">11-20 years</SelectItem>
+                  <SelectItem value="More than 20 years">More than 20 years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="profile-image">Profile Image URL (Optional)</Label>
+              <Input 
+                id="profile-image"
+                placeholder="URL to your profile image"
+                value={profileImage}
+                onChange={(e) => setProfileImage(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExpertProfile(false)}>Cancel</Button>
+            <Button onClick={handleAddExpertProfile} className="bg-[#ea384c] hover:bg-[#d02f3d]">Create Profile</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Post Dialog */}
+      <Dialog open={showPostDialog} onOpenChange={setShowPostDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Create Post</DialogTitle>
+            <DialogDescription>
+              Share updates, information, or questions with the community.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="post-content">Message</Label>
+              <Textarea 
+                id="post-content"
+                placeholder="What would you like to share?"
+                className="min-h-[120px]"
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="post-image">Image URL (Optional)</Label>
+              <Input 
+                id="post-image"
+                placeholder="URL to an image you'd like to share"
+                value={postImage}
+                onChange={(e) => setPostImage(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPostDialog(false)}>Cancel</Button>
+            <Button 
+              onClick={handleAddPost}
+              className="bg-[#ea384c] hover:bg-[#d02f3d]"
+              disabled={!postContent.trim()}
+            >
+              <Send className="h-4 w-4 mr-2" /> Publish
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Event Dialog (Admin Only) */}
+      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Event</DialogTitle>
+            <DialogDescription>
+              Create a new event for the poultry community.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="event-title">Event Title</Label>
+              <Input 
+                id="event-title"
+                placeholder="Title of the event"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="event-description">Description</Label>
+              <Textarea 
+                id="event-description"
+                placeholder="Details about the event"
+                className="min-h-[100px]"
+                value={eventDescription}
+                onChange={(e) => setEventDescription(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="event-date">Date</Label>
+                <Input 
+                  id="event-date"
+                  type="date"
+                  value={eventDate}
+                  onChange={(e) => setEventDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="event-location">Location</Label>
+                <Input 
+                  id="event-location"
+                  placeholder="Event venue"
+                  value={eventLocation}
+                  onChange={(e) => setEventLocation(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="event-category">Category</Label>
+              <Select value={eventCategory} onValueChange={setEventCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Conference">Conference</SelectItem>
+                  <SelectItem value="Workshop">Workshop</SelectItem>
+                  <SelectItem value="Webinar">Webinar</SelectItem>
+                  <SelectItem value="Trade Show">Trade Show</SelectItem>
+                  <SelectItem value="Training">Training</SelectItem>
+                  <SelectItem value="Networking">Networking</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="event-organizer">Organizer</Label>
+              <Input 
+                id="event-organizer"
+                placeholder="Name of organizing body"
+                value={eventOrganizer}
+                onChange={(e) => setEventOrganizer(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="event-contact">Contact</Label>
+              <Input 
+                id="event-contact"
+                placeholder="Contact information for inquiries"
+                value={eventContact}
+                onChange={(e) => setEventContact(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="event-image">Image URL</Label>
+              <Input 
+                id="event-image"
+                placeholder="URL to event banner or image"
+                value={eventImage}
+                onChange={(e) => setEventImage(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEventDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddEvent} className="bg-[#ea384c] hover:bg-[#d02f3d]">Add Event</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Job Dialog (Admin Only) */}
+      <Dialog open={showJobDialog} onOpenChange={setShowJobDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Post Job Listing</DialogTitle>
+            <DialogDescription>
+              Create a new job opportunity for the poultry community.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="job-title">Job Title</Label>
+              <Input 
+                id="job-title"
+                placeholder="Position title"
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="job-company">Company</Label>
+                <Input 
+                  id="job-company"
+                  placeholder="Company name"
+                  value={jobCompany}
+                  onChange={(e) => setJobCompany(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="job-location">Location</Label>
+                <Input 
+                  id="job-location"
+                  placeholder="Job location"
+                  value={jobLocation}
+                  onChange={(e) => setJobLocation(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="job-description">Description</Label>
+              <Textarea 
+                id="job-description"
+                placeholder="Job description and responsibilities"
+                className="min-h-[100px]"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="job-requirements">Requirements (one per line)</Label>
+              <Textarea 
+                id="job-requirements"
+                placeholder="Enter each requirement on a new line"
+                className="min-h-[100px]"
+                value={jobRequirements.join('\n')}
+                onChange={(e) => setJobRequirements(e.target.value.split('\n').filter(line => line.trim()))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="job-salary">Salary Range (Optional)</Label>
+              <Input 
+                id="job-salary"
+                placeholder="e.g. ₹40,000 - ₹60,000 per month"
+                value={jobSalary}
+                onChange={(e) => setJobSalary(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="job-email">Contact Email</Label>
+              <Input 
+                id="job-email"
+                type="email"
+                placeholder="Email for applications"
+                value={jobContactEmail}
+                onChange={(e) => setJobContactEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowJobDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddJob} className="bg-[#ea384c] hover:bg-[#d02f3d]">Post Job</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
 
-export default NetworkPage;
+export default Network;

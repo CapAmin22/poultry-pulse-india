@@ -26,6 +26,9 @@ const ContactUs: React.FC = () => {
   const [message, setMessage] = useState('');
   const [enquiryType, setEnquiryType] = useState('general');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // State to manage the active tab
+  const [activeTab, setActiveTab] = useState('contact');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +112,7 @@ const ContactUs: React.FC = () => {
           <p className="text-gray-500 mt-1">Reach out to us with your questions or feedback</p>
         </motion.div>
         
-        <Tabs defaultValue="contact" className="w-full">
+        <Tabs defaultValue="contact" className="w-full" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="contact">Contact Information</TabsTrigger>
             <TabsTrigger value="message">Send Message</TabsTrigger>
@@ -354,7 +357,7 @@ const ContactUs: React.FC = () => {
                       <Button 
                         variant="outline" 
                         className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
-                        onClick={() => document.querySelector('[data-state="inactive"][data-value="message"]')?.click()}
+                        onClick={() => setActiveTab('message')}
                       >
                         Contact Support
                       </Button>
