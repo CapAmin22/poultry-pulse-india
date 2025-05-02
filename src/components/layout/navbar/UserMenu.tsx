@@ -1,27 +1,17 @@
-
 import React from 'react';
 import { User } from '@supabase/supabase-js';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
 export interface UserMenuProps {
   user: User;
   onSignOut: () => Promise<void>;
 }
-
-const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
-  const userInitials = user.user_metadata?.full_name 
-    ? `${user.user_metadata.full_name.split(' ')[0][0]}${user.user_metadata.full_name.split(' ')[1]?.[0] || ''}`
-    : user.email?.[0].toUpperCase() || '?';
-
-  return (
-    <DropdownMenu>
+const UserMenu: React.FC<UserMenuProps> = ({
+  user,
+  onSignOut
+}) => {
+  const userInitials = user.user_metadata?.full_name ? `${user.user_metadata.full_name.split(' ')[0][0]}${user.user_metadata.full_name.split(' ')[1]?.[0] || ''}` : user.email?.[0].toUpperCase() || '?';
+  return <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center space-x-2 cursor-pointer focus:outline-none">
         <Avatar>
           <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.full_name || 'User'} />
@@ -38,23 +28,18 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
           <a href="/profile">My Profile</a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href="/statistics">Statistics</a>
+          
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="/network">Network</a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <button 
-            className="w-full text-left flex cursor-pointer text-red-500 hover:text-red-600" 
-            onClick={onSignOut}
-          >
+          <button className="w-full text-left flex cursor-pointer text-red-500 hover:text-red-600" onClick={onSignOut}>
             Sign Out
           </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
-  );
+    </DropdownMenu>;
 };
-
 export default UserMenu;
