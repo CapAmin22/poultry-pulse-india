@@ -23,7 +23,7 @@ const MessagesDialog: React.FC<MessagesDialogProps> = ({ open, onClose }) => {
       sender: 'Ravi Singh',
       avatar: null,
       initials: 'RS',
-      message: 'Do you have any Layer chicks available?',
+      message: "Do you have any Layer chicks available?",
       time: '15 minutes ago',
       unread: true
     },
@@ -32,7 +32,7 @@ const MessagesDialog: React.FC<MessagesDialogProps> = ({ open, onClose }) => {
       sender: 'Priya Sharma',
       avatar: null,
       initials: 'PS',
-      message: 'I'm looking for Broiler feed suppliers in Bangalore area.',
+      message: "I'm looking for Broiler feed suppliers in Bangalore area.",
       time: '2 hours ago',
       unread: false
     },
@@ -41,7 +41,7 @@ const MessagesDialog: React.FC<MessagesDialogProps> = ({ open, onClose }) => {
       sender: 'Amit Patel',
       avatar: null,
       initials: 'AP',
-      message: 'Thanks for the consultation yesterday.',
+      message: "Thanks for the consultation yesterday.",
       time: '1 day ago',
       unread: false
     }
