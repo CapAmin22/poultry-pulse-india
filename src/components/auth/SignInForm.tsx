@@ -13,6 +13,7 @@ interface SignInFormProps {
   setShowPassword: (value: boolean) => void;
   loading: boolean;
   onSubmit: (e: React.FormEvent) => void;
+  errorMessage?: string; // Added errorMessage prop
 }
 
 const SignInForm: React.FC<SignInFormProps> = ({
@@ -24,6 +25,7 @@ const SignInForm: React.FC<SignInFormProps> = ({
   setShowPassword,
   loading,
   onSubmit,
+  errorMessage,
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -66,6 +68,10 @@ const SignInForm: React.FC<SignInFormProps> = ({
         }
       />
 
+      {errorMessage && (
+        <div className="text-sm text-red-500 font-medium">{errorMessage}</div>
+      )}
+
       <Button
         type="submit"
         className="w-full bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white"
@@ -91,4 +97,3 @@ const SignInForm: React.FC<SignInFormProps> = ({
 };
 
 export default SignInForm;
-

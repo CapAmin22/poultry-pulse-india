@@ -1,1491 +1,743 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { 
-  Users, 
-  Calendar, 
-  User, 
-  Briefcase,
-  MessageCircle,
-  Search,
-  FileText,
-  MapPin,
-  Building,
-  Clock,
-  Award,
-  CheckCircle,
-  Plus,
-  Heart,
-  Share2,
-  Send
-} from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Search, Filter, MapPin, Building, Calendar, Briefcase, Users, MessageSquare, Award } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/use-auth';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
+import Layout from '@/components/layout/Layout';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 import { Farmer, Expert, Event, JobListing, NetworkPost } from '@/types/network';
+import { useAuth } from '@/hooks/use-auth';
+
+// Custom type for filtering options
+type FilterOption = 'location' | 'experience' | 'farm_type' | 'expertise' | 'all';
 
 const Network: React.FC = () => {
+  // Authentication state
   const { user, isAdmin } = useAuth();
+  
+  // State for network data
   const [farmers, setFarmers] = useState<Farmer[]>([]);
   const [experts, setExperts] = useState<Expert[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [posts, setPosts] = useState<NetworkPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedExpertise, setSelectedExpertise] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-
-  // Profile registration state
-  const [showFarmerProfile, setShowFarmerProfile] = useState(false);
-  const [showExpertProfile, setShowExpertProfile] = useState(false);
-  const [profileName, setProfileName] = useState('');
-  const [profileLocation, setProfileLocation] = useState('');
-  const [farmType, setFarmType] = useState('');
-  const [farmSize, setFarmSize] = useState('');
-  const [expertise, setExpertise] = useState<string[]>([]);
-  const [experience, setExperience] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [profileImage, setProfileImage] = useState('');
-  const [organization, setOrganization] = useState('');
-  const [title, setTitle] = useState('');
-
-  // New post state
-  const [showPostDialog, setShowPostDialog] = useState(false);
-  const [postContent, setPostContent] = useState('');
-  const [postImage, setPostImage] = useState('');
-
-  // Event & job dialog state
-  const [showEventDialog, setShowEventDialog] = useState(false);
-  const [showJobDialog, setShowJobDialog] = useState(false);
-  const [eventTitle, setEventTitle] = useState('');
-  const [eventDescription, setEventDescription] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [eventLocation, setEventLocation] = useState('');
-  const [eventImage, setEventImage] = useState('');
-  const [eventOrganizer, setEventOrganizer] = useState('');
-  const [eventContact, setEventContact] = useState('');
-  const [eventCategory, setEventCategory] = useState('');
+  const [loading, setLoading] = useState<{[key: string]: boolean}>({
+    farmers: true,
+    experts: true,
+    events: true,
+    jobs: true,
+    posts: true,
+  });
   
-  const [jobTitle, setJobTitle] = useState('');
-  const [jobCompany, setJobCompany] = useState('');
-  const [jobLocation, setJobLocation] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [jobRequirements, setJobRequirements] = useState<string[]>([]);
-  const [jobSalary, setJobSalary] = useState('');
-  const [jobContactEmail, setJobContactEmail] = useState('');
-
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<FilterOption>('all');
+  
+  const { toast } = useToast();
+  
+  // Fetch network data
   useEffect(() => {
-    if (user) {
-      fetchNetworkData();
-    }
-  }, [user]);
-
-  const fetchNetworkData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        fetchFarmers(),
-        fetchExperts(),
-        fetchEvents(),
-        fetchJobs(),
-        fetchPosts()
-      ]);
-    } catch (error) {
-      console.error('Error fetching network data:', error);
-      toast({
-        variant: "destructive",
-        title: "Error fetching network data",
-        description: "Please try refreshing the page."
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFarmers = async () => {
-    const { data, error } = await supabase.from('farmers').select('*');
-    if (error) throw error;
-    setFarmers(data as Farmer[]);
-  };
-
-  const fetchExperts = async () => {
-    const { data, error } = await supabase.from('experts').select('*');
-    if (error) throw error;
-    // Make sure each expert has the required 'location' field even if it's missing
-    const typedData = data.map(expert => ({
-      ...expert,
-      location: expert.location || 'Not specified'
-    })) as Expert[];
-    setExperts(typedData);
-  };
-
-  const fetchEvents = async () => {
-    const { data, error } = await supabase.from('events').select('*');
-    if (error) throw error;
-    setEvents(data as Event[]);
-  };
-
-  const fetchJobs = async () => {
-    const { data, error } = await supabase.from('job_listings').select('*');
-    if (error) throw error;
-    setJobs(data as JobListing[]);
-  };
-
-  const fetchPosts = async () => {
-    const { data, error } = await supabase.from('network_posts').select('*');
-    if (error) throw error;
-    setPosts(data as NetworkPost[]);
-  };
-
-  const handleAddFarmerProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const farmerProfile: Farmer = {
-        user_id: user.id,
-        name: profileName,
-        location: profileLocation,
-        farm_type: farmType,
-        farm_size: farmSize,
-        expertise: expertise,
-        experience: experience,
-        contact_number: contactNumber,
-        image_url: profileImage
-      };
-      
-      const { data, error } = await supabase
-        .from('farmers')
-        .insert(farmerProfile);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Profile created",
-        description: "Your farmer profile has been created successfully."
-      });
-      
-      setShowFarmerProfile(false);
-      fetchFarmers();
-      
-      // Reset form
-      resetProfileForm();
-    } catch (error) {
-      console.error('Error creating farmer profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Error creating profile",
-        description: "Please try again later."
-      });
-    }
-  };
-
-  const handleAddExpertProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const expertProfile: Expert = {
-        user_id: user.id,
-        name: profileName,
-        title: title,
-        organization: organization,
-        expertise: expertise,
-        experience: experience,
-        location: profileLocation,
-        image_url: profileImage,
-        verified: false
-      };
-      
-      const { data, error } = await supabase
-        .from('experts')
-        .insert(expertProfile);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Profile created",
-        description: "Your expert profile has been created successfully. It will be verified by an admin."
-      });
-      
-      setShowExpertProfile(false);
-      fetchExperts();
-      
-      // Reset form
-      resetProfileForm();
-    } catch (error) {
-      console.error('Error creating expert profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Error creating profile",
-        description: "Please try again later."
-      });
-    }
-  };
-  
-  const handleAddEvent = async () => {
-    if (!user) return;
-    
-    try {
-      const newEvent: Omit<Event, 'id'> = {
-        title: eventTitle,
-        description: eventDescription,
-        date: eventDate,
-        location: eventLocation,
-        image_url: eventImage,
-        organizer: eventOrganizer,
-        contact: eventContact,
-        category: eventCategory
-      };
-      
-      const { data, error } = await supabase
-        .from('events')
-        .insert(newEvent);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Event added",
-        description: "The event has been added successfully."
-      });
-      
-      setShowEventDialog(false);
-      fetchEvents();
-      
-      // Reset form
-      resetEventForm();
-    } catch (error) {
-      console.error('Error adding event:', error);
-      toast({
-        variant: "destructive",
-        title: "Error adding event",
-        description: "Please try again later."
-      });
-    }
-  };
-  
-  const handleAddJob = async () => {
-    if (!user) return;
-    
-    try {
-      const newJob: Omit<JobListing, 'id'> = {
-        title: jobTitle,
-        company: jobCompany,
-        location: jobLocation,
-        description: jobDescription,
-        requirements: jobRequirements,
-        salary_range: jobSalary,
-        contact_email: jobContactEmail
-      };
-      
-      const { data, error } = await supabase
-        .from('job_listings')
-        .insert(newJob);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Job listing added",
-        description: "The job listing has been added successfully."
-      });
-      
-      setShowJobDialog(false);
-      fetchJobs();
-      
-      // Reset form
-      resetJobForm();
-    } catch (error) {
-      console.error('Error adding job listing:', error);
-      toast({
-        variant: "destructive",
-        title: "Error adding job listing",
-        description: "Please try again later."
-      });
-    }
-  };
-  
-  const handleAddPost = async () => {
-    if (!user) return;
-    
-    try {
-      const newPost: Omit<NetworkPost, 'id' | 'likes' | 'comments'> = {
-        user_id: user.id,
-        author_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Anonymous',
-        author_image: user.user_metadata?.avatar_url || '',
-        content: postContent,
-        image_url: postImage,
-        created_at: new Date().toISOString()
-      };
-      
-      const { data, error } = await supabase
-        .from('network_posts')
-        .insert({
-          ...newPost,
-          likes: 0,
-          comments: 0
+    const fetchNetworkData = async () => {
+      try {
+        // Fetch farmers
+        setLoading(prev => ({ ...prev, farmers: true }));
+        const { data: farmersData, error: farmersError } = await supabase
+          .from('network_farmers')
+          .select('*');
+          
+        if (farmersError) throw farmersError;
+        setFarmers(farmersData as Farmer[]);
+        setLoading(prev => ({ ...prev, farmers: false }));
+        
+        // Fetch experts
+        setLoading(prev => ({ ...prev, experts: true }));
+        const { data: expertsData, error: expertsError } = await supabase
+          .from('network_experts')
+          .select('*');
+          
+        if (expertsError) throw expertsError;
+        setExperts(expertsData as Expert[]);
+        setLoading(prev => ({ ...prev, experts: false }));
+        
+        // Fetch events
+        setLoading(prev => ({ ...prev, events: true }));
+        const { data: eventsData, error: eventsError } = await supabase
+          .from('network_events')
+          .select('*');
+          
+        if (eventsError) throw eventsError;
+        setEvents(eventsData as Event[]);
+        setLoading(prev => ({ ...prev, events: false }));
+        
+        // Fetch job listings
+        setLoading(prev => ({ ...prev, jobs: true }));
+        // Note: This table needs to be created in Supabase
+        const { data: jobsData, error: jobsError } = await supabase
+          .from('network_job_listings')
+          .select('*');
+          
+        if (jobsError) {
+          console.error('Error fetching jobs:', jobsError);
+          setJobs([]); // Provide empty array as fallback
+        } else {
+          setJobs(jobsData as JobListing[]);
+        }
+        setLoading(prev => ({ ...prev, jobs: false }));
+        
+        // Fetch posts
+        setLoading(prev => ({ ...prev, posts: true }));
+        // Note: This table needs to be created in Supabase
+        const { data: postsData, error: postsError } = await supabase
+          .from('network_posts')
+          .select('*');
+          
+        if (postsError) {
+          console.error('Error fetching posts:', postsError);
+          setPosts([]); // Provide empty array as fallback
+        } else {
+          setPosts(postsData as NetworkPost[]);
+        }
+        setLoading(prev => ({ ...prev, posts: false }));
+        
+      } catch (error) {
+        console.error('Error fetching network data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load network data. Please try again later.",
+          variant: "destructive",
         });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Post published",
-        description: "Your post has been published successfully."
-      });
-      
-      setShowPostDialog(false);
-      fetchPosts();
-      
-      // Reset form
-      setPostContent('');
-      setPostImage('');
-    } catch (error) {
-      console.error('Error publishing post:', error);
-      toast({
-        variant: "destructive",
-        title: "Error publishing post",
-        description: "Please try again later."
-      });
-    }
-  };
+      }
+    };
+    
+    fetchNetworkData();
+  }, [toast]);
   
-  // Helper function to reset form fields
-  const resetProfileForm = () => {
-    setProfileName('');
-    setProfileLocation('');
-    setFarmType('');
-    setFarmSize('');
-    setExpertise([]);
-    setExperience('');
-    setContactNumber('');
-    setProfileImage('');
-    setOrganization('');
-    setTitle('');
-  };
-  
-  const resetEventForm = () => {
-    setEventTitle('');
-    setEventDescription('');
-    setEventDate('');
-    setEventLocation('');
-    setEventImage('');
-    setEventOrganizer('');
-    setEventContact('');
-    setEventCategory('');
-  };
-  
-  const resetJobForm = () => {
-    setJobTitle('');
-    setJobCompany('');
-    setJobLocation('');
-    setJobDescription('');
-    setJobRequirements([]);
-    setJobSalary('');
-    setJobContactEmail('');
-  };
-
   // Filter functions
-  const filteredFarmers = farmers.filter(farmer => {
-    const matchesSearch = farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         farmer.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         farmer.farm_type.toLowerCase().includes(searchQuery.toLowerCase());
+  const filterFarmers = () => {
+    if (!searchTerm) return farmers;
     
-    const matchesExpertise = selectedExpertise === 'all' || 
-                            (farmer.expertise && farmer.expertise.includes(selectedExpertise));
+    return farmers.filter(farmer => {
+      if (filterType === 'all') {
+        return (
+          farmer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          farmer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          farmer.farm_type.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else if (filterType === 'location') {
+        return farmer.location.toLowerCase().includes(searchTerm.toLowerCase());
+      } else if (filterType === 'farm_type') {
+        return farmer.farm_type.toLowerCase().includes(searchTerm.toLowerCase());
+      } else if (filterType === 'expertise' && farmer.expertise) {
+        return farmer.expertise.some(e => 
+          e.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      return false;
+    });
+  };
+  
+  const filterExperts = () => {
+    if (!searchTerm) return experts;
     
-    const matchesLocation = selectedLocation === 'all' ||
-                           farmer.location.toLowerCase().includes(selectedLocation.toLowerCase());
+    return experts.filter(expert => {
+      if (filterType === 'all') {
+        return (
+          expert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          expert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          expert.organization.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          expert.location.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else if (filterType === 'location') {
+        return expert.location.toLowerCase().includes(searchTerm.toLowerCase());
+      } else if (filterType === 'expertise' && expert.expertise) {
+        return expert.expertise.some(e => 
+          e.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      return false;
+    });
+  };
+  
+  const filterEvents = () => {
+    if (!searchTerm) return events;
     
-    return matchesSearch && matchesExpertise && matchesLocation;
-  });
-
-  const filteredExperts = experts.filter(expert => {
-    const matchesSearch = expert.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         expert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         expert.organization.toLowerCase().includes(searchQuery.toLowerCase());
+    return events.filter(event => {
+      if (filterType === 'all') {
+        return (
+          event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.location.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else if (filterType === 'location') {
+        return event.location.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+      return false;
+    });
+  };
+  
+  const filterJobs = () => {
+    if (!searchTerm) return jobs;
     
-    const matchesExpertise = selectedExpertise === 'all' || 
-                            expert.expertise.includes(selectedExpertise);
-    
-    const matchesLocation = selectedLocation === 'all' ||
-                           expert.location.toLowerCase().includes(selectedLocation.toLowerCase());
-    
-    return matchesSearch && matchesExpertise && matchesLocation;
-  });
-
-  // Get unique locations and expertise areas for filters
-  const locations = [...new Set([
-    ...farmers.map(farmer => farmer.location),
-    ...experts.map(expert => expert.location)
-  ])].filter(location => location);
-
-  const expertiseAreas = [...new Set([
-    ...farmers.flatMap(farmer => farmer.expertise || []),
-    ...experts.flatMap(expert => expert.expertise)
-  ])].filter(exp => exp);
-
+    return jobs.filter(job => {
+      if (filterType === 'all') {
+        return (
+          job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else if (filterType === 'location') {
+        return job.location.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+      return false;
+    });
+  };
+  
+  // Render loading state
+  const renderLoading = (section: string) => (
+    <div className="flex justify-center items-center h-48">
+      <div className="flex flex-col items-center">
+        <div className="w-12 h-12 border-4 border-t-[#ea384c] border-gray-200 rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-500">Loading {section}...</p>
+      </div>
+    </div>
+  );
+  
+  // Render empty state
+  const renderEmpty = (message: string) => (
+    <div className="flex flex-col items-center justify-center h-48 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+      <Users className="h-12 w-12 text-gray-400" />
+      <p className="mt-2 text-lg font-medium text-gray-500">{message}</p>
+      <p className="mt-1 text-sm text-gray-400">No data found matching your criteria.</p>
+    </div>
+  );
+  
   return (
     <Layout>
-      <div className="space-y-8">
-        {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 md:p-8 shadow-sm border border-gray-100"
         >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Poultry Network</h1>
-              <p className="text-gray-600 mt-2">Connect with farmers, experts, and industry professionals</p>
+              <h1 className="text-3xl font-bold text-gray-900">Industry Network</h1>
+              <p className="text-gray-600">Connect with farmers, experts, and industry professionals</p>
             </div>
-            <div className="flex space-x-3 mt-4 md:mt-0">
-              <Button 
-                variant="outline"
-                className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
-                onClick={() => setShowPostDialog(true)}
-              >
-                <MessageCircle className="h-4 w-4 mr-2" /> Create Post
-              </Button>
-              {isAdmin && (
-                <>
-                  <Button 
-                    variant="outline"
-                    className="border-purple-600 text-purple-600 hover:bg-purple-50"
-                    onClick={() => setShowEventDialog(true)}
-                  >
-                    <Calendar className="h-4 w-4 mr-2" /> Add Event
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                    onClick={() => setShowJobDialog(true)}
-                  >
-                    <Briefcase className="h-4 w-4 mr-2" /> Add Job
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Create Profile Card - if user doesn't have a profile */}
-        {user && !loading && !farmers.some(f => f.user_id === user.id) && !experts.some(e => e.user_id === user.id) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-          >
-            <h2 className="text-lg font-medium mb-3">Complete Your Network Profile</h2>
-            <p className="text-gray-600 mb-4">Creating a profile helps you connect with others in the poultry industry and showcase your expertise.</p>
             
-            <div className="flex flex-wrap gap-3">
+            {isAdmin && (
               <Button 
-                onClick={() => setShowFarmerProfile(true)}
-                className="bg-[#ea384c] hover:bg-[#d02f3d]"
+                className="mt-4 md:mt-0 bg-[#ea384c] hover:bg-[#d02f3d]"
+                onClick={() => toast({
+                  title: "Admin Action",
+                  description: "This would open the admin content management panel",
+                })}
               >
-                Create Farmer Profile
+                Admin: Manage Network
               </Button>
-              <Button 
-                variant="outline"
-                className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
-                onClick={() => setShowExpertProfile(true)}
-              >
-                Create Expert Profile
-              </Button>
+            )}
+          </div>
+          
+          <div className="mb-8 flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input 
+                placeholder="Search the network..." 
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          </motion.div>
-        )}
-
-        {/* Search and Filter Section */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search network..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter by: {filterType === 'all' ? 'All' : filterType}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setFilterType('all')}>All</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType('location')}>Location</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType('experience')}>Experience</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType('farm_type')}>Farm Type</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType('expertise')}>Expertise</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <Select
-              value={selectedExpertise}
-              onValueChange={setSelectedExpertise}
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Expertise" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Expertise</SelectItem>
-                {expertiseAreas.map((exp, i) => (
-                  <SelectItem key={i} value={exp}>{exp}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={selectedLocation}
-              onValueChange={setSelectedLocation}
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                {locations.map((loc, i) => (
-                  <SelectItem key={i} value={loc}>{loc}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="community" className="w-full">
-          <TabsList className="grid grid-cols-4 md:w-[600px]">
-            <TabsTrigger value="community">Community</TabsTrigger>
-            <TabsTrigger value="experts">Experts</TabsTrigger>
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="community" className="pt-6 space-y-6">
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
-                <p className="mt-2 text-gray-500">Loading community members...</p>
-              </div>
-            ) : (
-              <>
+          
+          <Tabs defaultValue="farmers">
+            <TabsList className="mb-8">
+              <TabsTrigger value="farmers">Farmers</TabsTrigger>
+              <TabsTrigger value="experts">Experts</TabsTrigger>
+              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="jobs">Job Listings</TabsTrigger>
+              <TabsTrigger value="discussions">Discussions</TabsTrigger>
+            </TabsList>
+            
+            {/* Farmers Tab */}
+            <TabsContent value="farmers">
+              {loading.farmers ? (
+                renderLoading('farmers')
+              ) : (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Community Posts</h2>
-                  {posts.length === 0 ? (
-                    <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
-                      <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <h3 className="text-lg font-medium text-gray-700">No posts yet</h3>
-                      <p className="text-gray-500 mt-1 max-w-md mx-auto">
-                        Be the first to create a post in the community!
-                      </p>
-                      <Button
-                        className="mt-4 bg-[#ea384c] hover:bg-[#d02f3d]"
-                        onClick={() => setShowPostDialog(true)}
-                      >
-                        Create Post
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {posts.map(post => (
-                        <Card key={post.id} className="overflow-hidden">
-                          <CardHeader className="pb-3 pt-4">
-                            <div className="flex items-center space-x-3">
-                              <Avatar>
-                                <AvatarImage src={post.author_image} />
-                                <AvatarFallback>{post.author_name.charAt(0)}</AvatarFallback>
+                  {filterFarmers().length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filterFarmers().map((farmer) => (
+                        <Card key={farmer.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start">
+                              <Avatar className="h-12 w-12 mr-4">
+                                <AvatarImage src={farmer.image_url} />
+                                <AvatarFallback className="bg-[#ea384c] text-white">
+                                  {farmer.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium">{post.author_name}</p>
-                                <p className="text-xs text-gray-500">
-                                  {new Date(post.created_at).toLocaleDateString()} · {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                <CardTitle className="text-lg">{farmer.name}</CardTitle>
+                                <p className="text-sm text-gray-500">
+                                  <span className="flex items-center">
+                                    <MapPin className="h-3 w-3 mr-1" /> {farmer.location}
+                                  </span>
                                 </p>
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="pt-0 pb-2">
-                            <p className="whitespace-pre-line">{post.content}</p>
-                            {post.image_url && (
-                              <div className="mt-3">
-                                <img 
-                                  src={post.image_url} 
-                                  alt="Post attachment" 
-                                  className="rounded-md max-h-[300px] w-auto object-cover" 
-                                />
+                          
+                          <CardContent className="pb-2">
+                            <div className="space-y-2">
+                              <div>
+                                <p className="text-sm font-medium">Farm Type</p>
+                                <p className="text-sm text-gray-700">{farmer.farm_type}</p>
                               </div>
-                            )}
-                          </CardContent>
-                          <CardFooter className="border-t border-gray-100 bg-gray-50 py-2">
-                            <div className="flex w-full justify-between">
-                              <Button variant="ghost" size="sm" className="text-gray-600">
-                                <Heart className="h-4 w-4 mr-1" /> {post.likes || 0}
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-600">
-                                <MessageCircle className="h-4 w-4 mr-1" /> {post.comments || 0}
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-600">
-                                <Share2 className="h-4 w-4 mr-1" /> Share
-                              </Button>
+                              
+                              <div>
+                                <p className="text-sm font-medium">Farm Size</p>
+                                <p className="text-sm text-gray-700">{farmer.farm_size}</p>
+                              </div>
+                              
+                              {farmer.expertise && (
+                                <div>
+                                  <p className="text-sm font-medium">Expertise</p>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {farmer.expertise.map((item, idx) => (
+                                      <Badge key={idx} variant="secondary" className="text-xs">
+                                        {item}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
+                          </CardContent>
+                          
+                          <CardFooter className="pt-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-[#ea384c] border-[#ea384c] hover:bg-[#ea384c]/10 w-full"
+                              onClick={() => {
+                                toast({
+                                  title: "Contact Requested",
+                                  description: `We'll notify you when ${farmer.name} accepts your connection.`
+                                });
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Connect
+                            </Button>
                           </CardFooter>
                         </Card>
                       ))}
                     </div>
-                  )}
+                  ) : renderEmpty('No farmers found')}
                 </div>
-
+              )}
+            </TabsContent>
+            
+            {/* Experts Tab */}
+            <TabsContent value="experts">
+              {loading.experts ? (
+                renderLoading('experts')
+              ) : (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Community Members</h2>
-                  {filteredFarmers.length === 0 ? (
-                    <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
-                      <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <h3 className="text-lg font-medium text-gray-700">No farmers found</h3>
-                      <p className="text-gray-500 mt-1 max-w-md mx-auto">
-                        No farmers match your search criteria. Try changing your filters.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {filteredFarmers.map(farmer => (
-                        <Card key={farmer.id} className="overflow-hidden">
-                          <CardContent className="p-0">
-                            <div className="p-5">
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="h-14 w-14 border-2 border-gray-100">
-                                  <AvatarImage src={farmer.image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(farmer.name)} />
-                                  <AvatarFallback>{farmer.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium">{farmer.name}</p>
-                                  <p className="text-sm text-gray-500 flex items-center">
-                                    <MapPin className="h-3 w-3 mr-1" /> {farmer.location}
-                                  </p>
+                  {filterExperts().length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {filterExperts().map((expert) => (
+                        <Card key={expert.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start">
+                              <Avatar className="h-12 w-12 mr-4">
+                                <AvatarImage src={expert.image_url} />
+                                <AvatarFallback className="bg-[#0066b2] text-white">
+                                  {expert.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <CardTitle className="text-lg">{expert.name}</CardTitle>
+                                  {expert.verified && (
+                                    <Badge variant="outline" className="border-blue-500 text-blue-500">
+                                      <Award className="h-3 w-3 mr-1" /> Verified
+                                    </Badge>
+                                  )}
                                 </div>
+                                <p className="text-sm font-medium text-[#0066b2]">{expert.title}</p>
+                                <p className="text-sm text-gray-500 flex items-center">
+                                  <Building className="h-3 w-3 mr-1" /> {expert.organization}
+                                </p>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          
+                          <CardContent className="pb-2">
+                            <div className="space-y-2">
+                              <div>
+                                <p className="text-sm font-medium">Location</p>
+                                <p className="text-sm text-gray-700 flex items-center">
+                                  <MapPin className="h-3 w-3 mr-1" /> {expert.location}
+                                </p>
                               </div>
                               
-                              <div className="mt-4 space-y-2">
-                                <div className="flex items-start">
-                                  <Building className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
-                                  <div>
-                                    <p className="text-sm font-medium">Farm Type</p>
-                                    <p className="text-xs text-gray-600">{farmer.farm_type}</p>
-                                  </div>
+                              <div>
+                                <p className="text-sm font-medium">Experience</p>
+                                <p className="text-sm text-gray-700">{expert.experience}</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-sm font-medium">Expertise</p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {expert.expertise.map((item, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-xs">
+                                      {item}
+                                    </Badge>
+                                  ))}
                                 </div>
-                                <div className="flex items-start">
-                                  <Clock className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
-                                  <div>
-                                    <p className="text-sm font-medium">Farm Size</p>
-                                    <p className="text-xs text-gray-600">{farmer.farm_size}</p>
-                                  </div>
-                                </div>
-                                {farmer.expertise && farmer.expertise.length > 0 && (
-                                  <div>
-                                    <p className="text-sm font-medium mb-1">Expertise</p>
-                                    <div className="flex flex-wrap gap-1">
-                                      {farmer.expertise.map((exp, idx) => (
-                                        <Badge key={idx} variant="outline" className="text-xs bg-gray-50">
-                                          {exp}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
                               </div>
                             </div>
-                            
-                            <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end">
-                              <Button variant="outline" size="sm">
-                                Connect
-                              </Button>
-                            </div>
                           </CardContent>
+                          
+                          <CardFooter className="pt-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-[#0066b2] border-[#0066b2] hover:bg-[#0066b2]/10 w-full"
+                              onClick={() => {
+                                toast({
+                                  title: "Expert Contact",
+                                  description: `We'll notify ${expert.name} of your interest in connecting.`
+                                });
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Request Consultation
+                            </Button>
+                          </CardFooter>
                         </Card>
                       ))}
                     </div>
-                  )}
-                </div>
-              </>
-            )}
-          </TabsContent>
-
-          <TabsContent value="experts" className="pt-6">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Industry Experts</h2>
-              </div>
-              
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
-                  <p className="mt-2 text-gray-500">Loading experts...</p>
-                </div>
-              ) : filteredExperts.length === 0 ? (
-                <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
-                  <User className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <h3 className="text-lg font-medium text-gray-700">No experts found</h3>
-                  <p className="text-gray-500 mt-1 max-w-md mx-auto">
-                    No experts match your search criteria. Try changing your filters.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {filteredExperts.map(expert => (
-                    <Card key={expert.id} className="overflow-hidden">
-                      <CardContent className="p-0">
-                        <div className="p-5">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-14 w-14 border-2 border-gray-100">
-                              <AvatarImage src={expert.image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(expert.name)} />
-                              <AvatarFallback>{expert.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-center">
-                                <p className="font-medium">{expert.name}</p>
-                                {expert.verified && (
-                                  <CheckCircle className="h-4 w-4 text-blue-500 ml-1" />
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600">{expert.title}</p>
-                              <p className="text-xs text-gray-500">{expert.organization}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-4 space-y-2">
-                            <div className="flex items-start">
-                              <MapPin className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
-                              <div>
-                                <p className="text-sm font-medium">Location</p>
-                                <p className="text-xs text-gray-600">{expert.location}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start">
-                              <Award className="h-4 w-4 text-gray-500 mt-0.5 mr-2" />
-                              <div>
-                                <p className="text-sm font-medium">Experience</p>
-                                <p className="text-xs text-gray-600">{expert.experience}</p>
-                              </div>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium mb-1">Expertise</p>
-                              <div className="flex flex-wrap gap-1">
-                                {expert.expertise.map((exp, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs bg-gray-50">
-                                    {exp}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end">
-                          <Button variant="outline" size="sm">
-                            Contact
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  ) : renderEmpty('No experts found')}
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="events" className="pt-6">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Upcoming Events</h2>
-                {isAdmin && (
-                  <Button 
-                    onClick={() => setShowEventDialog(true)}
-                    className="bg-[#ea384c] hover:bg-[#d02f3d]"
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Add Event
-                  </Button>
-                )}
-              </div>
-              
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
-                  <p className="mt-2 text-gray-500">Loading events...</p>
-                </div>
-              ) : events.length === 0 ? (
-                <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
-                  <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <h3 className="text-lg font-medium text-gray-700">No events found</h3>
-                  <p className="text-gray-500 mt-1 max-w-md mx-auto">
-                    There are no upcoming events at this time. Check back later for new events.
-                  </p>
-                  {isAdmin && (
-                    <Button 
-                      className="mt-4 bg-[#ea384c] hover:bg-[#d02f3d]"
-                      onClick={() => setShowEventDialog(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Add Event
-                    </Button>
-                  )}
-                </div>
+            </TabsContent>
+            
+            {/* Events Tab */}
+            <TabsContent value="events">
+              {loading.events ? (
+                renderLoading('events')
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {events.map(event => (
-                    <Card key={event.id} className="overflow-hidden">
-                      <CardContent className="p-0">
-                        <div className="h-40 overflow-hidden">
-                          <img 
-                            src={event.image_url || 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80'} 
-                            alt={event.title} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        
-                        <div className="p-5">
-                          <h3 className="font-semibold text-lg">{event.title}</h3>
-                          <div className="mt-2 space-y-2">
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                              <p className="text-sm text-gray-600">
-                                {new Date(event.date).toLocaleDateString('en-US', {
-                                  weekday: 'long',
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })}
-                              </p>
+                <div>
+                  {filterEvents().length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filterEvents().map((event) => (
+                        <Card key={event.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          {event.image_url && (
+                            <div className="h-48 w-full overflow-hidden">
+                              <img 
+                                src={event.image_url} 
+                                alt={event.title}
+                                className="w-full h-full object-cover"
+                              />
                             </div>
-                            <div className="flex items-center">
-                              <MapPin className="h-4 w-4 text-gray-500 mr-2" />
-                              <p className="text-sm text-gray-600">{event.location}</p>
+                          )}
+                          
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-xl">{event.title}</CardTitle>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              <span>{event.date}</span>
+                              <Separator orientation="vertical" className="mx-2 h-4" />
+                              <MapPin className="h-4 w-4 mr-1" />
+                              <span>{event.location}</span>
                             </div>
+                          </CardHeader>
+                          
+                          <CardContent className="pb-2">
+                            <p className="text-sm text-gray-700">{event.description}</p>
+                            
                             {event.organizer && (
-                              <div className="flex items-center">
-                                <Building className="h-4 w-4 text-gray-500 mr-2" />
-                                <p className="text-sm text-gray-600">{event.organizer}</p>
+                              <div className="mt-4">
+                                <p className="text-sm font-medium">Organized by</p>
+                                <p className="text-sm text-gray-700">{event.organizer}</p>
                               </div>
                             )}
-                          </div>
+                          </CardContent>
                           
-                          <p className="text-sm text-gray-600 mt-3 line-clamp-3">
-                            {event.description}
-                          </p>
-                          
-                          {event.category && (
-                            <Badge className="mt-3" variant="secondary">
-                              {event.category}
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-between">
-                          <Button variant="ghost" size="sm">
-                            Share
-                          </Button>
-                          <Button className="bg-[#ea384c] hover:bg-[#d02f3d]">
-                            Register
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          <CardFooter className="pt-2">
+                            <Button 
+                              className="bg-[#ea384c] hover:bg-[#d02f3d] w-full"
+                              onClick={() => {
+                                toast({
+                                  title: "RSVP Confirmed",
+                                  description: `You've registered for ${event.title}. We'll send you the details.`
+                                });
+                              }}
+                            >
+                              Register for Event
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : renderEmpty('No events found')}
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="jobs" className="pt-6">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Job Opportunities</h2>
-                {isAdmin && (
-                  <Button 
-                    onClick={() => setShowJobDialog(true)}
-                    className="bg-[#ea384c] hover:bg-[#d02f3d]"
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Post Job
-                  </Button>
-                )}
-              </div>
-              
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea384c] mx-auto"></div>
-                  <p className="mt-2 text-gray-500">Loading job listings...</p>
-                </div>
-              ) : jobs.length === 0 ? (
-                <div className="text-center bg-gray-50 py-12 rounded-lg border border-dashed border-gray-300">
-                  <Briefcase className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <h3 className="text-lg font-medium text-gray-700">No job listings found</h3>
-                  <p className="text-gray-500 mt-1 max-w-md mx-auto">
-                    There are no job opportunities available at this time. Check back later for new listings.
-                  </p>
-                  {isAdmin && (
-                    <Button 
-                      className="mt-4 bg-[#ea384c] hover:bg-[#d02f3d]"
-                      onClick={() => setShowJobDialog(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Post Job
-                    </Button>
+            </TabsContent>
+            
+            {/* Job Listings Tab */}
+            <TabsContent value="jobs">
+              {loading.jobs ? (
+                renderLoading('job listings')
+              ) : (
+                <div>
+                  {filterJobs().length > 0 ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {filterJobs().map((job) => (
+                        <Card key={job.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-xl">{job.title}</CardTitle>
+                                <p className="text-lg font-medium text-[#0066b2]">{job.company}</p>
+                              </div>
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100">New</Badge>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              <span>{job.location}</span>
+                              {job.salary_range && (
+                                <>
+                                  <Separator orientation="vertical" className="mx-2 h-4" />
+                                  <span>₹{job.salary_range}</span>
+                                </>
+                              )}
+                            </div>
+                          </CardHeader>
+                          
+                          <CardContent className="pb-2">
+                            <p className="text-sm text-gray-700 mb-4">{job.description}</p>
+                            
+                            <div>
+                              <p className="text-sm font-medium">Requirements</p>
+                              <ul className="list-disc list-inside text-sm text-gray-700 mt-1 space-y-1">
+                                {job.requirements.map((req, idx) => (
+                                  <li key={idx}>{req}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </CardContent>
+                          
+                          <CardFooter className="pt-2 flex justify-between">
+                            <Button 
+                              variant="outline" 
+                              className="flex-1 mr-2"
+                              onClick={() => {
+                                toast({
+                                  title: "Job Saved",
+                                  description: "This job has been saved to your profile."
+                                });
+                              }}
+                            >
+                              Save
+                            </Button>
+                            <Button 
+                              className="bg-[#0066b2] hover:bg-[#0055a3] flex-1"
+                              onClick={() => {
+                                toast({
+                                  title: "Application Started",
+                                  description: "Complete your application for this position."
+                                });
+                              }}
+                            >
+                              Apply Now
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Briefcase className="h-16 w-16 text-gray-300 mx-auto" />
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">No job listings yet</h3>
+                      <p className="mt-2 text-gray-500 max-w-md mx-auto">
+                        Job listings will appear here once available. Check back soon as we're adding new opportunities regularly.
+                      </p>
+                      <Button 
+                        className="mt-6 bg-[#ea384c] hover:bg-[#d02f3d]"
+                        onClick={() => {
+                          toast({
+                            title: "Job Alerts Enabled",
+                            description: "You'll be notified when new jobs are posted."
+                          });
+                        }}
+                      >
+                        Create Job Alert
+                      </Button>
+                    </div>
                   )}
                 </div>
+              )}
+            </TabsContent>
+            
+            {/* Discussions Tab */}
+            <TabsContent value="discussions">
+              <div className="flex justify-end mb-4">
+                <Button 
+                  className="bg-[#ea384c] hover:bg-[#d02f3d]"
+                  onClick={() => {
+                    toast({
+                      title: "Create Post",
+                      description: "This would open a modal to create a new discussion post"
+                    });
+                  }}
+                >
+                  Start a Discussion
+                </Button>
+              </div>
+              
+              {loading.posts ? (
+                renderLoading('discussions')
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  {jobs.map(job => (
-                    <Card key={job.id}>
-                      <CardHeader className="pb-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg">{job.title}</CardTitle>
-                            <CardDescription>
-                              {job.company} · {job.location}
-                            </CardDescription>
+                <div className="space-y-6">
+                  {posts.length > 0 ? (
+                    posts.map((post) => (
+                      <Card key={post.id} className="overflow-hidden">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center">
+                            <Avatar className="h-10 w-10 mr-3">
+                              <AvatarImage src={post.author_image} />
+                              <AvatarFallback className="bg-[#ea384c] text-white">
+                                {post.author_name[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{post.author_name}</p>
+                              <p className="text-xs text-gray-500">{post.created_at}</p>
+                            </div>
                           </div>
-                          {job.salary_range && (
-                            <Badge variant="secondary">
-                              {job.salary_range}
-                            </Badge>
+                        </CardHeader>
+                        
+                        <CardContent className="pb-2">
+                          <p className="text-gray-700">{post.content}</p>
+                          
+                          {post.image_url && (
+                            <div className="mt-3">
+                              <img 
+                                src={post.image_url} 
+                                alt="Post attachment" 
+                                className="rounded-md max-h-80 w-auto"
+                              />
+                            </div>
                           )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                          {job.description}
-                        </p>
+                        </CardContent>
                         
-                        {job.requirements && job.requirements.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="text-sm font-medium mb-2">Requirements:</h4>
-                            <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                              {job.requirements.slice(0, 3).map((req, idx) => (
-                                <li key={idx}>{req}</li>
-                              ))}
-                              {job.requirements.length > 3 && (
-                                <li className="text-[#ea384c]">+{job.requirements.length - 3} more</li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                        
-                        <p className="text-xs text-gray-500">
-                          Posted {new Date(job.created_at || '').toLocaleDateString()}
-                        </p>
-                      </CardContent>
-                      <CardFooter className="pt-0 flex justify-end">
-                        <Button className="bg-[#ea384c] hover:bg-[#d02f3d]">
-                          Apply Now
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                        <CardFooter className="pt-2 border-t border-gray-100 flex justify-between">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-gray-600"
+                            onClick={() => {
+                              toast({
+                                title: "Post Liked",
+                                description: "You liked this post."
+                              });
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                            {post.likes}
+                          </Button>
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-gray-600"
+                            onClick={() => {
+                              toast({
+                                title: "Comment",
+                                description: "This would open the comment section."
+                              });
+                            }}
+                          >
+                            <MessageSquare className="h-5 w-5 mr-1" />
+                            {post.comments}
+                          </Button>
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-gray-600"
+                            onClick={() => {
+                              toast({
+                                title: "Share",
+                                description: "This would open sharing options."
+                              });
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            Share
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <MessageSquare className="h-16 w-16 text-gray-300 mx-auto" />
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">No discussions yet</h3>
+                      <p className="mt-2 text-gray-500 max-w-md mx-auto">
+                        Be the first to start a discussion in the community. Share your thoughts, questions, or insights.
+                      </p>
+                      <Button 
+                        className="mt-6 bg-[#ea384c] hover:bg-[#d02f3d]"
+                        onClick={() => {
+                          toast({
+                            title: "Start Discussion",
+                            description: "This would open a form to create your first post."
+                          });
+                        }}
+                      >
+                        Start First Discussion
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
       </div>
-
-      {/* Farmer Profile Dialog */}
-      <Dialog open={showFarmerProfile} onOpenChange={setShowFarmerProfile}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create Farmer Profile</DialogTitle>
-            <DialogDescription>
-              Fill out your profile to connect with other industry professionals.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="profile-name">Full Name</Label>
-              <Input 
-                id="profile-name"
-                placeholder="Your name"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="profile-location">Location</Label>
-              <Input 
-                id="profile-location"
-                placeholder="City, State"
-                value={profileLocation}
-                onChange={(e) => setProfileLocation(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="farm-type">Farm Type</Label>
-              <Select value={farmType} onValueChange={setFarmType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select farm type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Layer Farm">Layer Farm</SelectItem>
-                  <SelectItem value="Broiler Farm">Broiler Farm</SelectItem>
-                  <SelectItem value="Breeding Farm">Breeding Farm</SelectItem>
-                  <SelectItem value="Hatchery">Hatchery</SelectItem>
-                  <SelectItem value="Mixed Farm">Mixed Farm</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="farm-size">Farm Size</Label>
-              <Select value={farmSize} onValueChange={setFarmSize}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select farm size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Small (<5,000 birds)">Small (&lt;5,000 birds)</SelectItem>
-                  <SelectItem value="Medium (5,000-20,000 birds)">Medium (5,000-20,000 birds)</SelectItem>
-                  <SelectItem value="Large (20,000-50,000 birds)">Large (20,000-50,000 birds)</SelectItem>
-                  <SelectItem value="Very Large (>50,000 birds)">Very Large (&gt;50,000 birds)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Areas of Expertise</Label>
-              <div className="flex flex-wrap gap-2">
-                {['Broiler Management', 'Layer Production', 'Poultry Health', 'Feed Management', 'Breeding', 'Marketing', 'Processing'].map(exp => (
-                  <Button 
-                    key={exp}
-                    type="button"
-                    variant={expertise.includes(exp) ? "default" : "outline"}
-                    className={expertise.includes(exp) ? "bg-[#ea384c] hover:bg-[#d02f3d]" : ""}
-                    size="sm"
-                    onClick={() => {
-                      if (expertise.includes(exp)) {
-                        setExpertise(expertise.filter(e => e !== exp));
-                      } else {
-                        setExpertise([...expertise, exp]);
-                      }
-                    }}
-                  >
-                    {exp}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="experience">Years of Experience</Label>
-              <Select value={experience} onValueChange={setExperience}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select experience" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
-                  <SelectItem value="1-5 years">1-5 years</SelectItem>
-                  <SelectItem value="6-10 years">6-10 years</SelectItem>
-                  <SelectItem value="11-20 years">11-20 years</SelectItem>
-                  <SelectItem value="More than 20 years">More than 20 years</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="contact-number">Contact Number (Optional)</Label>
-              <Input 
-                id="contact-number"
-                placeholder="Your contact number"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="profile-image">Profile Image URL (Optional)</Label>
-              <Input 
-                id="profile-image"
-                placeholder="URL to your profile image"
-                value={profileImage}
-                onChange={(e) => setProfileImage(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowFarmerProfile(false)}>Cancel</Button>
-            <Button onClick={handleAddFarmerProfile} className="bg-[#ea384c] hover:bg-[#d02f3d]">Create Profile</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Expert Profile Dialog */}
-      <Dialog open={showExpertProfile} onOpenChange={setShowExpertProfile}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create Expert Profile</DialogTitle>
-            <DialogDescription>
-              Fill out your expert profile to share your knowledge with the community.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="profile-name">Full Name</Label>
-              <Input 
-                id="profile-name"
-                placeholder="Your name"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="profile-title">Professional Title</Label>
-              <Input 
-                id="profile-title"
-                placeholder="e.g. Poultry Veterinarian, Nutritionist"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="profile-organization">Organization</Label>
-              <Input 
-                id="profile-organization"
-                placeholder="Your organization or company"
-                value={organization}
-                onChange={(e) => setOrganization(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="profile-location">Location</Label>
-              <Input 
-                id="profile-location"
-                placeholder="City, State"
-                value={profileLocation}
-                onChange={(e) => setProfileLocation(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Areas of Expertise</Label>
-              <div className="flex flex-wrap gap-2">
-                {['Poultry Health', 'Nutrition', 'Farm Management', 'Biosecurity', 'Breeding', 'Processing', 'Economics', 'Research', 'Marketing', 'Technology'].map(exp => (
-                  <Button 
-                    key={exp}
-                    type="button"
-                    variant={expertise.includes(exp) ? "default" : "outline"}
-                    className={expertise.includes(exp) ? "bg-[#ea384c] hover:bg-[#d02f3d]" : ""}
-                    size="sm"
-                    onClick={() => {
-                      if (expertise.includes(exp)) {
-                        setExpertise(expertise.filter(e => e !== exp));
-                      } else {
-                        setExpertise([...expertise, exp]);
-                      }
-                    }}
-                  >
-                    {exp}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="experience">Years of Experience</Label>
-              <Select value={experience} onValueChange={setExperience}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select experience" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
-                  <SelectItem value="1-5 years">1-5 years</SelectItem>
-                  <SelectItem value="6-10 years">6-10 years</SelectItem>
-                  <SelectItem value="11-20 years">11-20 years</SelectItem>
-                  <SelectItem value="More than 20 years">More than 20 years</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="profile-image">Profile Image URL (Optional)</Label>
-              <Input 
-                id="profile-image"
-                placeholder="URL to your profile image"
-                value={profileImage}
-                onChange={(e) => setProfileImage(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowExpertProfile(false)}>Cancel</Button>
-            <Button onClick={handleAddExpertProfile} className="bg-[#ea384c] hover:bg-[#d02f3d]">Create Profile</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Create Post Dialog */}
-      <Dialog open={showPostDialog} onOpenChange={setShowPostDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create Post</DialogTitle>
-            <DialogDescription>
-              Share updates, information, or questions with the community.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="post-content">Message</Label>
-              <Textarea 
-                id="post-content"
-                placeholder="What would you like to share?"
-                className="min-h-[120px]"
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="post-image">Image URL (Optional)</Label>
-              <Input 
-                id="post-image"
-                placeholder="URL to an image you'd like to share"
-                value={postImage}
-                onChange={(e) => setPostImage(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPostDialog(false)}>Cancel</Button>
-            <Button 
-              onClick={handleAddPost}
-              className="bg-[#ea384c] hover:bg-[#d02f3d]"
-              disabled={!postContent.trim()}
-            >
-              <Send className="h-4 w-4 mr-2" /> Publish
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Event Dialog (Admin Only) */}
-      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add Event</DialogTitle>
-            <DialogDescription>
-              Create a new event for the poultry community.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="event-title">Event Title</Label>
-              <Input 
-                id="event-title"
-                placeholder="Title of the event"
-                value={eventTitle}
-                onChange={(e) => setEventTitle(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="event-description">Description</Label>
-              <Textarea 
-                id="event-description"
-                placeholder="Details about the event"
-                className="min-h-[100px]"
-                value={eventDescription}
-                onChange={(e) => setEventDescription(e.target.value)}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="event-date">Date</Label>
-                <Input 
-                  id="event-date"
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="event-location">Location</Label>
-                <Input 
-                  id="event-location"
-                  placeholder="Event venue"
-                  value={eventLocation}
-                  onChange={(e) => setEventLocation(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="event-category">Category</Label>
-              <Select value={eventCategory} onValueChange={setEventCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Conference">Conference</SelectItem>
-                  <SelectItem value="Workshop">Workshop</SelectItem>
-                  <SelectItem value="Webinar">Webinar</SelectItem>
-                  <SelectItem value="Trade Show">Trade Show</SelectItem>
-                  <SelectItem value="Training">Training</SelectItem>
-                  <SelectItem value="Networking">Networking</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="event-organizer">Organizer</Label>
-              <Input 
-                id="event-organizer"
-                placeholder="Name of organizing body"
-                value={eventOrganizer}
-                onChange={(e) => setEventOrganizer(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="event-contact">Contact</Label>
-              <Input 
-                id="event-contact"
-                placeholder="Contact information for inquiries"
-                value={eventContact}
-                onChange={(e) => setEventContact(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="event-image">Image URL</Label>
-              <Input 
-                id="event-image"
-                placeholder="URL to event banner or image"
-                value={eventImage}
-                onChange={(e) => setEventImage(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEventDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddEvent} className="bg-[#ea384c] hover:bg-[#d02f3d]">Add Event</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Job Dialog (Admin Only) */}
-      <Dialog open={showJobDialog} onOpenChange={setShowJobDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Post Job Listing</DialogTitle>
-            <DialogDescription>
-              Create a new job opportunity for the poultry community.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="job-title">Job Title</Label>
-              <Input 
-                id="job-title"
-                placeholder="Position title"
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="job-company">Company</Label>
-                <Input 
-                  id="job-company"
-                  placeholder="Company name"
-                  value={jobCompany}
-                  onChange={(e) => setJobCompany(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="job-location">Location</Label>
-                <Input 
-                  id="job-location"
-                  placeholder="Job location"
-                  value={jobLocation}
-                  onChange={(e) => setJobLocation(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="job-description">Description</Label>
-              <Textarea 
-                id="job-description"
-                placeholder="Job description and responsibilities"
-                className="min-h-[100px]"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="job-requirements">Requirements (one per line)</Label>
-              <Textarea 
-                id="job-requirements"
-                placeholder="Enter each requirement on a new line"
-                className="min-h-[100px]"
-                value={jobRequirements.join('\n')}
-                onChange={(e) => setJobRequirements(e.target.value.split('\n').filter(line => line.trim()))}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="job-salary">Salary Range (Optional)</Label>
-              <Input 
-                id="job-salary"
-                placeholder="e.g. ₹40,000 - ₹60,000 per month"
-                value={jobSalary}
-                onChange={(e) => setJobSalary(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="job-email">Contact Email</Label>
-              <Input 
-                id="job-email"
-                type="email"
-                placeholder="Email for applications"
-                value={jobContactEmail}
-                onChange={(e) => setJobContactEmail(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowJobDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddJob} className="bg-[#ea384c] hover:bg-[#d02f3d]">Post Job</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };

@@ -4,87 +4,102 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
+  DialogTitle
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { MessageSquare, Search } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 
-interface Message {
-  id: number;
-  sender: string;
-  message: string;
-  time: string;
-  read: boolean;
+export interface MessagesDialogProps {
+  open: boolean;
+  onClose: () => void;
 }
 
-interface MessagesDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  messages: Message[];
-  onMarkAllRead: () => void;
-}
+const MessagesDialog: React.FC<MessagesDialogProps> = ({ open, onClose }) => {
+  // Sample messages data - in a real app, this would come from an API
+  const messages = [
+    {
+      id: 1,
+      sender: 'Ravi Singh',
+      avatar: null,
+      initials: 'RS',
+      message: 'Do you have any Layer chicks available?',
+      time: '15 minutes ago',
+      unread: true
+    },
+    {
+      id: 2,
+      sender: 'Priya Sharma',
+      avatar: null,
+      initials: 'PS',
+      message: 'I'm looking for Broiler feed suppliers in Bangalore area.',
+      time: '2 hours ago',
+      unread: false
+    },
+    {
+      id: 3,
+      sender: 'Amit Patel',
+      avatar: null,
+      initials: 'AP',
+      message: 'Thanks for the consultation yesterday.',
+      time: '1 day ago',
+      unread: false
+    }
+  ];
 
-const MessagesDialog: React.FC<MessagesDialogProps> = ({
-  isOpen,
-  onOpenChange,
-  messages,
-  onMarkAllRead,
-}) => {
-  const navigate = useNavigate();
-  
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex justify-between items-center">
-            <span>Messages</span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onMarkAllRead}
-              className="text-sm text-[#f5565c] hover:text-[#d22f42] hover:bg-red-50"
-            >
-              Mark All Read
-            </Button>
+          <DialogTitle className="flex items-center">
+            <MessageSquare className="h-5 w-5 mr-2 text-[#f5565c]" />
+            Messages
           </DialogTitle>
-          <DialogDescription>
-            Messages from our support team and partners.
-          </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[60vh] overflow-y-auto">
-          {messages.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              <p>No messages yet</p>
-            </div>
-          ) : (
-            <div className="divide-y">
+        
+        <div className="mb-4 relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <Input 
+            placeholder="Search messages..." 
+            className="pl-9 bg-gray-50"
+          />
+        </div>
+        
+        <div className="max-h-72 overflow-y-auto">
+          {messages.length > 0 ? (
+            <div className="space-y-2">
               {messages.map((message) => (
-                <div key={message.id} className={`py-3 px-1 ${message.read ? 'opacity-70' : ''}`}>
-                  <div className="flex justify-between">
-                    <h4 className="font-medium">{message.sender}</h4>
-                    <span className="text-xs text-gray-500">{message.time}</span>
+                <div
+                  key={message.id}
+                  className={`flex p-3 rounded-lg cursor-pointer ${
+                    message.unread ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <Avatar className="h-10 w-10 mr-3">
+                    <AvatarImage src={message.avatar || undefined} alt={message.sender} />
+                    <AvatarFallback className="bg-[#ea384c] text-white">{message.initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className={`text-sm ${message.unread ? 'font-semibold' : 'font-medium'}`}>
+                        {message.sender}
+                      </p>
+                      <span className="text-xs text-gray-500">{message.time}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 truncate">{message.message}</p>
+                    {message.unread && (
+                      <span className="inline-block w-2 h-2 bg-[#f5565c] rounded-full ml-1"></span>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">{message.message}</p>
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="text-center py-8">
+              <MessageSquare className="mx-auto h-12 w-12 text-gray-300" />
+              <p className="mt-2 text-gray-500">No messages</p>
+            </div>
           )}
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              onOpenChange(false);
-              navigate('/contact');
-            }}
-          >
-            Contact Support
-          </Button>
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
         </div>
       </DialogContent>
     </Dialog>

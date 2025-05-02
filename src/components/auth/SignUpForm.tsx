@@ -17,6 +17,7 @@ interface SignUpFormProps {
   setShowPassword: (value: boolean) => void;
   loading: boolean;
   onSubmit: (e: React.FormEvent) => void;
+  errorMessage?: string; // Added errorMessage prop
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = ({
@@ -32,6 +33,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
   setShowPassword,
   loading,
   onSubmit,
+  errorMessage,
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -40,17 +42,19 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         label="Full Name"
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
-        placeholder="John Smith"
+        type="text"
+        placeholder="John Doe"
         required
         icon={<User className="h-5 w-5" />}
       />
-      
+
       <AuthFormField
         id="organization"
         label="Organization (Optional)"
         value={organization}
         onChange={(e) => setOrganization(e.target.value)}
-        placeholder="Your Farm or Organization"
+        type="text"
+        placeholder="Company / Farm Name"
         icon={<Building className="h-5 w-5" />}
       />
 
@@ -73,7 +77,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         type={showPassword ? 'text' : 'password'}
         placeholder="••••••••"
         required
-        minLength={6}
         icon={<Lock className="h-5 w-5" />}
         rightElement={
           <Button
@@ -94,6 +97,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         }
       />
 
+      {errorMessage && (
+        <div className="text-sm text-red-500 font-medium">{errorMessage}</div>
+      )}
+
       <Button
         type="submit"
         className="w-full bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] text-white"
@@ -109,7 +116,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
           </span>
         ) : (
           <span className="flex items-center">
-            Sign Up
+            Create Account
             <ArrowRight className="ml-2 h-4 w-4" />
           </span>
         )}

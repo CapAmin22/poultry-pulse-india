@@ -282,7 +282,7 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="col-span-12 md:col-span-5">
               <img 
-                src="https://images.unsplash.com/photo-1563599205636-efa4d5a3c1e2?q=80&w=2574&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1563599205636-efa4d3a3c1e2?q=80&w=2574&auto=format&fit=crop"
                 alt="Farm technology" 
                 className="w-full h-full object-cover rounded-lg shadow-md"
               />
