@@ -145,9 +145,7 @@ const Navbar: React.FC = () => {
             </Link>
 
             <nav className="ml-8 hidden md:flex space-x-1">
-              {navItems.map(item => <Link key={item.path} to={item.path} className={`px-3 py-2 text-sm font-medium rounded-md ${location.pathname === item.path ? 'text-[#f5565c] bg-red-50' : 'text-gray-700 hover:bg-gray-100'}`}>
-                  {item.name}
-                </Link>)}
+              {navItems.map(item => {})}
             </nav>
 
             <button onClick={toggleMobileMenu} className="md:hidden ml-2">
