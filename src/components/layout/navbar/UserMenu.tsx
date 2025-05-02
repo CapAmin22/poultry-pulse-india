@@ -31,7 +31,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href="/network">Network</a>
+          
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
