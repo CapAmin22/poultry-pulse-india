@@ -4,24 +4,18 @@ import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ProductionStats from '@/components/dashboard/ProductionStats';
 import { motion } from 'framer-motion';
-import { BarChart, BarChart3, AreaChart, PieChart, LineChart, ArrowUp, ArrowDown, TrendingUp } from 'lucide-react';
+import { BarChart3, AreaChart, LineChart, ArrowUp, ArrowDown, TrendingUp } from 'lucide-react';
 import { 
   LineChart as RechartsLineChart, 
   Line, 
-  BarChart as RechartsBarChart,
-  Bar,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   Legend, 
   ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell
 } from 'recharts';
-
-const COLORS = ['#EA384C', '#0FA0CE', '#36B37E', '#FFAB00', '#6554C0'];
+import { Button } from '@/components/ui/button';
 
 const marketData = [
   { month: 'Jan', egg: 42, broiler: 38, layer: 28 },
@@ -36,19 +30,12 @@ const marketData = [
   { month: 'Oct', egg: 55, broiler: 54, layer: 37 },
 ];
 
-const profitabilityData = [
-  { name: 'Feed Cost', value: 45 },
-  { name: 'Labor', value: 20 },
-  { name: 'Utilities', value: 10 },
-  { name: 'Healthcare', value: 15 },
-  { name: 'Other', value: 10 },
-];
-
-const efficiencyData = [
-  { quarter: 'Q1', efficiency: 78, average: 72 },
-  { quarter: 'Q2', efficiency: 82, average: 74 },
-  { quarter: 'Q3', efficiency: 85, average: 76 },
-  { quarter: 'Q4', efficiency: 89, average: 78 },
+const keyInsightsData = [
+  { region: 'North', eggPrice: 5.4, broilerPrice: 115, change: 2.3 },
+  { region: 'South', eggPrice: 5.2, broilerPrice: 112, change: 1.7 },
+  { region: 'East', eggPrice: 5.1, broilerPrice: 110, change: -0.8 },
+  { region: 'West', eggPrice: 5.3, broilerPrice: 114, change: 3.2 },
+  { region: 'Central', eggPrice: 5.2, broilerPrice: 111, change: 0.5 },
 ];
 
 const StatCard = ({ title, value, change, icon, trend }: { 
@@ -112,7 +99,7 @@ const Statistics: React.FC = () => {
             title="Egg Production" 
             value="95.2M/day" 
             change="↑ 3.2% vs last month" 
-            icon={<BarChart className="h-5 w-5 text-[#EA384C]" />}
+            icon={<BarChart3 className="h-5 w-5 text-[#EA384C]" />}
             trend="up"
           />
           <StatCard 
@@ -126,7 +113,7 @@ const Statistics: React.FC = () => {
             title="Feed Efficiency" 
             value="1.85 FCR" 
             change="↓ 0.05 vs last month" 
-            icon={<PieChart className="h-5 w-5 text-green-600" />}
+            icon={<LineChart className="h-5 w-5 text-green-600" />}
             trend="down"
           />
           <StatCard 
@@ -206,82 +193,62 @@ const Statistics: React.FC = () => {
           </motion.div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <Card className="shadow-md h-full">
-              <CardHeader>
-                <CardTitle>Production Efficiency</CardTitle>
-                <CardDescription>Feed conversion ratio vs industry average</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsBarChart
-                      data={efficiencyData}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
-                      <XAxis dataKey="quarter" />
-                      <YAxis domain={[60, 100]} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar 
-                        dataKey="efficiency" 
-                        name="Your Farm" 
-                        fill="#0FA0CE" 
-                      />
-                      <Bar 
-                        dataKey="average" 
-                        name="Industry Average" 
-                        fill="#EA384C" 
-                      />
-                    </RechartsBarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <Card className="shadow-md h-full">
-              <CardHeader>
-                <CardTitle>Cost Distribution</CardTitle>
-                <CardDescription>Breakdown of operational costs</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                      <Pie
-                        data={profitabilityData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {profitabilityData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+        {/* New Key Insights section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Key Insights: Market Prices</CardTitle>
+              <CardDescription>Regional price comparison across India</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">Region</th>
+                      <th className="text-left py-3 px-4">Eggs (₹/dozen)</th>
+                      <th className="text-left py-3 px-4">Broiler (₹/kg)</th>
+                      <th className="text-left py-3 px-4">Weekly Change</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {keyInsightsData.map((item, index) => (
+                      <tr key={item.region} className={index < keyInsightsData.length - 1 ? "border-b" : ""}>
+                        <td className="py-3 px-4 font-medium">{item.region}</td>
+                        <td className="py-3 px-4">₹{item.eggPrice.toFixed(1)}</td>
+                        <td className="py-3 px-4">₹{item.broilerPrice}</td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            item.change > 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : item.change < 0 
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {item.change > 0 ? '+' : ''}{item.change}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-6 flex justify-center">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open("https://poultry.org.in/market-reports", "_blank")}
+                >
+                  View Detailed Market Report
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </Layout>
   );
