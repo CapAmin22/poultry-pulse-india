@@ -94,9 +94,7 @@ const Navbar: React.FC = () => {
               
               {/* Mobile menu button */}
               <div className="md:hidden ml-2">
-                <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-                  {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
+                
               </div>
             </div> : <div className="flex items-center">
               <Button variant="outline" className="mr-2 border-[#f5565c] text-[#f5565c] hover:bg-[#f5565c] hover:text-white hidden md:block" onClick={handleSignIn}>
