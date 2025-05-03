@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
@@ -16,27 +15,23 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Sample news data
-const newsHighlights = [
-  {
-    id: 1,
-    title: 'Government Announces New Subsidy for Poultry Farmers',
-    summary: 'The Ministry of Agriculture has announced a new subsidy scheme to boost poultry production across India.',
-    date: 'Today',
-  },
-  {
-    id: 2,
-    title: 'Avian Influenza Alert in Northern States',
-    summary: 'Authorities have issued preventive guidelines following reports of avian influenza in neighboring countries.',
-    date: 'Yesterday',
-  },
-  {
-    id: 3,
-    title: 'Export of Indian Poultry Products Sees 15% Growth',
-    summary: 'Indian poultry exports reached a new high with 15% year-on-year growth in the last quarter.',
-    source: 'Business Standard',
-    date: '2 days ago',
-  },
-];
+const newsHighlights = [{
+  id: 1,
+  title: 'Government Announces New Subsidy for Poultry Farmers',
+  summary: 'The Ministry of Agriculture has announced a new subsidy scheme to boost poultry production across India.',
+  date: 'Today'
+}, {
+  id: 2,
+  title: 'Avian Influenza Alert in Northern States',
+  summary: 'Authorities have issued preventive guidelines following reports of avian influenza in neighboring countries.',
+  date: 'Yesterday'
+}, {
+  id: 3,
+  title: 'Export of Indian Poultry Products Sees 15% Growth',
+  summary: 'Indian poultry exports reached a new high with 15% year-on-year growth in the last quarter.',
+  source: 'Business Standard',
+  date: '2 days ago'
+}];
 
 // Sample weather data
 const weatherData = {
@@ -46,48 +41,54 @@ const weatherData = {
   humidity: 65,
   windSpeed: 12,
   alert: 'Heat wave expected next week. Prepare your farms accordingly.',
-  forecast: [
-    { day: 'Today', temp: 32, condition: 'Partly Cloudy' },
-    { day: 'Tomorrow', temp: 33, condition: 'Sunny' },
-    { day: 'Day After', temp: 30, condition: 'Light Rain' },
-  ],
+  forecast: [{
+    day: 'Today',
+    temp: 32,
+    condition: 'Partly Cloudy'
+  }, {
+    day: 'Tomorrow',
+    temp: 33,
+    condition: 'Sunny'
+  }, {
+    day: 'Day After',
+    temp: 30,
+    condition: 'Light Rain'
+  }]
 };
 
 // Weather alerts data
-const weatherAlerts = [
-  {
-    id: 1,
-    title: 'Heat Wave Warning',
-    description: 'Extreme temperatures expected for the next 3 days across Northern India. Take precautions for poultry.',
-    severity: 'high',
-  },
-  {
-    id: 2,
-    title: 'Heavy Rain Alert',
-    description: 'Heavy rainfall predicted in eastern regions starting tomorrow evening. Potential flooding risks.',
-    severity: 'medium',
-  }
-];
-
+const weatherAlerts = [{
+  id: 1,
+  title: 'Heat Wave Warning',
+  description: 'Extreme temperatures expected for the next 3 days across Northern India. Take precautions for poultry.',
+  severity: 'high'
+}, {
+  id: 2,
+  title: 'Heavy Rain Alert',
+  description: 'Heavy rainfall predicted in eastern regions starting tomorrow evening. Potential flooding risks.',
+  severity: 'medium'
+}];
 const Index: React.FC = () => {
   const navigate = useNavigate();
-  
-  return (
-    <Layout>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full"
-      >
+  return <Layout>
+      <motion.div initial={{
+      opacity: 0
+    }} animate={{
+      opacity: 1
+    }} transition={{
+      duration: 0.5
+    }} className="w-full">
         <div className="space-y-8">
           {/* Welcome Banner */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#f5565c] to-[#0066b2] p-8 text-white"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.6
+        }} className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#f5565c] to-[#0066b2] p-8 text-white">
             <div className="flex flex-col lg:flex-row justify-between items-center">
               <div className="space-y-4 max-w-2xl">
                 <h1 className="text-3xl md:text-4xl font-bold">Welcome to 22POULTRY</h1>
@@ -98,20 +99,10 @@ const Index: React.FC = () => {
                   <TrendingUp className="h-4 w-4" />
                   <span>National market insights updated today at 11:30 AM</span>
                 </div>
-                <Button 
-                  className="bg-white text-[#f5565c] hover:bg-white/90" 
-                  onClick={() => navigate('/news')}
-                >
-                  Latest Industry News
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
+                
               </div>
               
-              <img 
-                src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png" 
-                alt="22POULTRY" 
-                className="h-32 w-auto mt-6 lg:mt-0" 
-              />
+              <img src="/lovable-uploads/c2d12773-fb51-4928-bf1a-c30b2d1b60e8.png" alt="22POULTRY" className="h-32 w-auto mt-6 lg:mt-0" />
             </div>
             
             <div className="absolute -bottom-8 -right-8 w-64 h-64 rounded-full bg-white/10"></div>
@@ -126,40 +117,18 @@ const Index: React.FC = () => {
                 View Detailed Statistics
               </Button>
             </div>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="grid grid-cols-1 md:grid-cols-4 gap-4"
-            >
-              <StatHighlight 
-                title="National Egg Price"
-                value="₹5.20"
-                unit="/piece"
-                change={3.5}
-                icon={<Egg className="h-5 w-5 text-[#f5565c]" />}
-              />
-              <StatHighlight 
-                title="National Broiler Price"
-                value="₹112"
-                unit="/kg"
-                change={-1.8}
-                icon={<BarChart3 className="h-5 w-5 text-[#f5565c]" />}
-              />
-              <StatHighlight 
-                title="Feed Price Index"
-                value="124.5"
-                unit=""
-                change={5.2}
-                icon={<Database className="h-5 w-5 text-[#f5565c]" />}
-              />
-              <StatHighlight 
-                title="National Production"
-                value="98.3M"
-                unit="eggs/day"
-                change={2.1}
-                icon={<PieChart className="h-5 w-5 text-[#f5565c]" />}
-              />
+            <motion.div initial={{
+            opacity: 0
+          }} animate={{
+            opacity: 1
+          }} transition={{
+            delay: 0.2,
+            duration: 0.5
+          }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <StatHighlight title="National Egg Price" value="₹5.20" unit="/piece" change={3.5} icon={<Egg className="h-5 w-5 text-[#f5565c]" />} />
+              <StatHighlight title="National Broiler Price" value="₹112" unit="/kg" change={-1.8} icon={<BarChart3 className="h-5 w-5 text-[#f5565c]" />} />
+              <StatHighlight title="Feed Price Index" value="124.5" unit="" change={5.2} icon={<Database className="h-5 w-5 text-[#f5565c]" />} />
+              <StatHighlight title="National Production" value="98.3M" unit="eggs/day" change={2.1} icon={<PieChart className="h-5 w-5 text-[#f5565c]" />} />
             </motion.div>
           </div>
           
@@ -173,23 +142,31 @@ const Index: React.FC = () => {
             
             <TabsContent value="market" className="space-y-6">
               {/* Charts Row */}
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-              >
+              <motion.div initial={{
+              y: 20,
+              opacity: 0
+            }} animate={{
+              y: 0,
+              opacity: 1
+            }} transition={{
+              duration: 0.5,
+              delay: 0.1
+            }} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <PriceChart />
                 <FeedRatioChart />
               </motion.div>
               
               {/* Module Highlights */}
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-              >
+              <motion.div initial={{
+              y: 20,
+              opacity: 0
+            }} animate={{
+              y: 0,
+              opacity: 1
+            }} transition={{
+              duration: 0.5,
+              delay: 0.2
+            }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="p-5">
                   <div className="flex items-center">
                     <div className="p-2 rounded-full bg-[#ea384c]/10 mr-3">
@@ -200,11 +177,7 @@ const Index: React.FC = () => {
                   <p className="text-sm text-gray-600 mt-3">
                     3 new loan schemes available nationwide for poultry farmers with subsidized interest rates.
                   </p>
-                  <Button 
-                    variant="link" 
-                    className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0"
-                    onClick={() => navigate('/financial')}
-                  >
+                  <Button variant="link" className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0" onClick={() => navigate('/financial')}>
                     Explore Options <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Card>
@@ -219,11 +192,7 @@ const Index: React.FC = () => {
                   <p className="text-sm text-gray-600 mt-3">
                     Connect with 1,200+ poultry professionals across India. 5 national events this month.
                   </p>
-                  <Button 
-                    variant="link" 
-                    className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0"
-                    onClick={() => navigate('/network')}
-                  >
+                  <Button variant="link" className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0" onClick={() => navigate('/network')}>
                     Join Community <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Card>
@@ -238,11 +207,7 @@ const Index: React.FC = () => {
                   <p className="text-sm text-gray-600 mt-3">
                     Heatwave expected in Northern India next week. Industry-wide advisory issued.
                   </p>
-                  <Button 
-                    variant="link" 
-                    className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0"
-                    onClick={() => navigate('/news')}
-                  >
+                  <Button variant="link" className="flex items-center text-sm text-[#ea384c] font-medium mt-4 px-0" onClick={() => navigate('/news')}>
                     View Details <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Card>
@@ -250,23 +215,29 @@ const Index: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="production">
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-6"
-              >
+              <motion.div initial={{
+              y: 20,
+              opacity: 0
+            }} animate={{
+              y: 0,
+              opacity: 1
+            }} transition={{
+              duration: 0.5
+            }} className="space-y-6">
                 <ProductionStats />
               </motion.div>
             </TabsContent>
             
             <TabsContent value="forecasts">
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
-              >
+              <motion.div initial={{
+              y: 20,
+              opacity: 0
+            }} animate={{
+              y: 0,
+              opacity: 1
+            }} transition={{
+              duration: 0.5
+            }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="p-5">
                   <h3 className="font-medium text-lg mb-3">National Market Forecast (Next Quarter)</h3>
                   <div className="space-y-4">
@@ -274,29 +245,31 @@ const Index: React.FC = () => {
                       <p className="text-sm text-gray-600">Egg Price Trend</p>
                       <p className="font-medium">Projected to increase by 5-7% nationally</p>
                       <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '65%' }}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{
+                        width: '65%'
+                      }}></div>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Broiler Price Trend</p>
                       <p className="font-medium">Expected to remain stable (±2%) across India</p>
                       <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '50%' }}></div>
+                        <div className="bg-blue-500 h-2 rounded-full" style={{
+                        width: '50%'
+                      }}></div>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Feed Cost Projection</p>
                       <p className="font-medium">Likely to increase by 8-10% due to global grain prices</p>
                       <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
-                        <div className="bg-amber-500 h-2 rounded-full" style={{ width: '80%' }}></div>
+                        <div className="bg-amber-500 h-2 rounded-full" style={{
+                        width: '80%'
+                      }}></div>
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    className="mt-4 w-full" 
-                    variant="outline"
-                    onClick={() => navigate('/statistics')}
-                  >
+                  <Button className="mt-4 w-full" variant="outline" onClick={() => navigate('/statistics')}>
                     View Full Market Analysis
                   </Button>
                 </Card>
@@ -326,11 +299,7 @@ const Index: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                  <Button 
-                    className="mt-4 w-full" 
-                    variant="outline"
-                    onClick={() => navigate('/training')}
-                  >
+                  <Button className="mt-4 w-full" variant="outline" onClick={() => navigate('/training')}>
                     Access All Reports
                   </Button>
                 </Card>
@@ -340,12 +309,16 @@ const Index: React.FC = () => {
           
           {/* News and Weather */}
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="lg:col-span-4"
-            >
+            <motion.div initial={{
+            opacity: 0,
+            y: 20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.3,
+            duration: 0.5
+          }} className="lg:col-span-4">
               <Card className="h-full border-none shadow-md">
                 <CardHeader className="pb-2 border-b">
                   <div className="flex items-center justify-between">
@@ -356,29 +329,27 @@ const Index: React.FC = () => {
                       </CardTitle>
                       <CardDescription>Stay updated with the latest happenings in the poultry industry</CardDescription>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => navigate('/news')}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => navigate('/news')}>
                       View All
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-4">
-                  {newsHighlights.map((news) => (
-                    <NewsHighlight key={news.id} {...news} />
-                  ))}
+                  {newsHighlights.map(news => <NewsHighlight key={news.id} {...news} />)}
                 </CardContent>
               </Card>
             </motion.div>
             
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="lg:col-span-3 space-y-6"
-            >
+            <motion.div initial={{
+            opacity: 0,
+            y: 20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.4,
+            duration: 0.5
+          }} className="lg:col-span-3 space-y-6">
               <WeatherCard weather={weatherData} />
               
               {/* Weather Alerts */}
@@ -390,33 +361,15 @@ const Index: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {weatherAlerts.map(alert => (
-                    <div 
-                      key={alert.id}
-                      className={`p-3 rounded-lg border ${
-                        alert.severity === 'high' ? 'border-red-200 bg-red-50' : 
-                        alert.severity === 'medium' ? 'border-amber-200 bg-amber-50' : 
-                        'border-blue-200 bg-blue-50'
-                      }`}
-                    >
-                      <h4 className={`font-medium ${
-                        alert.severity === 'high' ? 'text-red-700' : 
-                        alert.severity === 'medium' ? 'text-amber-700' : 
-                        'text-blue-700'
-                      }`}>
+                  {weatherAlerts.map(alert => <div key={alert.id} className={`p-3 rounded-lg border ${alert.severity === 'high' ? 'border-red-200 bg-red-50' : alert.severity === 'medium' ? 'border-amber-200 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
+                      <h4 className={`font-medium ${alert.severity === 'high' ? 'text-red-700' : alert.severity === 'medium' ? 'text-amber-700' : 'text-blue-700'}`}>
                         {alert.title}
                       </h4>
                       <p className="text-sm mt-1">{alert.description}</p>
-                    </div>
-                  ))}
+                    </div>)}
                 </CardContent>
                 <CardFooter className="pt-0">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => navigate('/news')}
-                  >
+                  <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/news')}>
                     View All Alerts
                   </Button>
                 </CardFooter>
@@ -425,8 +378,6 @@ const Index: React.FC = () => {
           </div>
         </div>
       </motion.div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Index;
