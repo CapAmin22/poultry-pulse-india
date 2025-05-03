@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -149,17 +150,17 @@ const NewsPage: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <NewsFilters activeTab={activeTab} onTabChange={setActiveTab} />
-                
-                <TabsContent value={activeTab} className="space-y-4 mt-6">
-                  {filteredArticles.length > 0 ? filteredArticles.map(article => (
-                    <NewsCard key={article.id} article={article} />
-                  )) : (
-                    <div className="text-center py-10 text-gray-500">
-                      <p>No news articles found for this category.</p>
-                    </div>
-                  )}
-                </TabsContent>
+                <NewsFilters activeTab={activeTab} onTabChange={setActiveTab}>
+                  <TabsContent value={activeTab} className="space-y-4 mt-6">
+                    {filteredArticles.length > 0 ? filteredArticles.map(article => (
+                      <NewsCard key={article.id} article={article} />
+                    )) : (
+                      <div className="text-center py-10 text-gray-500">
+                        <p>No news articles found for this category.</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </NewsFilters>
               </CardContent>
               <CardFooter className="border-t pt-4 flex justify-between">
                 <div className="text-sm text-gray-500">
