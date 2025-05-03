@@ -1,5 +1,5 @@
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,18 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
+
+  // Effect to close sidebar when in mobile view and window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -55,12 +67,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-0' : 'md:ml-0'}`}>
         <div className="sticky top-0 z-10">
           <Navbar />
         </div>
 
-        <main className="flex-1 mt-16"> {/* Added mt-16 to account for fixed navbar */}
+        <main className="flex-1 mt-16 transition-all duration-300"> 
           <div className="container mx-auto px-4 py-6">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -72,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
 
-        {/* Hamburger button - only shown on mobile when sidebar is closed */}
+        {/* Floating hamburger button - only shown on mobile when sidebar is closed */}
         <div className="fixed bottom-4 right-4 z-50 md:hidden shadow-lg">
           <Button
             onClick={toggleSidebar}

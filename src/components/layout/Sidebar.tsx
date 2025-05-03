@@ -11,6 +11,7 @@ import {
   Home,
   X,
   Phone,
+  ChevronLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -61,16 +62,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
             22POULTRY
           </h1>
         </div>
-        {isMobile && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setSidebarOpen(false)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        )}
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setSidebarOpen(false)}
+          className="text-gray-500 hover:text-gray-700"
+          aria-label="Close sidebar"
+        >
+          {isMobile ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+        </Button>
       </div>
 
       <nav className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 pt-5 px-3">

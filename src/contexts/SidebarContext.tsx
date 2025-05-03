@@ -16,11 +16,11 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   const isMobile = useIsMobile();
   const location = useLocation();
 
+  // Initialize sidebar state based on device
   useEffect(() => {
-    // Initialize sidebar state based on device
-    // On desktop, sidebar should be open by default
-    // On mobile, sidebar should be closed by default
-    setSidebarOpen(!isMobile);
+    // On desktop, sidebar should be open by default but only on wider screens
+    const shouldOpenByDefault = !isMobile && window.innerWidth >= 1280;
+    setSidebarOpen(shouldOpenByDefault);
   }, [isMobile]);
   
   // Auto-close sidebar on mobile when changing routes
@@ -29,6 +29,20 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
       setSidebarOpen(false);
     }
   }, [location.pathname, isMobile]);
+  
+  // Close sidebar on small screens when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024 && sidebarOpen && !isMobile) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [sidebarOpen, isMobile]);
 
   const toggleSidebar = () => {
     setSidebarOpen(prevState => !prevState);
