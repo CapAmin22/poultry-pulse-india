@@ -479,7 +479,7 @@ const TrainingPage: React.FC = () => {
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all-types">All Types</SelectItem>
                     {resourceTypes.map(type => (
                       <SelectItem key={type} value={type}>{type}</SelectItem>
                     ))}
@@ -493,7 +493,7 @@ const TrainingPage: React.FC = () => {
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all-categories">All Categories</SelectItem>
                     {resourceCategories.map(category => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
                     ))}
@@ -697,29 +697,25 @@ const TrainingPage: React.FC = () => {
                       <CardContent>
                         <div className="space-y-2">
                           {categoryResources.slice(0, 3).map((resource) => (
-                            <div key={resource.id} className="flex items-center gap-2">
-                              <span className="p-1 rounded-full bg-gray-100">
+                            <div 
+                              key={resource.id} 
+                              className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                              onClick={() => handleResourceAction(resource.id, 'view')}
+                            >
+                              <div className="p-1 rounded-full bg-gray-100">
                                 {getResourceTypeIcon(resource.type)}
-                              </span>
-                              <span className="text-sm truncate">{resource.title}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{resource.title}</p>
+                                <p className="text-xs text-gray-500 truncate">{resource.type}</p>
+                              </div>
                             </div>
                           ))}
-                          {categoryResources.length > 3 && (
-                            <p className="text-sm text-gray-500">+ {categoryResources.length - 3} more resources</p>
-                          )}
                         </div>
                       </CardContent>
                       <CardFooter>
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => {
-                            setFilterCategory(category);
-                            setFilterType("");
-                            document.querySelector('[value="all"]')?.dispatchEvent(new Event('click', { bubbles: true }));
-                          }}
-                        >
-                          Browse Category
+                        <Button variant="outline" className="w-full" onClick={() => setFilterCategory(category)}>
+                          View All {categoryResources.length} Resources
                         </Button>
                       </CardFooter>
                     </Card>
