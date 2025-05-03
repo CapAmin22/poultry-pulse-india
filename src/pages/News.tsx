@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { CalendarDays, Search, ThumbsUp, MessageCircle, Share2, BookmarkPlus, AlertCircle, ExternalLink } from 'lucide-react';
 import WeatherCard from '@/components/dashboard/WeatherCard';
 import { motion } from 'framer-motion';
+
 const NewsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
 
@@ -101,16 +103,15 @@ const NewsPage: React.FC = () => {
     description: 'Heavy rainfall predicted in eastern regions starting tomorrow evening.',
     severity: 'medium'
   }];
-  return <Layout>
-      <motion.div initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      duration: 0.5
-    }} className="max-w-7xl mx-auto space-y-6">
+  
+  return (
+    <Layout>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto space-y-6"
+      >
         <div className="flex flex-col md:flex-row gap-6">
           {/* Main Content Area */}
           <div className="flex-1 space-y-6">
@@ -131,53 +132,64 @@ const NewsPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="all">All News</TabsTrigger>
+                    <TabsTrigger value="research">Research</TabsTrigger>
+                    <TabsTrigger value="policy">Policy</TabsTrigger>
+                    <TabsTrigger value="health">Health</TabsTrigger>
+                    <TabsTrigger value="market">Market</TabsTrigger>
+                    <TabsTrigger value="technology">Technology</TabsTrigger>
+                  </TabsList>
                   
                   <TabsContent value={activeTab} className="space-y-4 mt-6">
-                    {filteredArticles.length > 0 ? filteredArticles.map(article => <Card key={article.id} className="overflow-hidden">
-                          <div className="flex flex-col md:flex-row">
-                            <div className="w-full md:w-1/4 h-48 md:h-auto">
-                              <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="w-full md:w-3/4 p-4 space-y-3">
-                              <div>
-                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 mb-2 capitalize">{article.category}</span>
-                                <h3 className="text-xl font-bold">{article.title}</h3>
-                                <div className="flex items-center text-sm text-gray-500 mt-1 space-x-3">
-                                  <span>{article.source}</span>
-                                  <span>•</span>
-                                  <div className="flex items-center">
-                                    <CalendarDays className="h-4 w-4 mr-1" />
-                                    {article.date}
-                                  </div>
+                    {filteredArticles.length > 0 ? filteredArticles.map(article => (
+                      <Card key={article.id} className="overflow-hidden">
+                        <div className="flex flex-col md:flex-row">
+                          <div className="w-full md:w-1/4 h-48 md:h-auto">
+                            <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="w-full md:w-3/4 p-4 space-y-3">
+                            <div>
+                              <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 mb-2 capitalize">{article.category}</span>
+                              <h3 className="text-xl font-bold">{article.title}</h3>
+                              <div className="flex items-center text-sm text-gray-500 mt-1 space-x-3">
+                                <span>{article.source}</span>
+                                <span>•</span>
+                                <div className="flex items-center">
+                                  <CalendarDays className="h-4 w-4 mr-1" />
+                                  {article.date}
                                 </div>
                               </div>
-                              <p className="text-gray-600">{article.description}</p>
-                              <div className="flex flex-wrap items-center justify-between pt-2">
-                                <div className="flex space-x-4">
-                                  <Button variant="ghost" size="sm" className="flex items-center">
-                                    <ThumbsUp className="h-4 w-4 mr-1" />
-                                    {article.likes}
-                                  </Button>
-                                  <Button variant="ghost" size="sm" className="flex items-center">
-                                    <MessageCircle className="h-4 w-4 mr-1" />
-                                    {article.comments}
-                                  </Button>
-                                  <Button variant="ghost" size="sm" className="flex items-center">
-                                    <Share2 className="h-4 w-4 mr-1" />
-                                    Share
-                                  </Button>
-                                </div>
-                                <Button variant="outline" size="sm" className="flex items-center">
-                                  <ExternalLink className="h-4 w-4 mr-1" />
-                                  Read More
+                            </div>
+                            <p className="text-gray-600">{article.description}</p>
+                            <div className="flex flex-wrap items-center justify-between pt-2">
+                              <div className="flex space-x-4">
+                                <Button variant="ghost" size="sm" className="flex items-center">
+                                  <ThumbsUp className="h-4 w-4 mr-1" />
+                                  {article.likes}
+                                </Button>
+                                <Button variant="ghost" size="sm" className="flex items-center">
+                                  <MessageCircle className="h-4 w-4 mr-1" />
+                                  {article.comments}
+                                </Button>
+                                <Button variant="ghost" size="sm" className="flex items-center">
+                                  <Share2 className="h-4 w-4 mr-1" />
+                                  Share
                                 </Button>
                               </div>
+                              <Button variant="outline" size="sm" className="flex items-center">
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                Read More
+                              </Button>
                             </div>
                           </div>
-                        </Card>) : <div className="text-center py-10 text-gray-500">
+                        </div>
+                      </Card>
+                    )) : (
+                      <div className="text-center py-10 text-gray-500">
                         <p>No news articles found for this category.</p>
-                      </div>}
+                      </div>
+                    )}
                   </TabsContent>
                 </Tabs>
               </CardContent>
@@ -206,12 +218,25 @@ const NewsPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {weatherAlerts.map(alert => <div key={alert.id} className={`p-3 rounded-lg border ${alert.severity === 'high' ? 'border-red-200 bg-red-50' : alert.severity === 'medium' ? 'border-amber-200 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
-                    <h4 className={`font-medium ${alert.severity === 'high' ? 'text-red-700' : alert.severity === 'medium' ? 'text-amber-700' : 'text-blue-700'}`}>
+                {weatherAlerts.map(alert => (
+                  <div 
+                    key={alert.id} 
+                    className={`p-3 rounded-lg border ${
+                      alert.severity === 'high' ? 'border-red-200 bg-red-50' : 
+                      alert.severity === 'medium' ? 'border-amber-200 bg-amber-50' : 
+                      'border-blue-200 bg-blue-50'
+                    }`}
+                  >
+                    <h4 className={`font-medium ${
+                      alert.severity === 'high' ? 'text-red-700' : 
+                      alert.severity === 'medium' ? 'text-amber-700' : 
+                      'text-blue-700'
+                    }`}>
                       {alert.title}
                     </h4>
                     <p className="text-sm mt-1">{alert.description}</p>
-                  </div>)}
+                  </div>
+                ))}
               </CardContent>
               <CardFooter className="pt-0">
                 <Button variant="ghost" size="sm" className="w-full">
@@ -245,6 +270,8 @@ const NewsPage: React.FC = () => {
           </div>
         </div>
       </motion.div>
-    </Layout>;
+    </Layout>
+  );
 };
+
 export default NewsPage;

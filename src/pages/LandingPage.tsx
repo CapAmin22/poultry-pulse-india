@@ -10,13 +10,19 @@ import {
   BarChart2,
   MessageSquare,
   Check,
-  Play
+  Play,
+  Menu,
+  ShoppingBag,
+  BookOpen,
+  Globe,
+  ThumbsUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   const features = [
     {
@@ -38,6 +44,16 @@ const LandingPage: React.FC = () => {
       icon: <GraduationCap className="h-12 w-12 p-2 bg-red-100 text-[#ea384c] rounded-xl" />,
       title: "Training Resources",
       description: "Access educational content and training materials for poultry farming best practices."
+    },
+    {
+      icon: <ShoppingBag className="h-12 w-12 p-2 bg-red-100 text-[#ea384c] rounded-xl" />,
+      title: "Marketplace",
+      description: "Buy and sell poultry equipment, products, and services in our integrated marketplace."
+    },
+    {
+      icon: <Globe className="h-12 w-12 p-2 bg-red-100 text-[#ea384c] rounded-xl" />,
+      title: "News & Updates",
+      description: "Stay informed with the latest industry news, weather updates, and market trends."
     }
   ];
 
@@ -73,6 +89,8 @@ const LandingPage: React.FC = () => {
               />
               <span className="font-bold text-xl text-[#f5565c]">22POULTRY</span>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex space-x-8 items-center">
               <a href="#features" className="text-gray-600 hover:text-[#ea384c]">Features</a>
               <a href="#about" className="text-gray-600 hover:text-[#ea384c]">About</a>
@@ -86,14 +104,38 @@ const LandingPage: React.FC = () => {
                 Sign In
               </Button>
             </div>
-            <Button 
-              className="md:hidden border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
-              variant="outline"
-              onClick={() => navigate('/auth')}
-            >
-              Sign In
-            </Button>
+            
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-6 w-6 text-gray-700" />
+              </Button>
+              <Button 
+                className="border-[#ea384c] text-[#ea384c] hover:bg-[#ea384c] hover:text-white"
+                variant="outline"
+                onClick={() => navigate('/auth')}
+              >
+                Sign In
+              </Button>
+            </div>
           </div>
+          
+          {/* Mobile Menu */}
+          {menuOpen && (
+            <div className="md:hidden py-4 border-t mt-4">
+              <div className="flex flex-col space-y-3">
+                <a href="#features" className="text-gray-600 hover:text-[#ea384c] py-2">Features</a>
+                <a href="#about" className="text-gray-600 hover:text-[#ea384c] py-2">About</a>
+                <a href="#testimonials" className="text-gray-600 hover:text-[#ea384c] py-2">Testimonials</a>
+                <a href="#contact" className="text-gray-600 hover:text-[#ea384c] py-2">Contact</a>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -224,7 +266,7 @@ const LandingPage: React.FC = () => {
               22POULTRY provides an integrated suite of tools and services to support every aspect of your poultry business.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -246,8 +288,91 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Image Showcase Section */}
+      {/* Marketplace Spotlight Section */}
       <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-10">
+            <div className="lg:w-1/2">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+              >
+                <span className="text-[#ea384c] font-medium">MARKETPLACE</span>
+                <h2 className="text-3xl font-bold mt-2 mb-4">Streamlined Trading for Poultry Equipment & Products</h2>
+                <p className="text-gray-600 mb-6">
+                  Our integrated marketplace connects buyers and sellers across the poultry value chain, offering a secure platform to trade equipment, products, and services.
+                </p>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start">
+                    <div className="rounded-full p-1 bg-green-100 text-green-600 mr-3 mt-1">
+                      <Check className="h-4 w-4" />
+                    </div>
+                    <span>Browse thousands of listings from verified sellers</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="rounded-full p-1 bg-green-100 text-green-600 mr-3 mt-1">
+                      <Check className="h-4 w-4" />
+                    </div>
+                    <span>List your products and reach potential buyers directly</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="rounded-full p-1 bg-green-100 text-green-600 mr-3 mt-1">
+                      <Check className="h-4 w-4" />
+                    </div>
+                    <span>Categories include equipment, feed, medicine, and more</span>
+                  </li>
+                </ul>
+                <Button 
+                  className="bg-[#ea384c] hover:bg-[#d02f3d] text-white"
+                  onClick={() => navigate('/auth', { state: { initialMode: 'signup', destination: '/marketplace' } })}
+                >
+                  Explore Marketplace
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+            </div>
+            <div className="lg:w-1/2">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+                className="grid grid-cols-2 gap-4"
+              >
+                <div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1645431513625-01dd9d14c25a?q=80&w=1760&auto=format&fit=crop" 
+                    alt="Poultry Equipment" 
+                    className="rounded-lg shadow-lg mb-4 h-48 w-full object-cover"
+                  />
+                  <img 
+                    src="https://images.pexels.com/photos/6666/power-lines-gloomy-fields-farm.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                    alt="Poultry Farm" 
+                    className="rounded-lg shadow-lg h-40 w-full object-cover"
+                  />
+                </div>
+                <div className="pt-6">
+                  <img 
+                    src="https://images.pexels.com/photos/2252012/pexels-photo-2252012.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                    alt="Poultry Feed" 
+                    className="rounded-lg shadow-lg mb-4 h-40 w-full object-cover"
+                  />
+                  <img 
+                    src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=2070&auto=format&fit=crop" 
+                    alt="Farming Equipment" 
+                    className="rounded-lg shadow-lg h-48 w-full object-cover"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Image Showcase Section */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-12">See 22POULTRY In Action</h2>
           
@@ -298,8 +423,74 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Training and Resources Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-10">
+            <div className="lg:w-1/2">
+              <img 
+                src="https://images.pexels.com/photos/4492136/pexels-photo-4492136.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                alt="Training and Resources" 
+                className="rounded-lg shadow-xl w-full"
+              />
+            </div>
+            <div className="lg:w-1/2">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+              >
+                <span className="text-[#ea384c] font-medium">TRAINING & RESOURCES</span>
+                <h2 className="text-3xl font-bold mt-2 mb-4">Continuous Learning for Industry Excellence</h2>
+                <p className="text-gray-600 mb-6">
+                  Access a comprehensive library of training materials, courses, and resources designed to help you stay updated with the latest practices in poultry farming.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  <div className="border border-gray-200 p-4 rounded-lg bg-white">
+                    <div className="flex items-center mb-2">
+                      <BookOpen className="h-5 w-5 text-[#ea384c] mr-2" />
+                      <h4 className="font-semibold">Educational Content</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">Access articles, guides, and research papers on best practices.</p>
+                  </div>
+                  <div className="border border-gray-200 p-4 rounded-lg bg-white">
+                    <div className="flex items-center mb-2">
+                      <GraduationCap className="h-5 w-5 text-[#ea384c] mr-2" />
+                      <h4 className="font-semibold">Online Courses</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">Learn at your own pace with structured online courses.</p>
+                  </div>
+                  <div className="border border-gray-200 p-4 rounded-lg bg-white">
+                    <div className="flex items-center mb-2">
+                      <Users className="h-5 w-5 text-[#ea384c] mr-2" />
+                      <h4 className="font-semibold">Expert Webinars</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">Participate in live sessions with industry experts.</p>
+                  </div>
+                  <div className="border border-gray-200 p-4 rounded-lg bg-white">
+                    <div className="flex items-center mb-2">
+                      <ThumbsUp className="h-5 w-5 text-[#ea384c] mr-2" />
+                      <h4 className="font-semibold">Certification</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">Earn certificates to validate your skills and knowledge.</p>
+                  </div>
+                </div>
+                <Button 
+                  className="bg-[#ea384c] hover:bg-[#d02f3d] text-white"
+                  onClick={() => navigate('/auth', { state: { initialMode: 'signup', destination: '/training' } })}
+                >
+                  Explore Training Resources
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Key Benefits Section */}
-      <section id="about" className="py-20 bg-gray-50">
+      <section id="about" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Why Choose 22POULTRY?</h2>
@@ -375,8 +566,8 @@ const LandingPage: React.FC = () => {
                   <Check className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Continuous Learning</h3>
-                  <p className="text-gray-600">Improve your skills and knowledge with our training resources and educational content.</p>
+                  <h3 className="text-xl font-semibold mb-2">Seamless Trade</h3>
+                  <p className="text-gray-600">Buy and sell poultry equipment, products, and services through our integrated marketplace.</p>
                 </div>
               </motion.div>
             </div>
@@ -385,7 +576,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-white">
+      <section id="testimonials" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">What Our Users Say</h2>
@@ -422,6 +613,49 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Frequently Asked Questions</h2>
+            <p className="text-gray-600">Find answers to common questions about 22POULTRY</p>
+          </div>
+          
+          <div className="max-w-3xl mx-auto">
+            {/* FAQ Items */}
+            <div className="space-y-6">
+              <div className="border border-gray-200 rounded-lg p-5">
+                <h3 className="font-semibold text-lg mb-2">What is 22POULTRY?</h3>
+                <p className="text-gray-600">
+                  22POULTRY is India's first integrated digital platform for the poultry industry that connects all stakeholders in the value chain. It provides access to market data, networking, training resources, financial services, and a marketplace.
+                </p>
+              </div>
+              
+              <div className="border border-gray-200 rounded-lg p-5">
+                <h3 className="font-semibold text-lg mb-2">How do I get started?</h3>
+                <p className="text-gray-600">
+                  Simply sign up for an account, complete your profile with relevant information about your role in the poultry industry, and you'll gain immediate access to our platform's features.
+                </p>
+              </div>
+              
+              <div className="border border-gray-200 rounded-lg p-5">
+                <h3 className="font-semibold text-lg mb-2">Is 22POULTRY available nationwide?</h3>
+                <p className="text-gray-600">
+                  Yes, 22POULTRY is available across India. We currently have users from over 25 states and are continuously expanding our coverage to serve the entire nation.
+                </p>
+              </div>
+              
+              <div className="border border-gray-200 rounded-lg p-5">
+                <h3 className="font-semibold text-lg mb-2">How can I apply for financial assistance?</h3>
+                <p className="text-gray-600">
+                  Once registered, you can navigate to the Financial Services section where you can browse available loan schemes, subsidies, and apply directly through our platform.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-br from-[#ea384c] to-[#0066b2] text-white">
         <div className="container mx-auto px-4 text-center">
@@ -436,6 +670,100 @@ const LandingPage: React.FC = () => {
             Sign Up Now
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
+        </div>
+      </section>
+
+      {/* Contact Form Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-10">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Get In Touch</h2>
+              <p className="text-gray-600 mb-8">
+                Have questions or feedback? We'd love to hear from you. Fill out the form and our team will get back to you shortly.
+              </p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start">
+                  <div className="w-10 h-10 rounded-full bg-[#ea384c]/10 flex items-center justify-center mr-4">
+                    <MessageSquare className="h-5 w-5 text-[#ea384c]" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Email Us</h4>
+                    <p className="text-gray-600">the22poultry@gmail.com</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="w-10 h-10 rounded-full bg-[#ea384c]/10 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ea384c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Call Us</h4>
+                    <p className="text-gray-600">+91 8329556730</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="w-10 h-10 rounded-full bg-[#ea384c]/10 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ea384c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Visit Us</h4>
+                    <p className="text-gray-600">BTM Layout, 18th Main Road, 7th Cross Road, Bengaluru South, Karnataka 560076, IN</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <Card className="border-none shadow-md">
+                <CardContent className="p-6 space-y-4">
+                  <h3 className="text-xl font-bold mb-4">Send Us a Message</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="first-name" className="text-sm font-medium text-gray-700">First Name</label>
+                        <Input id="first-name" placeholder="Enter first name" />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="last-name" className="text-sm font-medium text-gray-700">Last Name</label>
+                        <Input id="last-name" placeholder="Enter last name" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium text-gray-700">Email</label>
+                      <Input id="email" type="email" placeholder="Enter your email" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="subject" className="text-sm font-medium text-gray-700">Subject</label>
+                      <Input id="subject" placeholder="Enter subject" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="message" className="text-sm font-medium text-gray-700">Message</label>
+                      <textarea 
+                        id="message" 
+                        className="w-full min-h-[100px] rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#ea384c] focus:border-transparent" 
+                        placeholder="Enter your message"
+                      ></textarea>
+                    </div>
+                    
+                    <Button className="w-full bg-[#ea384c] hover:bg-[#d02f3d] text-white">
+                      Send Message
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </section>
 

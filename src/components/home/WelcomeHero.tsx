@@ -3,8 +3,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const WelcomeHero: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -27,14 +30,16 @@ const WelcomeHero: React.FC = () => {
             <Button 
               variant="default" 
               className="bg-white hover:bg-gray-100 text-[#ea384c] border-0"
+              onClick={() => navigate('/dashboard')}
             >
               <BarChart3 className="mr-2 h-4 w-4" /> View Complete Dashboard
             </Button>
             <Button 
               variant="outline" 
               className="bg-transparent text-white hover:bg-white/20 border-white"
+              onClick={() => navigate('/marketplace')}
             >
-              Learn More <ArrowRight className="ml-2 h-4 w-4" />
+              Browse Marketplace <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
