@@ -18,13 +18,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
   const location = useLocation();
 
-  // Close sidebar on mobile when navigating
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [location.pathname, isMobile, setSidebarOpen]);
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar - controlled by sidebarOpen state */}
@@ -69,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Navbar />
         </div>
 
-        <main className="flex-1">
+        <main className="flex-1 mt-16"> {/* Added mt-16 to account for fixed navbar */}
           <div className="container mx-auto px-4 py-6">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -81,7 +74,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
 
-        {/* Hamburger button */}
+        {/* Hamburger button - only shown on mobile when sidebar is closed */}
         <div className="fixed bottom-4 right-4 z-50 md:hidden shadow-lg">
           <Button
             onClick={toggleSidebar}

@@ -11,12 +11,11 @@ export interface UserMenuProps {
   onSignOut: () => Promise<void>;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({
-  user,
-  onSignOut
-}) => {
+const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
   const navigate = useNavigate();
-  const userInitials = user.user_metadata?.full_name ? `${user.user_metadata.full_name.split(' ')[0][0]}${user.user_metadata.full_name.split(' ')[1]?.[0] || ''}` : user.email?.[0].toUpperCase() || '?';
+  const userInitials = user.user_metadata?.full_name 
+    ? `${user.user_metadata.full_name.split(' ')[0][0]}${user.user_metadata.full_name.split(' ')[1]?.[0] || ''}` 
+    : user.email?.[0].toUpperCase() || '?';
   
   return (
     <DropdownMenu>
@@ -32,24 +31,18 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <div className="text-xs text-gray-500 truncate">{user.email}</div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a href="/profile" className="flex items-center cursor-pointer">
-            <UserIcon className="h-4 w-4 mr-2" />
-            My Profile
-          </a>
+        <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+          <UserIcon className="h-4 w-4 mr-2" />
+          My Profile
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href="/dashboard" className="flex items-center cursor-pointer">
-            <Settings className="h-4 w-4 mr-2" />
-            Dashboard
-          </a>
+        <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
+          <Settings className="h-4 w-4 mr-2" />
+          Dashboard
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <button className="w-full text-left flex cursor-pointer text-red-500 hover:text-red-600" onClick={onSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </button>
+        <DropdownMenuItem className="text-red-500 hover:text-red-600 cursor-pointer" onClick={onSignOut}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

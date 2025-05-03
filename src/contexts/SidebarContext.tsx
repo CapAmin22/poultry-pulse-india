@@ -1,6 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLocation } from 'react-router-dom';
 
 interface SidebarContextType {
   sidebarOpen: boolean;
@@ -13,6 +14,7 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   useEffect(() => {
     // Initialize sidebar state based on device
@@ -20,6 +22,13 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
     // On mobile, sidebar should be closed by default
     setSidebarOpen(!isMobile);
   }, [isMobile]);
+  
+  // Auto-close sidebar on mobile when changing routes
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const toggleSidebar = () => {
     setSidebarOpen(prevState => !prevState);
