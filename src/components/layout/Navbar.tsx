@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Mail, Search, Menu, X } from 'lucide-react';
@@ -11,70 +10,57 @@ import { useAuth } from '@/hooks/use-auth';
 import SearchBar from '../search/SearchBar';
 import UserMenu from './navbar/UserMenu';
 import { useSidebar } from '@/contexts/SidebarContext';
-
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut } = useAuth();
-  const { sidebarOpen, toggleSidebar } = useSidebar();
-  
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    sidebarOpen,
+    toggleSidebar
+  } = useSidebar();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
-  
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-  
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
-  
   const handleSignIn = () => {
     navigate('/auth');
   };
-  
   const toggleMobileMenu = () => {
     setShowMobileMenu(!showMobileMenu);
   };
-  
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
-  
   const toggleMessages = () => {
     setShowMessages(!showMessages);
   };
 
   // Only show the sidebar toggle button on authenticated pages (not landing page, auth, etc.)
   const showSidebarToggle = user && location.pathname !== '/' && location.pathname !== '/auth';
-  
-  return (
-    <header className={`fixed top-0 left-0 w-full z-40 transition-all duration-200 ${isScrolled ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-sm'}`}>
+  return <header className={`fixed top-0 left-0 w-full z-40 transition-all duration-200 ${isScrolled ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-sm'}`}>
       <div className="container mx-auto flex justify-between items-center px-4 h-16">
         <div className="flex items-center">
           {/* Hamburger Menu for Sidebar (Only shown when authenticated) */}
-          {showSidebarToggle && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleSidebar} 
-              className="mr-2 text-gray-600 hover:text-[#f5565c] hover:bg-transparent"
-              aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {showSidebarToggle && <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 text-gray-600 hover:text-[#f5565c] hover:bg-transparent">
+              <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle sidebar</span>
-            </Button>
-          )}
+            </Button>}
           
           {/* Logo */}
           <Link to={user ? '/dashboard' : '/'} className="flex items-center">
@@ -96,16 +82,11 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Authenticated User Options */}
-          {user ? (
-            <div className="flex items-center">
+          {user ? <div className="flex items-center">
               {/* Notifications */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="mr-1 text-gray-600 hover:text-[#f5565c]" 
-                onClick={toggleNotifications}
-              >
+              <Button variant="ghost" size="icon" className="mr-1 text-gray-600 hover:text-[#f5565c]" onClick={toggleNotifications}>
                 <Bell className="h-5 w-5" />
+                
               </Button>
               
               {/* User Menu */}
@@ -113,29 +94,19 @@ const Navbar: React.FC = () => {
               
               {/* Mobile menu button */}
               <div className="md:hidden ml-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={toggleMobileMenu}
-                  className="text-gray-600 hover:text-[#f5565c]"
-                >
+                <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
                   {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <Button 
-                variant="outline" 
-                className="mr-2 border-[#f5565c] text-[#f5565c] hover:bg-[#f5565c] hover:text-white hidden md:block" 
-                onClick={handleSignIn}
-              >
+            </div> : <div className="flex items-center">
+              <Button variant="outline" className="mr-2 border-[#f5565c] text-[#f5565c] hover:bg-[#f5565c] hover:text-white hidden md:block" onClick={handleSignIn}>
                 Sign In
               </Button>
-              <Button 
-                className="bg-[#f5565c] hover:bg-[#d02f3d] text-white hidden md:block" 
-                onClick={() => navigate('/auth', { state: { initialMode: 'signup' } })}
-              >
+              <Button className="bg-[#f5565c] hover:bg-[#d02f3d] text-white hidden md:block" onClick={() => navigate('/auth', {
+            state: {
+              initialMode: 'signup'
+            }
+          })}>
                 Sign Up
               </Button>
               
@@ -145,8 +116,7 @@ const Navbar: React.FC = () => {
                   {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </div>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
 
@@ -156,8 +126,6 @@ const Navbar: React.FC = () => {
       {/* Conditionally render dialogs */}
       {showNotifications && <NotificationsDialog open={showNotifications} onClose={toggleNotifications} />}
       {showMessages && <MessagesDialog open={showMessages} onClose={toggleMessages} />}
-    </header>
-  );
+    </header>;
 };
-
 export default Navbar;
