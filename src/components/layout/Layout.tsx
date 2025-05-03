@@ -1,12 +1,11 @@
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useLocation } from 'react-router-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 
 interface LayoutProps {
@@ -16,7 +15,6 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
-  const location = useLocation();
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

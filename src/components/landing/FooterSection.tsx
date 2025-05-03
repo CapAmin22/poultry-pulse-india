@@ -63,15 +63,15 @@ const FooterSection: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-start">
                 <PhoneCall className="h-5 w-5 mr-2 mt-0.5" />
-                <span>+91 1234567890</span>
+                <span>+91 8329556730</span>
               </li>
               <li className="flex items-start">
                 <Mail className="h-5 w-5 mr-2 mt-0.5" />
-                <span>info@22poultry.com</span>
+                <span>the22poultry@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-2 mt-0.5" />
-                <span>Delhi NCR, India</span>
+                <span>BTM Layout, 18th Main Road,<br />7th Cross Road, Bengaluru South,<br />Karnataka 560076, IN</span>
               </li>
             </ul>
           </div>
