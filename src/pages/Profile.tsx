@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import UserProfileForm from '@/components/auth/UserProfileForm';
 import UserSettings from '@/components/auth/UserSettings';
@@ -10,6 +10,7 @@ import { LogOut, UserCircle, Settings, FileText, Briefcase, ShoppingBag, CreditC
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 const Profile: React.FC = () => {
   const { signOut, user } = useAuth();

@@ -50,6 +50,8 @@ export interface JobListing {
   salary_range?: string;
   contact_email?: string;
   created_at?: string;
+  job_type: string;
+  industry?: string;
 }
 
 export interface NetworkPost {
