@@ -9,6 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      financial_services: {
+        Row: {
+          category: string
+          contact_number: string
+          created_at: string
+          description: string
+          eligibility_criteria: string[] | null
+          email: string
+          id: string
+          image_url: string | null
+          interest_rate: string | null
+          max_amount: string | null
+          provider_name: string
+          required_documents: string[] | null
+          tags: string[] | null
+          tenure: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          contact_number: string
+          created_at?: string
+          description: string
+          eligibility_criteria?: string[] | null
+          email: string
+          id?: string
+          image_url?: string | null
+          interest_rate?: string | null
+          max_amount?: string | null
+          provider_name: string
+          required_documents?: string[] | null
+          tags?: string[] | null
+          tenure?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          contact_number?: string
+          created_at?: string
+          description?: string
+          eligibility_criteria?: string[] | null
+          email?: string
+          id?: string
+          image_url?: string | null
+          interest_rate?: string | null
+          max_amount?: string | null
+          provider_name?: string
+          required_documents?: string[] | null
+          tags?: string[] | null
+          tenure?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_transactions: {
         Row: {
           amount: number
@@ -44,6 +104,54 @@ export type Database = {
           notes?: string | null
           transaction_date?: string
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      job_listings: {
+        Row: {
+          company: string
+          contact_email: string
+          created_at: string
+          description: string
+          id: string
+          industry: string | null
+          job_type: string
+          location: string
+          requirements: string[]
+          salary_range: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company: string
+          contact_email: string
+          created_at?: string
+          description: string
+          id?: string
+          industry?: string | null
+          job_type: string
+          location: string
+          requirements: string[]
+          salary_range?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string
+          contact_email?: string
+          created_at?: string
+          description?: string
+          id?: string
+          industry?: string | null
+          job_type?: string
+          location?: string
+          requirements?: string[]
+          salary_range?: string | null
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -113,6 +221,7 @@ export type Database = {
           image_url: string | null
           location: string
           price: string
+          quantity: string | null
           subcategory: string | null
           title: string
           updated_at: string
@@ -128,6 +237,7 @@ export type Database = {
           image_url?: string | null
           location: string
           price: string
+          quantity?: string | null
           subcategory?: string | null
           title: string
           updated_at?: string
@@ -143,6 +253,7 @@ export type Database = {
           image_url?: string | null
           location?: string
           price?: string
+          quantity?: string | null
           subcategory?: string | null
           title?: string
           updated_at?: string

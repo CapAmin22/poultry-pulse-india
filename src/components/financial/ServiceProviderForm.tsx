@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -29,6 +28,24 @@ interface Eligibility {
 interface Document {
   id: string;
   name: string;
+}
+
+// Define interface for financial service
+interface FinancialService {
+  title: string;
+  category: string;
+  provider_name: string;
+  interest_rate: string;
+  max_amount: string;
+  tenure: string;
+  description: string;
+  contact_number: string;
+  email: string;
+  eligibility_criteria: string[];
+  required_documents: string[];
+  image_url?: string | null;
+  tags?: string[] | null;
+  user_id: string;
 }
 
 const ServiceProviderForm: React.FC = () => {
@@ -158,23 +175,26 @@ const ServiceProviderForm: React.FC = () => {
         .map(item => item.name);
       
       // Create financial service listing
+      const serviceData: FinancialService = {
+        title: formData.title,
+        category: formData.category,
+        provider_name: formData.providerName,
+        interest_rate: formData.interestRate,
+        max_amount: formData.maxAmount,
+        tenure: formData.tenure,
+        description: formData.description,
+        contact_number: formData.contactNumber,
+        email: formData.email,
+        eligibility_criteria: filteredEligibilityCriteria,
+        required_documents: filteredRequiredDocuments,
+        image_url: imageUrl,
+        user_id: user.id,
+      };
+
+      // Use type assertion to handle the table that might not exist in types
       const { error: insertError } = await supabase
         .from('financial_services')
-        .insert({
-          title: formData.title,
-          category: formData.category,
-          provider_name: formData.providerName,
-          interest_rate: formData.interestRate,
-          max_amount: formData.maxAmount,
-          tenure: formData.tenure,
-          description: formData.description,
-          contact_number: formData.contactNumber,
-          email: formData.email,
-          eligibility_criteria: filteredEligibilityCriteria,
-          required_documents: filteredRequiredDocuments,
-          image_url: imageUrl,
-          user_id: user.id,
-        });
+        .insert(serviceData as any);
         
       if (insertError) throw insertError;
       

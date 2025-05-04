@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Database, Filter, Search, PlusCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +19,19 @@ interface LoanScheme {
   tenure: string;
   eligibility: string;
   tags: string[];
+}
+
+// Interface to match our database structure
+interface FinancialService {
+  id: string;
+  title: string;
+  provider_name: string;
+  interest_rate: string | null;
+  max_amount: string | null;
+  tenure: string | null;
+  eligibility_criteria: string[] | null;
+  category: string;
+  tags: string[] | null;
 }
 
 const defaultLoanSchemes: LoanScheme[] = [
@@ -68,10 +80,11 @@ const FinancialAssistance: React.FC = () => {
     const fetchFinancialServices = async () => {
       setLoading(true);
       try {
+        // Use type assertion to specify the table and return type
         const { data, error } = await supabase
           .from('financial_services')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false }) as { data: FinancialService[] | null, error: any };
         
         if (error) throw error;
         

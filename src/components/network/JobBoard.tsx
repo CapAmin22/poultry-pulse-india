@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +12,23 @@ import { JobListing } from '@/types/network';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+
+// Define interface to match our database structure
+interface JobListingDB {
+  id: string;
+  title: string;
+  company: string;
+  industry: string | null;
+  location: string;
+  description: string;
+  requirements: string[];
+  job_type: string;
+  salary_range: string | null;
+  contact_email: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const JobBoard: React.FC = () => {
   const { user } = useAuth();
@@ -34,21 +50,38 @@ const JobBoard: React.FC = () => {
     contactEmail: user?.email || '',
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchJobListings();
   }, []);
 
   const fetchJobListings = async () => {
     setLoading(true);
     try {
+      // Use type assertion to specify the table and return type
       const { data, error } = await supabase
         .from('job_listings')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: JobListingDB[] | null, error: any };
       
       if (error) throw error;
-      
-      setJobListings(data || []);
+
+      if (data) {
+        // Transform database format to our component's expected format
+        const transformedListings: JobListing[] = data.map(listing => ({
+          id: listing.id,
+          title: listing.title,
+          company: listing.company,
+          location: listing.location,
+          description: listing.description,
+          requirements: listing.requirements,
+          salary_range: listing.salary_range,
+          contact_email: listing.contact_email,
+          job_type: listing.job_type,
+          industry: listing.industry
+        }));
+        
+        setJobListings(transformedListings);
+      }
     } catch (error) {
       console.error('Error fetching job listings:', error);
       toast({
@@ -79,6 +112,7 @@ const JobBoard: React.FC = () => {
         .map(item => item.trim())
         .filter(item => item.length > 0);
 
+      // Use type assertion to handle the table that might not exist in types
       const { data, error } = await supabase
         .from('job_listings')
         .insert({
@@ -91,7 +125,7 @@ const JobBoard: React.FC = () => {
           salary_range: newJob.salaryRange,
           contact_email: newJob.contactEmail,
           user_id: user.id
-        })
+        } as any)
         .select();
 
       if (error) throw error;
