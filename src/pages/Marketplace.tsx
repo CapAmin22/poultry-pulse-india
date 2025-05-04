@@ -1,670 +1,182 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { Search, ShoppingBag, Filter, Grid, List, Tag, PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
-import { ShoppingCart, Grid, ListFilter, Star, MapPin, Phone, Tag, Calendar, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
+import MarketplaceListing from '@/components/modules/MarketplaceListing';
+import FarmerSellForm from '@/components/marketplace/FarmerSellForm';
 import { useAuth } from '@/hooks/use-auth';
-import { format } from 'date-fns';
 
-// Define the schema for the form
-const listingSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  category: z.string(),
-  subcategory: z.string().optional(),
-  price: z.string().min(1, "Price is required"),
-  location: z.string().min(2, "Location is required"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  condition: z.string().optional(),
-  contactNumber: z.string().optional(),
-  imageUrl: z.string().optional(),
-});
+const categories = [
+  { id: 'all', name: 'All Categories' },
+  { id: 'poultry', name: 'Poultry' },
+  { id: 'eggs', name: 'Eggs' },
+  { id: 'feed', name: 'Feed & Nutrition' },
+  { id: 'equipment', name: 'Equipment' },
+  { id: 'medicine', name: 'Medicine' },
+  { id: 'services', name: 'Services' },
+];
 
-// Product interface
-interface Product {
-  id: string;
-  title: string;
-  category: string;
-  subcategory?: string;
-  price: string;
-  location: string;
-  description: string;
-  condition?: string;
-  contact_number?: string;
-  image_url?: string;
-  created_at: string;
-  user_id: string;
-}
+const locations = [
+  { id: 'all', name: 'All Locations' },
+  { id: 'north', name: 'North India' },
+  { id: 'south', name: 'South India' },
+  { id: 'east', name: 'East India' },
+  { id: 'west', name: 'West India' },
+  { id: 'central', name: 'Central India' },
+];
 
 const Marketplace: React.FC = () => {
   const { user } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
-  // Initialize form
-  const form = useForm<z.infer<typeof listingSchema>>({
-    resolver: zodResolver(listingSchema),
-    defaultValues: {
-      title: "",
-      category: "feed",
-      subcategory: "",
-      price: "",
-      location: "",
-      description: "",
-      condition: "new",
-      contactNumber: "",
-      imageUrl: "",
-    },
-  });
-
-  // Fetch products
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('marketplace_listings')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (err) {
-      console.error('Error fetching products:', err);
-      toast({
-        title: "Error fetching products",
-        description: "There was a problem loading marketplace listings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Submit new listing
-  const onSubmit = async (values: z.infer<typeof listingSchema>) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to post a listing",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('marketplace_listings')
-        .insert({
-          user_id: user.id,
-          title: values.title,
-          category: values.category,
-          subcategory: values.subcategory,
-          price: values.price,
-          location: values.location,
-          description: values.description,
-          condition: values.condition,
-          contact_number: values.contactNumber,
-          image_url: values.imageUrl,
-        })
-        .select();
-
-      if (error) throw error;
-
-      toast({
-        title: "Listing created successfully",
-        description: "Your product has been listed in the marketplace",
-      });
-
-      setDialogOpen(false);
-      form.reset();
-      fetchProducts();
-    } catch (err) {
-      console.error('Error creating listing:', err);
-      toast({
-        title: "Error creating listing",
-        description: "There was a problem creating your listing",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Delete listing
-  const deleteListing = async (id: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('marketplace_listings')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Listing deleted",
-        description: "Your listing has been removed from the marketplace",
-      });
-
-      setDetailsOpen(false);
-      fetchProducts();
-    } catch (err) {
-      console.error('Error deleting listing:', err);
-      toast({
-        title: "Error deleting listing",
-        description: "There was a problem deleting your listing",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Filter products by category and search query
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = activeCategory === "all" || product.category === activeCategory;
-    const matchesSearch = searchQuery === "" || 
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.location.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesCategory && matchesSearch;
-  });
-
-  // Initial fetch
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  // View product details
-  const viewProductDetails = (product: Product) => {
-    setSelectedProduct(product);
-    setDetailsOpen(true);
-  };
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-3xl font-bold">Marketplace</h1>
-          <p className="text-gray-500 mt-1">Buy and sell poultry products, equipment, and supplies</p>
-        </motion.div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-2 text-poultry-primary" />
-              <span>Poultry Marketplace</span>
-            </CardTitle>
-            <CardDescription>
-              Connect with suppliers, traders, and buyers in the Indian poultry industry
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto py-6 px-4"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Marketplace</h1>
+            <p className="text-gray-600">Buy and sell poultry products and equipment</p>
+          </div>
+          
+          {user && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-[#f5565c]">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Sell Product
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                <FarmerSellForm />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm mb-8">
+          <div className="p-4">
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
               <div className="relative flex-grow">
-                <div className="flex gap-2">
-                  <div className="relative flex-grow">
-                    <Input
-                      placeholder="Search products..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                    <div className="absolute left-3 top-2.5">
-                      <Package className="h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
-                  <Button variant="outline" className="flex items-center gap-1">
-                    <ListFilter className="h-4 w-4" />
-                    <span>Filter</span>
-                  </Button>
-                </div>
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input 
+                  className="pl-10" 
+                  placeholder="Search for products..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-poultry-primary hover:bg-poultry-primary/90">
-                    + Add Listing
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[550px]">
-                  <DialogHeader>
-                    <DialogTitle>Create New Listing</DialogTitle>
-                    <DialogDescription>
-                      Add your product to the marketplace for other poultry professionals to see.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Product name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="feed">Feed</SelectItem>
-                                  <SelectItem value="equipment">Equipment</SelectItem>
-                                  <SelectItem value="birds">Live Birds</SelectItem>
-                                  <SelectItem value="medicine">Medicine</SelectItem>
-                                  <SelectItem value="services">Services</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="price"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Price</FormLabel>
-                              <FormControl>
-                                <Input placeholder="₹" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="location"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Location</FormLabel>
-                              <FormControl>
-                                <Input placeholder="City, State" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="condition"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Condition</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select condition" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="new">New</SelectItem>
-                                  <SelectItem value="used_like_new">Used - Like New</SelectItem>
-                                  <SelectItem value="used_good">Used - Good</SelectItem>
-                                  <SelectItem value="used_fair">Used - Fair</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Describe your product in detail"
-                                className="min-h-[100px]"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="contactNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contact Number (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+91 9876543210" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Image URL (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="https://example.com/image.jpg" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Enter a URL for your product image. You can use image hosting services like Imgur.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          className="bg-poultry-primary hover:bg-poultry-primary/90"
-                        >
-                          List Product
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="flex flex-wrap gap-4 mb-6 overflow-x-auto pb-2">
-              <Button
-                variant={activeCategory === "all" ? "default" : "outline"}
-                className="text-sm"
-                onClick={() => setActiveCategory("all")}
-              >
-                All Categories
-              </Button>
-              <Button
-                variant={activeCategory === "feed" ? "default" : "outline"}
-                className="text-sm"
-                onClick={() => setActiveCategory("feed")}
-              >
-                Feed
-              </Button>
-              <Button
-                variant={activeCategory === "equipment" ? "default" : "outline"}
-                className="text-sm"
-                onClick={() => setActiveCategory("equipment")}
-              >
-                Equipment
-              </Button>
-              <Button
-                variant={activeCategory === "birds" ? "default" : "outline"}
-                className="text-sm"
-                onClick={() => setActiveCategory("birds")}
-              >
-                Live Birds
-              </Button>
-              <Button
-                variant={activeCategory === "medicine" ? "default" : "outline"}
-                className="text-sm"
-                onClick={() => setActiveCategory("medicine")}
-              >
-                Medicine
-              </Button>
-              <Button
-                variant={activeCategory === "services" ? "default" : "outline"}
-                className="text-sm"
-                onClick={() => setActiveCategory("services")}
-              >
-                Services
-              </Button>
-            </div>
-
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-sm text-gray-500">
-                {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
-              </div>
+              
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Button 
+                  variant={viewMode === 'grid' ? 'default' : 'outline'} 
+                  size="icon"
+                  onClick={() => setViewMode('grid')}
+                >
                   <Grid className="h-4 w-4" />
-                  <span>Grid</span>
+                </Button>
+                <Button 
+                  variant={viewMode === 'list' ? 'default' : 'outline'} 
+                  size="icon"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-poultry-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-                <p className="mt-4 text-gray-500">Loading marketplace listings...</p>
-              </div>
-            ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => viewProductDetails(product)}
-                  >
-                    <div className="h-40 bg-gray-100 relative">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d1d5db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
-                            target.className = "w-full h-full object-contain p-4";
-                          }}
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <Package className="h-12 w-12 text-gray-300" />
-                        </div>
-                      )}
-                      <div className="absolute top-2 right-2">
-                        <Badge className="bg-white text-gray-800 hover:bg-gray-100">
-                          {product.category}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-medium mb-1 truncate" title={product.title}>
-                        {product.title}
-                      </h3>
-                      <p className="text-poultry-primary font-medium">{product.price}</p>
-                      <div className="flex items-center mt-2 text-xs text-gray-500">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span>{product.location}</span>
-                      </div>
-                      <div className="mt-3 flex justify-between items-center">
-                        <Badge variant="outline">
-                          {product.condition ? product.condition.replace(/_/g, ' ') : 'Not specified'}
-                        </Badge>
-                        <div className="text-xs text-gray-500">
-                          {format(new Date(product.created_at), 'MMM d, yyyy')}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 border rounded-lg bg-gray-50">
-                <Package className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-                <h3 className="text-lg font-medium text-gray-700 mb-1">No listings found</h3>
-                <p className="text-gray-500 mb-4">
-                  {searchQuery
-                    ? "No products match your search criteria"
-                    : "Be the first to add a listing in this category"}
-                </p>
-                <Button
-                  onClick={() => setDialogOpen(true)}
-                  className="bg-poultry-primary hover:bg-poultry-primary/90"
-                >
-                  Add Listing
-                </Button>
-              </div>
-            )}
-
-            {filteredProducts.length > 0 && (
-              <div className="mt-6 flex justify-center">
-                <Button variant="outline">Load More</Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Product Details Dialog */}
-        <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-          <DialogContent className="sm:max-w-[650px]">
-            {selectedProduct && (
-              <>
-                <DialogHeader>
-                  <DialogTitle>{selectedProduct.title}</DialogTitle>
-                  <DialogDescription>
-                    Listed in {selectedProduct.category} • {format(new Date(selectedProduct.created_at), 'MMMM d, yyyy')}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="h-60 md:h-full bg-gray-100 rounded-md overflow-hidden">
-                    {selectedProduct.image_url ? (
-                      <img
-                        src={selectedProduct.image_url}
-                        alt={selectedProduct.title}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d1d5db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
-                          target.className = "w-full h-full object-contain p-4";
-                        }}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Package className="h-16 w-16 text-gray-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-poultry-primary">{selectedProduct.price}</h3>
-                      <div className="flex items-center mt-1 text-sm text-gray-500">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span>{selectedProduct.location}</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700">Description</h4>
-                      <p className="text-sm text-gray-600 mt-1">{selectedProduct.description}</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {selectedProduct.condition && (
-                        <div className="flex items-center text-sm">
-                          <Tag className="h-4 w-4 mr-2 text-gray-500" />
-                          <span className="text-gray-700 font-medium mr-2">Condition:</span>
-                          <span className="text-gray-600">{selectedProduct.condition.replace(/_/g, ' ')}</span>
-                        </div>
-                      )}
-                      
-                      {selectedProduct.contact_number && (
-                        <div className="flex items-center text-sm">
-                          <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                          <span className="text-gray-700 font-medium mr-2">Contact:</span>
-                          <span className="text-gray-600">{selectedProduct.contact_number}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center text-sm">
-                        <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="text-gray-700 font-medium mr-2">Listed on:</span>
-                        <span className="text-gray-600">{format(new Date(selectedProduct.created_at), 'MMMM d, yyyy')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter className="flex justify-between">
-                  <div>
-                    {user && user.id === selectedProduct.user_id && (
-                      <Button 
-                        variant="outline" 
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => deleteListing(selectedProduct.id)}
-                      >
-                        Delete Listing
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setDetailsOpen(false)}>
-                      Close
+            
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center">
+                <Tag className="h-4 w-4 mr-1 text-gray-500" />
+                <span className="text-sm text-gray-700 mr-2">Category:</span>
+                
+                <div className="flex flex-wrap gap-2">
+                  {categories.map(category => (
+                    <Button
+                      key={category.id}
+                      variant={selectedCategory === category.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedCategory(category.id)}
+                    >
+                      {category.name}
                     </Button>
-                    {selectedProduct.contact_number && (
-                      <Button className="bg-poultry-primary hover:bg-poultry-primary/90">
-                        Contact Seller
-                      </Button>
-                    )}
-                  </div>
-                </DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex items-center">
+                <Filter className="h-4 w-4 mr-1 text-gray-500" />
+                <span className="text-sm text-gray-700 mr-2">Location:</span>
+                
+                <div className="flex flex-wrap gap-2">
+                  {locations.map(location => (
+                    <Button
+                      key={location.id}
+                      variant={selectedLocation === location.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedLocation(location.id)}
+                    >
+                      {location.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <Tabs defaultValue="products" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              <span>All Products</span>
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              <span>Services</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="products" className="space-y-8">
+            <MarketplaceListing 
+              searchQuery={searchQuery} 
+              selectedCategory={selectedCategory}
+              selectedLocation={selectedLocation}
+              viewMode={viewMode}
+            />
+          </TabsContent>
+          
+          <TabsContent value="services" className="space-y-8">
+            <div className="text-center py-16">
+              <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">No services available</h3>
+              <p className="mt-1 text-sm text-gray-500">Find services in this section coming soon.</p>
+              {user && (
+                <div className="mt-6">
+                  <Button variant="outline">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add a Service
+                  </Button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </motion.div>
     </Layout>
   );
 };

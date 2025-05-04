@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/layout/Layout';
@@ -14,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import JobBoard from '@/components/network/JobBoard';
 
 // Define types for our data
 interface Expert {
@@ -218,6 +218,10 @@ const Network: React.FC = () => {
                       <Users className="h-4 w-4 mr-2" />
                       Farmers
                     </TabsTrigger>
+                    <TabsTrigger value="jobs" className="flex items-center">
+                      <Briefcase className="h-4 w-4 mr-2" />
+                      Jobs
+                    </TabsTrigger>
                     <TabsTrigger value="events" className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
                       Events
@@ -228,7 +232,7 @@ const Network: React.FC = () => {
                     </TabsTrigger>
                   </TabsList>
                   
-                  {loading ? (
+                  {loading && activeTab !== 'jobs' ? (
                     <div className="flex justify-center p-10">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#f5565c]"></div>
                     </div>
@@ -367,6 +371,11 @@ const Network: React.FC = () => {
                             </div>
                           )}
                         </div>
+                      </TabsContent>
+                      
+                      {/* Jobs Tab */}
+                      <TabsContent value="jobs">
+                        <JobBoard />
                       </TabsContent>
                       
                       {/* Events Tab */}
