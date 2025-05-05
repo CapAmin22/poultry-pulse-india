@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBag, CreditCard, Users, BookOpen, Calendar } from 'lucide-react';
+import ActivityCategory from './ActivityCategory';
 
 interface ActivitySectionProps {
   role?: string;
@@ -11,213 +11,231 @@ interface ActivitySectionProps {
 const ActivitySection: React.FC<ActivitySectionProps> = ({ role = '', userId }) => {
   // This would be fetched from Supabase based on user activity
   
+  const getFarmerActivities = () => {
+    return {
+      marketplace: [
+        {
+          title: "New listing created", 
+          description: "You listed '50kg Layer Feed' on the marketplace", 
+          time: "2 days ago"
+        },
+        {
+          title: "Price update", 
+          description: "You updated the price of 'Day-old Chicks'", 
+          time: "5 days ago"
+        }
+      ],
+      financial: [
+        {
+          title: "Loan application status update", 
+          description: "Your application for 'Equipment Financing' is under review", 
+          time: "1 week ago"
+        }
+      ],
+      network: [
+        {
+          title: "New connection", 
+          description: "You connected with 'Sunrise Feed Suppliers'", 
+          time: "3 days ago"
+        },
+        {
+          title: "Event RSVP", 
+          description: "You're attending 'Poultry Farmers Meetup'", 
+          time: "1 week ago"
+        }
+      ],
+      training: [
+        {
+          title: "Course completion", 
+          description: "You completed 'Disease Prevention Basics'", 
+          time: "2 weeks ago"
+        }
+      ]
+    };
+  };
+  
+  const getFinancialActivities = () => {
+    return {
+      services: [
+        {
+          title: "New loan product offered", 
+          description: "You added 'Small Farm Equipment Loan'", 
+          time: "1 day ago"
+        },
+        {
+          title: "Application review", 
+          description: "You reviewed 'ABC Farms' loan application", 
+          time: "3 days ago"
+        }
+      ],
+      clients: [
+        {
+          title: "New client connection", 
+          description: "You connected with 'Golden Egg Farms'", 
+          time: "2 days ago"
+        }
+      ],
+      events: [
+        {
+          title: "Scheduled webinar", 
+          description: "You registered 'Farm Financing Options' webinar", 
+          time: "5 days ago"
+        }
+      ]
+    };
+  };
+  
+  const getTrainerActivities = () => {
+    return {
+      courses: [
+        {
+          title: "New course published", 
+          description: "You published 'Advanced Biosecurity Measures'", 
+          time: "1 day ago"
+        },
+        {
+          title: "Course update", 
+          description: "You updated 'Poultry Nutrition 101'", 
+          time: "4 days ago"
+        }
+      ],
+      students: [
+        {
+          title: "New student enrollments", 
+          description: "5 new students enrolled in your courses", 
+          time: "2 days ago"
+        }
+      ],
+      training: [
+        {
+          title: "Upcoming workshop", 
+          description: "You scheduled 'Hands-on Disease Diagnosis'", 
+          time: "3 days ago"
+        }
+      ]
+    };
+  };
+
   const renderRoleSpecificActivity = () => {
     switch (role) {
       case 'farmer':
+        const farmerActivities = getFarmerActivities();
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <ShoppingBag className="h-4 w-4 mr-2 text-blue-500" />
-                Marketplace
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="New listing created" 
-                  description="You listed '50kg Layer Feed' on the marketplace" 
-                  time="2 days ago" 
-                />
-                <ActivityItem 
-                  title="Price update" 
-                  description="You updated the price of 'Day-old Chicks'" 
-                  time="5 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Marketplace" 
+              icon={ShoppingBag} 
+              iconColor="text-blue-500"
+              activities={farmerActivities.marketplace}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <CreditCard className="h-4 w-4 mr-2 text-green-500" />
-                Financial Applications
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="Loan application status update" 
-                  description="Your application for 'Equipment Financing' is under review" 
-                  time="1 week ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Financial Applications" 
+              icon={CreditCard} 
+              iconColor="text-green-500"
+              activities={farmerActivities.financial}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <Users className="h-4 w-4 mr-2 text-purple-500" />
-                Network Activity
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="New connection" 
-                  description="You connected with 'Sunrise Feed Suppliers'" 
-                  time="3 days ago" 
-                />
-                <ActivityItem 
-                  title="Event RSVP" 
-                  description="You're attending 'Poultry Farmers Meetup'" 
-                  time="1 week ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Network Activity" 
+              icon={Users} 
+              iconColor="text-purple-500"
+              activities={farmerActivities.network}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <BookOpen className="h-4 w-4 mr-2 text-red-500" />
-                Training
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="Course completion" 
-                  description="You completed 'Disease Prevention Basics'" 
-                  time="2 weeks ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Training" 
+              icon={BookOpen} 
+              iconColor="text-red-500"
+              activities={farmerActivities.training}
+            />
           </div>
         );
         
       case 'financial':
+        const financialActivities = getFinancialActivities();
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <CreditCard className="h-4 w-4 mr-2 text-green-500" />
-                Financial Services
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="New loan product offered" 
-                  description="You added 'Small Farm Equipment Loan'" 
-                  time="1 day ago" 
-                />
-                <ActivityItem 
-                  title="Application review" 
-                  description="You reviewed 'ABC Farms' loan application" 
-                  time="3 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Financial Services" 
+              icon={CreditCard} 
+              iconColor="text-green-500"
+              activities={financialActivities.services}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <Users className="h-4 w-4 mr-2 text-purple-500" />
-                Client Interactions
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="New client connection" 
-                  description="You connected with 'Golden Egg Farms'" 
-                  time="2 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Client Interactions" 
+              icon={Users} 
+              iconColor="text-purple-500"
+              activities={financialActivities.clients}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                Events
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="Scheduled webinar" 
-                  description="You registered 'Farm Financing Options' webinar" 
-                  time="5 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Events" 
+              icon={Calendar} 
+              iconColor="text-blue-500"
+              activities={financialActivities.events}
+            />
           </div>
         );
         
       case 'trainer':
+        const trainerActivities = getTrainerActivities();
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <BookOpen className="h-4 w-4 mr-2 text-red-500" />
-                Training Courses
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="New course published" 
-                  description="You published 'Advanced Biosecurity Measures'" 
-                  time="1 day ago" 
-                />
-                <ActivityItem 
-                  title="Course update" 
-                  description="You updated 'Poultry Nutrition 101'" 
-                  time="4 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Training Courses" 
+              icon={BookOpen} 
+              iconColor="text-red-500"
+              activities={trainerActivities.courses}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <Users className="h-4 w-4 mr-2 text-purple-500" />
-                Student Interactions
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="New student enrollments" 
-                  description="5 new students enrolled in your courses" 
-                  time="2 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Student Interactions" 
+              icon={Users} 
+              iconColor="text-purple-500"
+              activities={trainerActivities.students}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800 flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                Scheduled Training
-              </h3>
-              <div className="mt-2 space-y-2">
-                <ActivityItem 
-                  title="Upcoming workshop" 
-                  description="You scheduled 'Hands-on Disease Diagnosis'" 
-                  time="3 days ago" 
-                />
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Scheduled Training" 
+              icon={Calendar} 
+              iconColor="text-blue-500"
+              activities={trainerActivities.training}
+            />
           </div>
         );
         
       default:
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="font-medium text-gray-800">Marketplace</h3>
-              <div className="mt-2 space-y-2">
-                <p className="text-sm text-gray-500">No recent marketplace activity.</p>
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Marketplace" 
+              icon={ShoppingBag} 
+              iconColor="text-blue-500"
+              activities={null}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800">Financial Applications</h3>
-              <div className="mt-2 space-y-2">
-                <p className="text-sm text-gray-500">No recent financial applications.</p>
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Financial Applications" 
+              icon={CreditCard} 
+              iconColor="text-green-500"
+              activities={null}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800">Network Activity</h3>
-              <div className="mt-2 space-y-2">
-                <p className="text-sm text-gray-500">No recent network activity.</p>
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Network Activity" 
+              icon={Users} 
+              iconColor="text-purple-500"
+              activities={null}
+            />
             
-            <div>
-              <h3 className="font-medium text-gray-800">Training</h3>
-              <div className="mt-2 space-y-2">
-                <p className="text-sm text-gray-500">No recent training activity.</p>
-              </div>
-            </div>
+            <ActivityCategory 
+              title="Training" 
+              icon={BookOpen} 
+              iconColor="text-red-500"
+              activities={null}
+            />
           </div>
         );
     }
@@ -231,14 +249,5 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ role = '', userId }) 
     </div>
   );
 };
-
-// Helper component for activity items
-const ActivityItem = ({ title, description, time }: { title: string; description: string; time: string }) => (
-  <div className="bg-gray-50 rounded-md p-3">
-    <h4 className="text-sm font-medium">{title}</h4>
-    <p className="text-xs text-gray-600 mt-1">{description}</p>
-    <p className="text-xs text-gray-400 mt-1">{time}</p>
-  </div>
-);
 
 export default ActivitySection;
