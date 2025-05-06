@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Quote, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface TestimonialProps {
   quote: string;
@@ -45,6 +45,8 @@ const Testimonial: React.FC<TestimonialProps> = ({ quote, name, role, location, 
 );
 
 const TestimonialsSection: React.FC = () => {
+  const navigate = useNavigate();
+  
   const testimonials = [
     {
       quote: "22POULTRY has transformed how I run my poultry business. The real-time market data helps me make better pricing decisions, and I've increased my profits by 23% in just 6 months.",
