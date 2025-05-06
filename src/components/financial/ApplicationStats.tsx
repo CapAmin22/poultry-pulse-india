@@ -1,7 +1,9 @@
 
 import React from 'react';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
+import { useRole } from '@/hooks/use-role';
 
 interface ApplicationStatsProps {
   stats: {
@@ -27,6 +29,8 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({
   onFilterByStatus
 }) => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
+  const { isAdmin: roleIsAdmin } = useRole();
 
   // Calculate percentage change
   const calculateChange = (current: number, previous: number) => {
@@ -52,12 +56,22 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({
       }
     }
     
+    const handleCardClick = () => {
+      if (status && onFilterByStatus) {
+        onFilterByStatus(status);
+      } else if (isAdmin || roleIsAdmin) {
+        navigate('/admin');
+      }
+    };
+    
     return (
       <div 
-        className={`bg-white p-4 rounded-md shadow hover:shadow-md transition-shadow cursor-pointer ${
+        className={`bg-white p-4 rounded-md shadow hover:shadow-md transition-shadow ${
+          status || (isAdmin || roleIsAdmin) ? 'cursor-pointer' : ''
+        } ${
           status ? 'hover:bg-gray-50' : ''
         }`}
-        onClick={() => status && onFilterByStatus ? onFilterByStatus(status) : null}
+        onClick={handleCardClick}
         title={status ? `Filter by ${label.toLowerCase()} applications` : ''}
       >
         <p className="text-gray-500 text-xs">{label}</p>
@@ -79,6 +93,13 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({
               'No change'
             )}
             <span className="ml-1 text-gray-400">vs. previous period</span>
+          </div>
+        )}
+        
+        {(isAdmin || roleIsAdmin) && !status && (
+          <div className="flex items-center text-xs mt-2 text-blue-500">
+            <span>View in admin dashboard</span>
+            <ExternalLink className="h-3 w-3 ml-1" />
           </div>
         )}
       </div>

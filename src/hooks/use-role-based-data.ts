@@ -18,6 +18,7 @@ type ActivitiesMap = {
   events?: Activity[] | null;
   courses?: Activity[] | null;
   students?: Activity[] | null;
+  admin?: Activity[] | null;
 };
 
 export const useRoleBasedData = () => {
@@ -126,6 +127,54 @@ export const useRoleBasedData = () => {
     };
   };
   
+  const getAdminActivities = (): ActivitiesMap => {
+    return {
+      admin: [
+        {
+          title: "User management", 
+          description: "You approved 3 new financial service providers", 
+          time: "1 day ago"
+        },
+        {
+          title: "Content moderation", 
+          description: "You reviewed 5 reported marketplace listings", 
+          time: "2 days ago"
+        },
+        {
+          title: "System update", 
+          description: "You deployed platform update v1.2.3", 
+          time: "3 days ago"
+        }
+      ],
+      financial: [
+        {
+          title: "Loan application routed", 
+          description: "You routed 'Equipment Finance' application to SBI", 
+          time: "1 day ago"
+        },
+        {
+          title: "Financial service approved", 
+          description: "You approved 'Rural Microfinance' service", 
+          time: "4 days ago"
+        }
+      ],
+      marketplace: [
+        {
+          title: "Featured listing updated", 
+          description: "You updated the featured listings for this week", 
+          time: "2 days ago"
+        }
+      ],
+      training: [
+        {
+          title: "Training verification", 
+          description: "You verified 'Advanced Poultry Management' course", 
+          time: "5 days ago"
+        }
+      ]
+    };
+  };
+  
   const getDefaultActivities = (): ActivitiesMap => ({
     marketplace: null,
     financial: null,
@@ -141,6 +190,8 @@ export const useRoleBasedData = () => {
         return getFinancialActivities();
       case ROLES.TRAINER:
         return getTrainerActivities();
+      case ROLES.ADMIN:
+        return getAdminActivities();
       default:
         return getDefaultActivities();
     }

@@ -14,7 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Admin email addresses - these users will have admin privileges
-const ADMIN_EMAILS = ['the22poultry@gmail.com'];
+const ADMIN_EMAILS = ['the22poultry@gmail.com', 'admin@22poultry.com'];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -33,7 +33,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Check if user is admin
         if (currentSession?.user) {
-          setIsAdmin(ADMIN_EMAILS.includes(currentSession.user.email || ''));
+          const isAdminUser = ADMIN_EMAILS.includes(currentSession.user.email || '');
+          setIsAdmin(isAdminUser);
+          
+          // Store admin status in user metadata for easier access
+          if (isAdminUser && (!currentSession.user.user_metadata?.role || currentSession.user.user_metadata?.role !== 'admin')) {
+            supabase.auth.updateUser({
+              data: { role: 'admin' }
+            }).catch(err => console.error("Failed to update user role metadata:", err));
+          }
         } else {
           setIsAdmin(false);
         }
@@ -50,7 +58,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Check if user is admin
       if (currentSession?.user) {
-        setIsAdmin(ADMIN_EMAILS.includes(currentSession.user.email || ''));
+        const isAdminUser = ADMIN_EMAILS.includes(currentSession.user.email || '');
+        setIsAdmin(isAdminUser);
+        
+        // Store admin status in user metadata for easier access
+        if (isAdminUser && (!currentSession.user.user_metadata?.role || currentSession.user.user_metadata?.role !== 'admin')) {
+          supabase.auth.updateUser({
+            data: { role: 'admin' }
+          }).catch(err => console.error("Failed to update user role metadata:", err));
+        }
       }
       
       setLoading(false);

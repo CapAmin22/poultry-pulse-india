@@ -1,5 +1,6 @@
 
 export const ROLES = {
+  ADMIN: 'admin',
   FARMER: 'farmer',
   FINANCIAL: 'financial',
   TRAINER: 'trainer',
@@ -35,8 +36,13 @@ export const isHealthcareProvider = (role: string): boolean => {
   return role === ROLES.VETERINARIAN;
 };
 
+export const isAdmin = (role: string): boolean => {
+  return role === ROLES.ADMIN;
+};
+
 export const getRoleDisplayName = (role: string): string => {
   const displayNames: Record<string, string> = {
+    [ROLES.ADMIN]: 'Super Administrator',
     [ROLES.FARMER]: 'Poultry Farmer',
     [ROLES.FINANCIAL]: 'Financial Provider',
     [ROLES.TRAINER]: 'Trainer/Educator',

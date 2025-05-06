@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { ShoppingBag, CreditCard, Users, BookOpen, Calendar } from 'lucide-react';
+import { ShoppingBag, CreditCard, Users, BookOpen, Calendar, Settings, AlertCircle } from 'lucide-react';
 import ActivityCategory from './ActivityCategory';
 import { useRoleBasedData } from '@/hooks/use-role-based-data';
+import { ROLES } from '@/utils/roles';
 
 interface ActivitySectionProps {
   role?: string;
@@ -18,6 +19,15 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ role = '', userId }) 
       <h2 className="text-xl font-semibold mb-4">Your Recent Activity</h2>
       
       <div className="space-y-6">
+        {activities.admin && (
+          <ActivityCategory 
+            title="System Administration" 
+            icon={Settings} 
+            iconColor="text-purple-500"
+            activities={activities.admin}
+          />
+        )}
+        
         {activities.marketplace && (
           <ActivityCategory 
             title="Marketplace" 
@@ -97,6 +107,14 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ role = '', userId }) 
             iconColor="text-purple-500"
             activities={activities.students}
           />
+        )}
+        
+        {!Object.values(activities).some(Boolean) && (
+          <div className="flex flex-col items-center py-6 text-center">
+            <AlertCircle className="h-12 w-12 text-gray-300 mb-3" />
+            <p className="text-gray-600">No recent activity to display.</p>
+            <p className="text-sm text-gray-500">Your activities will appear here as you use the platform.</p>
+          </div>
         )}
       </div>
     </div>
