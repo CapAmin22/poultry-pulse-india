@@ -13,6 +13,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Search, Plus, Download } from 'lucide-react';
 import ApplicationStats from '../financial/ApplicationStats';
 
+// Helper function to validate status
+const validateStatus = (status: string): "pending" | "reviewing" | "approved" | "rejected" => {
+  if (status === "pending" || status === "reviewing" || status === "approved" || status === "rejected") {
+    return status;
+  }
+  // Default status if it doesn't match any valid value
+  return "pending";
+};
+
 const AdminFinancialManagement: React.FC = () => {
   const [applications, setApplications] = useState<LoanApplication[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -58,35 +67,38 @@ const AdminFinancialManagement: React.FC = () => {
       
       if (servicesError) throw servicesError;
       
-      // Set data
-      setApplications(appData || []);
+      // Process and set data with properly validated status values
+      if (appData) {
+        const typedAppData: LoanApplication[] = appData.map(app => ({
+          ...app,
+          status: validateStatus(app.status)
+        }));
+        setApplications(typedAppData);
+        
+        // Calculate stats
+        const currentStats = {
+          total: typedAppData.length || 0,
+          pending: typedAppData.filter(app => app.status === 'pending').length || 0,
+          reviewing: typedAppData.filter(app => app.status === 'reviewing').length || 0,
+          approved: typedAppData.filter(app => app.status === 'approved').length || 0,
+          rejected: typedAppData.filter(app => app.status === 'rejected').length || 0
+        };
+        
+        // Mock previous stats (in a real app, you'd query historical data)
+        const prevStats = {
+          total: Math.floor(currentStats.total * 0.9),
+          pending: Math.floor(currentStats.pending * 0.8),
+          reviewing: Math.floor(currentStats.reviewing * 0.85),
+          approved: Math.floor(currentStats.approved * 0.9),
+          rejected: Math.floor(currentStats.rejected * 0.95)
+        };
+        
+        setAppStats(currentStats);
+        setPreviousStats(prevStats);
+      }
+      
+      // Set services
       setServices(servicesData || []);
-      
-      // Calculate stats
-      const now = new Date();
-      const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(now.getMonth() - 1);
-      
-      // Current stats
-      const currentStats = {
-        total: appData?.length || 0,
-        pending: appData?.filter(app => app.status === 'pending').length || 0,
-        reviewing: appData?.filter(app => app.status === 'reviewing').length || 0,
-        approved: appData?.filter(app => app.status === 'approved').length || 0,
-        rejected: appData?.filter(app => app.status === 'rejected').length || 0
-      };
-      
-      // Mock previous stats (in a real app, you'd query historical data)
-      const prevStats = {
-        total: Math.floor(currentStats.total * 0.9),
-        pending: Math.floor(currentStats.pending * 0.8),
-        reviewing: Math.floor(currentStats.reviewing * 0.85),
-        approved: Math.floor(currentStats.approved * 0.9),
-        rejected: Math.floor(currentStats.rejected * 0.95)
-      };
-      
-      setAppStats(currentStats);
-      setPreviousStats(prevStats);
       
     } catch (error) {
       console.error('Error fetching financial data:', error);
@@ -100,7 +112,7 @@ const AdminFinancialManagement: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: "pending" | "reviewing" | "approved" | "rejected") => {
     try {
       const { error } = await supabase
         .from('loan_applications')
