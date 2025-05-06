@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import HeroSection from '@/components/landing/HeroSection';
@@ -10,10 +10,14 @@ import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import FAQSection from '@/components/landing/FAQSection';
 import CTASection from '@/components/landing/CTASection';
 import FooterSection from '@/components/landing/FooterSection';
+import { Button } from '@/components/ui/button';
+import { Menu, X } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   
   // If user is already logged in, redirect to dashboard
   useEffect(() => {
@@ -22,11 +26,51 @@ const LandingPage: React.FC = () => {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+  
+  // Track scroll position to change header styling
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Navigation links
+  const navigationLinks = [
+    { name: "Features", href: "#features" },
+    { name: "Marketplace", href: "#marketplace" },
+    { name: "Training", href: "#training" },
+    { name: "Testimonials", href: "#testimonials" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Contact", href: "/contact" }
+  ];
+  
+  // Smooth scrolling for anchor links
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setMobileMenuOpen(false);
+      }
+    } else {
+      navigate(href);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header/Navbar */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
@@ -35,35 +79,88 @@ const LandingPage: React.FC = () => {
                 alt="22POULTRY" 
                 className="h-10 w-10 mr-2" 
               />
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] bg-clip-text text-transparent">
+              <span className={`text-2xl font-bold bg-gradient-to-r from-[#ea384c] to-[#0FA0CE] bg-clip-text text-transparent ${isScrolled ? 'drop-shadow-none' : 'drop-shadow-sm'}`}>
                 22POULTRY
               </span>
             </div>
             
-            <nav className="hidden md:flex items-center space-x-6">
-              <a href="#features" className="text-gray-700 hover:text-[#ea384c]">Features</a>
-              <a href="#marketplace" className="text-gray-700 hover:text-[#ea384c]">Marketplace</a>
-              <a href="#training" className="text-gray-700 hover:text-[#ea384c]">Training</a>
-              <a href="#testimonials" className="text-gray-700 hover:text-[#ea384c]">Testimonials</a>
-              <a href="/contact" className="text-gray-700 hover:text-[#ea384c]">Contact</a>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              {navigationLinks.map((link) => (
+                <a 
+                  key={link.name} 
+                  href={link.href} 
+                  onClick={(e) => scrollToSection(e, link.href)}
+                  className={`text-sm font-medium hover:text-[#ea384c] transition-colors ${
+                    isScrolled ? 'text-gray-700' : 'text-white'
+                  }`}
+                >
+                  {link.name}
+                </a>
+              ))}
             </nav>
             
-            <div className="flex items-center space-x-4">
-              <button 
+            {/* Authentication Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button 
                 onClick={() => navigate('/auth')}
-                className="hidden md:block px-4 py-2 border border-[#ea384c] text-[#ea384c] rounded-md hover:bg-[#ea384c] hover:text-white transition-colors"
+                variant="ghost"
+                className={`${isScrolled ? 'text-[#ea384c] hover:bg-red-50 hover:text-[#d02f3d]' : 'text-white hover:bg-white/20'}`}
               >
                 Sign In
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => navigate('/auth', { state: { initialMode: 'signup' } })}
-                className="px-4 py-2 bg-[#ea384c] text-white rounded-md hover:bg-[#d02f3d] transition-colors"
+                className="bg-[#ea384c] text-white hover:bg-[#d02f3d]"
               >
-                Get Started
+                Sign Up Free
+              </Button>
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className={`p-2 rounded-md ${isScrolled ? 'text-gray-700' : 'text-white'}`}
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+            <div className="container mx-auto px-4 py-4 space-y-3">
+              {navigationLinks.map((link) => (
+                <a 
+                  key={link.name} 
+                  href={link.href}
+                  onClick={(e) => scrollToSection(e, link.href)}
+                  className="block py-2 text-gray-700 hover:text-[#ea384c] font-medium"
+                >
+                  {link.name}
+                </a>
+              ))}
+              <div className="pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
+                <Button 
+                  onClick={() => navigate('/auth')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth', { state: { initialMode: 'signup' } })}
+                  className="w-full bg-[#ea384c] text-white hover:bg-[#d02f3d]"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
       
       {/* Main Content */}
@@ -72,24 +169,16 @@ const LandingPage: React.FC = () => {
         <HeroSection />
         
         {/* Features Section */}
-        <div id="features">
-          <FeaturesSection />
-        </div>
+        <FeaturesSection />
         
         {/* Marketplace Showcase */}
-        <div id="marketplace">
-          <MarketplaceShowcase />
-        </div>
+        <MarketplaceShowcase />
         
         {/* Training Resources */}
-        <div id="training">
-          <TrainingResourcesSection />
-        </div>
+        <TrainingResourcesSection />
         
         {/* Testimonials */}
-        <div id="testimonials">
-          <TestimonialsSection />
-        </div>
+        <TestimonialsSection />
         
         {/* FAQ Section */}
         <FAQSection />
