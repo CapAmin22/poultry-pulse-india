@@ -16,6 +16,7 @@ import NetworkPage from "./pages/NetworkPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import FinancialPage from "./pages/FinancialPage";
 import JobsPage from "./pages/JobsPage";
+import AdminSecurityPage from "./pages/AdminSecurityPage";
 import Layout from './components/layout/Layout';
 import { AuthProvider } from './hooks/use-auth';
 import { FinancialProvider } from './contexts/FinancialContext';
@@ -40,6 +41,7 @@ const App: React.FC = () => {
                 <Route path="/jobs" element={<JobsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/admin/security" element={<AdminSecurityPage />} />
               </Route>
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

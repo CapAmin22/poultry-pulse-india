@@ -31,11 +31,7 @@ const OnboardingFlow: React.FC = () => {
     email: '',
     phone: '',
     interests: [],
-    location: {
-      country: 'India',
-      state: '',
-      city: ''
-    },
+    location: '',
     full_name: '',
     username: '',
     business_name: '',
