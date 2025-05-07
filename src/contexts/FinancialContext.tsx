@@ -12,7 +12,7 @@ interface FinancialContextProps {
   userApplications: LoanApplication[];
   refreshServices: () => Promise<void>;
   refreshApplications: () => Promise<void>;
-  updateApplicationStatus: (id: string, status: string, feedback?: string) => Promise<void>;
+  updateApplicationStatus: (id: string, status: "pending" | "reviewing" | "approved" | "rejected", feedback?: string) => Promise<void>;
   submitApplication: (applicationData: any) => Promise<boolean>;
   deleteService: (serviceId: string) => Promise<boolean>;
   transactions: Transaction[];
@@ -72,7 +72,11 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
           .order('created_at', { ascending: false });
         
         if (error) throw error;
-        setLoanApplications(data || []);
+        // Add proper type assertion to ensure status is of the correct type
+        setLoanApplications(data.map(app => ({
+          ...app,
+          status: app.status as "pending" | "reviewing" | "approved" | "rejected"
+        })));
       } else {
         // Other users only see their own applications
         const { data, error } = await supabase
@@ -82,7 +86,11 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
           .order('created_at', { ascending: false });
         
         if (error) throw error;
-        setUserApplications(data || []);
+        // Add proper type assertion for status
+        setUserApplications(data.map(app => ({
+          ...app,
+          status: app.status as "pending" | "reviewing" | "approved" | "rejected"
+        })));
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -108,7 +116,11 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
         .order('transaction_date', { ascending: false });
       
       if (error) throw error;
-      setTransactions(data || []);
+      // Add proper type assertion for transaction type
+      setTransactions(data.map(transaction => ({
+        ...transaction,
+        type: transaction.type as "income" | "expense"
+      })));
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast({
@@ -125,6 +137,11 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
     if (!user) return false;
     
     try {
+      // Ensure the transaction type is valid
+      if (transactionData.type !== "income" && transactionData.type !== "expense") {
+        throw new Error("Invalid transaction type. Must be 'income' or 'expense'");
+      }
+      
       const { error } = await supabase
         .from('financial_transactions')
         .insert({
@@ -194,7 +211,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
         .insert({
           ...applicationData,
           user_id: user.id,
-          status: 'pending'
+          status: 'pending' as "pending" | "reviewing" | "approved" | "rejected"
         });
       
       if (error) throw error;

@@ -1,4 +1,3 @@
-
 export interface StepProps {
   onboardingData: OnboardingData;
   handleChange: (field: string, value: any) => void;
@@ -16,11 +15,7 @@ export interface OnboardingData {
   farm_type?: string;
   experience?: string;
   interests: string[];
-  location: {
-    country: string;
-    state: string;
-    city: string;
-  };
+  location: string;
   // Added fields to match usage in OnboardingFlow.tsx
   full_name: string;
   username: string;
