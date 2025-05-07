@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { OnboardingData } from './OnboardingTypes';
+import { OnboardingData, LocationData } from './OnboardingTypes';
 import BasicInfoStep from './steps/BasicInfoStep';
 import RoleSelectionStep from './steps/RoleSelectionStep';
 import LocationStep from './steps/LocationStep';
@@ -26,12 +27,12 @@ const OnboardingFlow: React.FC = () => {
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     role: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
     interests: [],
-    location: '',
+    location: {
+      country: '',
+      state: '',
+      city: ''
+    },
     full_name: '',
     username: '',
     business_name: '',
@@ -54,7 +55,7 @@ const OnboardingFlow: React.FC = () => {
     email_notifications: true,
     sms_notifications: true,
     website_url: '',
-    years_in_business: '',
+    years_in_business: 0,
     certifications: [],
     services_offered: [],
     product_types: []
@@ -171,7 +172,7 @@ const OnboardingFlow: React.FC = () => {
       return !!onboardingData.role;
     } else if (currentStep === 2) {
       // Location is required but other fields might be optional based on role
-      return !!onboardingData.state;
+      return !!onboardingData.state || (typeof onboardingData.location === 'object' && !!onboardingData.location.state);
     } else if (currentStep === 3) {
       // For organization role, require business_name
       if (onboardingData.role === 'organization' && !onboardingData.business_name) {
@@ -192,7 +193,7 @@ const OnboardingFlow: React.FC = () => {
       if (!user) return;
 
       // Validate mobile number
-      if (!/^\d{10}$/.test(onboardingData.mobile_number)) {
+      if (!/^\d{10}$/.test(onboardingData.mobile_number || '')) {
         toast({
           variant: "destructive",
           title: "Invalid mobile number",
@@ -332,8 +333,9 @@ const OnboardingFlow: React.FC = () => {
       description: "Tell us where you're located and about your business",
       component: <LocationStep 
         onboardingData={onboardingData}
-        handleChange={handleChange}
-        toggleArrayItem={toggleArrayItem}
+        setOnboardingData={setOnboardingData}
+        nextStep={handleNext}
+        prevStep={handlePrevious}
       />
     },
     {

@@ -16,6 +16,8 @@ interface FinancialContextType {
   refreshTransactions: () => Promise<void>;
   updateApplicationStatus: (id: string, status: "pending" | "reviewing" | "approved" | "rejected", feedback?: string) => Promise<void>;
   deleteService: (id: string) => Promise<void>;
+  submitApplication: (applicationData: any) => Promise<boolean>;
+  addTransaction: (transactionData: any) => Promise<boolean>;
 }
 
 const FinancialContext = createContext<FinancialContextType>({
@@ -28,7 +30,9 @@ const FinancialContext = createContext<FinancialContextType>({
   refreshApplications: async () => {},
   refreshTransactions: async () => {},
   updateApplicationStatus: async () => {},
-  deleteService: async () => {}
+  deleteService: async () => {},
+  submitApplication: async () => false,
+  addTransaction: async () => false
 });
 
 export const useFinancial = () => useContext(FinancialContext);
@@ -40,8 +44,10 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const { user, isFinancialProvider } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
+  
+  const isFinancialProvider = user?.user_metadata?.role === 'financial';
   
   useEffect(() => {
     if (user) {
@@ -84,8 +90,8 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Ensure the data has the correct status type
         const typedData = data.map(app => ({
           ...app,
-          status: app.status as "pending" | "reviewing" | "approved" | "rejected"
-        }));
+          status: validateApplicationStatus(app.status)
+        })) as LoanApplication[];
         
         setLoanApplications(typedData);
       }
@@ -101,8 +107,8 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Ensure the data has the correct status type
       const typedUserData = userData.map(app => ({
         ...app,
-        status: app.status as "pending" | "reviewing" | "approved" | "rejected"
-      }));
+        status: validateApplicationStatus(app.status)
+      })) as LoanApplication[];
       
       setUserApplications(typedUserData);
     } catch (error: any) {
@@ -125,12 +131,23 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const typedData = data.map(transaction => ({
         ...transaction,
         type: validateTransactionType(transaction.type)
-      }));
+      })) as Transaction[];
       
       setTransactions(typedData);
     } catch (error: any) {
       console.error("Error loading transactions:", error);
     }
+  };
+  
+  // Function to validate and convert application status to the correct format
+  const validateApplicationStatus = (status: string): "pending" | "reviewing" | "approved" | "rejected" => {
+    const validStatuses = ["pending", "reviewing", "approved", "rejected"];
+    if (validStatuses.includes(status)) {
+      return status as "pending" | "reviewing" | "approved" | "rejected";
+    }
+    // Default to pending if not valid
+    console.warn(`Invalid application status: ${status}, defaulting to 'pending'`);
+    return "pending";
   };
   
   // Function to validate and convert transaction type to the correct format
@@ -202,6 +219,93 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
+  // Add the missing submitApplication function
+  const submitApplication = async (applicationData: any): Promise<boolean> => {
+    try {
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "You must be logged in to submit an application."
+        });
+        return false;
+      }
+      
+      const { error } = await supabase
+        .from('loan_applications')
+        .insert({
+          ...applicationData,
+          user_id: user.id,
+          status: "pending"
+        });
+      
+      if (error) throw error;
+      
+      // Refresh applications
+      refreshApplications();
+      
+      toast({
+        title: "Application submitted",
+        description: "Your loan application has been submitted successfully."
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error("Error submitting loan application:", error);
+      toast({
+        variant: "destructive",
+        title: "Submission failed",
+        description: error.message || "Failed to submit loan application."
+      });
+      return false;
+    }
+  };
+  
+  // Add the missing addTransaction function
+  const addTransaction = async (transactionData: any): Promise<boolean> => {
+    try {
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "You must be logged in to record a transaction."
+        });
+        return false;
+      }
+      
+      // Validate transaction type
+      const type = validateTransactionType(transactionData.type);
+      
+      const { error } = await supabase
+        .from('financial_transactions')
+        .insert({
+          ...transactionData,
+          type,
+          user_id: user.id
+        });
+      
+      if (error) throw error;
+      
+      // Refresh transactions
+      refreshTransactions();
+      
+      toast({
+        title: "Transaction recorded",
+        description: "Your financial transaction has been recorded successfully."
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error("Error recording transaction:", error);
+      toast({
+        variant: "destructive",
+        title: "Recording failed",
+        description: error.message || "Failed to record financial transaction."
+      });
+      return false;
+    }
+  };
+  
   return (
     <FinancialContext.Provider
       value={{
@@ -214,7 +318,9 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         refreshApplications,
         refreshTransactions,
         updateApplicationStatus,
-        deleteService
+        deleteService,
+        submitApplication,
+        addTransaction
       }}
     >
       {children}

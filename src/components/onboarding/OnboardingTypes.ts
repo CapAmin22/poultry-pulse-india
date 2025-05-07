@@ -6,6 +6,12 @@ export interface OnboardingStepProps {
   prevStep: () => void;
 }
 
+export interface StepProps {
+  onboardingData: OnboardingData;
+  handleChange: (field: keyof OnboardingData, value: any) => void;
+  toggleArrayItem?: (field: keyof OnboardingData, item: string) => void;
+}
+
 export interface LocationData {
   country: string;
   state: string;
@@ -30,6 +36,10 @@ export interface OnboardingData {
   email_notifications?: boolean;
   sms_notifications?: boolean;
   
+  // Location fields
+  state?: string;
+  district?: string;
+  
   // Farmer specific fields
   farm_name?: string;
   farm_type?: string;
@@ -48,17 +58,20 @@ export interface OnboardingData {
   
   // Trainer specific fields
   training_specializations?: string[];
+  certifications?: string[];
   
   // Organization specific fields
   organization?: string;
   organization_type?: string;
   organization_scope?: string;
+  website_url?: string;
+  financial_description?: string;
+  
+  // Financial specific fields
+  financial_services?: string[];
   
   // Processor specific fields
   processing_capacity?: string;
-  
-  // District field
-  district?: string;
 }
 
 export interface StepIndicatorProps {

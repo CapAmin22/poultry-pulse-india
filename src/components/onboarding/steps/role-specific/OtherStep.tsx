@@ -24,14 +24,14 @@ const OtherStep: React.FC<StepProps> = ({ onboardingData, handleChange }) => {
             if (e.key === 'Enter' && e.currentTarget.value.trim()) {
               e.preventDefault();
               const newItem = e.currentTarget.value.trim();
-              if (!onboardingData.services_offered.includes(newItem)) {
-                handleChange('services_offered', [...onboardingData.services_offered, newItem]);
+              if (onboardingData.services_offered && !onboardingData.services_offered.includes(newItem)) {
+                handleChange('services_offered', [...(onboardingData.services_offered || []), newItem]);
               }
               e.currentTarget.value = '';
             }
           }}
         />
-        {onboardingData.services_offered.length > 0 && (
+        {onboardingData.services_offered && onboardingData.services_offered.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {onboardingData.services_offered.map((item, index) => (
               <div key={index} className="bg-gray-100 px-3 py-1 rounded-full flex items-center text-sm">
@@ -40,7 +40,7 @@ const OtherStep: React.FC<StepProps> = ({ onboardingData, handleChange }) => {
                   type="button" 
                   className="ml-2 text-gray-500 hover:text-red-500"
                   onClick={() => {
-                    handleChange('services_offered', onboardingData.services_offered.filter((_, i) => i !== index));
+                    handleChange('services_offered', onboardingData.services_offered?.filter((_, i) => i !== index));
                   }}
                 >
                   ×

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { OnboardingStepProps } from '../OnboardingTypes';
+import { OnboardingStepProps, LocationData } from '../OnboardingTypes';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -52,7 +52,8 @@ const LocationStep: React.FC<OnboardingStepProps> = ({ onboardingData, setOnboar
         country: value,
         state: '',
         city: '',
-      }
+      },
+      state: '',  // Update separate state field for backward compatibility
     });
   };
 
@@ -63,7 +64,8 @@ const LocationStep: React.FC<OnboardingStepProps> = ({ onboardingData, setOnboar
         location: {
           ...onboardingData.location,
           state: value,
-        }
+        },
+        state: value,  // Update separate state field for backward compatibility
       });
     }
   };
@@ -75,7 +77,7 @@ const LocationStep: React.FC<OnboardingStepProps> = ({ onboardingData, setOnboar
         location: {
           ...onboardingData.location,
           city: e.target.value,
-        }
+        },
       });
     }
   };

@@ -1,4 +1,3 @@
-
 import { supabase } from '../client';
 
 /**
@@ -42,3 +41,7 @@ export async function applyAllRlsPolicies() {
   
   console.log('Finished applying RLS policies to all tables');
 }
+
+export const runMigration = async () => {
+  console.log('Migration should be run as SQL file, not TypeScript');
+};
