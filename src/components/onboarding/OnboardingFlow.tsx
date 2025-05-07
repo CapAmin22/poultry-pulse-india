@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -26,10 +25,20 @@ const OnboardingFlow: React.FC = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    role: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    interests: [],
+    location: {
+      country: 'India',
+      state: '',
+      city: ''
+    },
     full_name: '',
     username: '',
-    role: '',
-    business_name: '', // Will only require if organization or business
+    business_name: '',
     business_size: '',
     poultry_types: [],
     farming_system: '',
@@ -39,10 +48,8 @@ const OnboardingFlow: React.FC = () => {
     organization_type: '',
     organization_scope: '',
     experience_level: '',
-    location: '',
     state: '',
     district: '',
-    interests: [],
     bio: '',
     preferred_language: 'English',
     secondary_languages: [],

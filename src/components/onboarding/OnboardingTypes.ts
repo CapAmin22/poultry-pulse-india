@@ -1,3 +1,4 @@
+
 export interface StepProps {
   onboardingData: OnboardingData;
   handleChange: (field: string, value: any) => void;
@@ -20,6 +21,33 @@ export interface OnboardingData {
     state: string;
     city: string;
   };
+  // Added fields to match usage in OnboardingFlow.tsx
+  full_name: string;
+  username: string;
+  business_name: string;
+  business_size: string;
+  poultry_types: string[];
+  farming_system: string;
+  farming_capacity: string;
+  financial_services: string[];
+  training_specializations: string[];
+  organization_type: string;
+  organization_scope: string;
+  experience_level: string;
+  state: string;
+  district: string;
+  bio: string;
+  preferred_language: string;
+  secondary_languages: string[];
+  mobile_number: string;
+  whatsapp_number: string;
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  website_url: string;
+  years_in_business: string;
+  certifications: string[];
+  services_offered: string[];
+  product_types: string[];
   // Farmer specific
   farm_size?: string;
   livestock_type?: string[];
@@ -28,25 +56,18 @@ export interface OnboardingData {
   // Processor specific
   processing_type?: string[];
   capacity?: string;
-  certifications?: string[];
   // Trainer specific
   expertise_areas?: string[];
-  years_experience?: string;
   certification_details?: string;
   training_formats?: string[];
   // Business specific
   business_type?: string;
-  products_services?: string[];
   target_audience?: string;
-  years_in_business?: string;
   // Organization specific
   org_type?: string;
   focus_areas?: string[];
   establishment_year?: string;
   // Financial specific
-  financial_services?: string[];
-  years_in_business?: string;
-  website_url?: string;
   financial_description?: string;
   // Other
   other_details?: string;
