@@ -1,77 +1,67 @@
-export interface StepProps {
+
+export interface OnboardingStepProps {
   onboardingData: OnboardingData;
-  handleChange: (field: string, value: any) => void;
-  toggleArrayItem: (field: string, item: string) => void;
+  setOnboardingData: React.Dispatch<React.SetStateAction<OnboardingData>>;
+  nextStep: () => void;
+  prevStep: () => void;
+}
+
+export interface LocationData {
+  country: string;
+  state: string;
+  city: string;
 }
 
 export interface OnboardingData {
   role: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  organization?: string;
-  position?: string;
-  farm_type?: string;
-  experience?: string;
   interests: string[];
-  location: string;
-  // Added fields to match usage in OnboardingFlow.tsx
-  full_name: string;
-  username: string;
-  business_name: string;
-  business_size: string;
-  poultry_types: string[];
-  farming_system: string;
-  farming_capacity: string;
-  financial_services: string[];
-  training_specializations: string[];
-  organization_type: string;
-  organization_scope: string;
-  experience_level: string;
-  state: string;
-  district: string;
-  bio: string;
-  preferred_language: string;
-  secondary_languages: string[];
-  mobile_number: string;
-  whatsapp_number: string;
-  email_notifications: boolean;
-  sms_notifications: boolean;
-  website_url: string;
-  years_in_business: string;
-  certifications: string[];
-  services_offered: string[];
-  product_types: string[];
-  // Farmer specific
+  location: LocationData;
+  // Basic info fields
+  full_name?: string;
+  username?: string;
+  bio?: string;
+  preferred_language?: string;
+  secondary_languages?: string[];
+  experience_level?: string;
+  
+  // Contact info
+  mobile_number?: string;
+  whatsapp_number?: string;
+  email_notifications?: boolean;
+  sms_notifications?: boolean;
+  
+  // Farmer specific fields
+  farm_name?: string;
+  farm_type?: string;
   farm_size?: string;
-  livestock_type?: string[];
-  production_system?: string;
-  challenges?: string[];
-  // Processor specific
-  processing_type?: string[];
-  capacity?: string;
-  // Trainer specific
-  expertise_areas?: string[];
-  certification_details?: string;
-  training_formats?: string[];
-  // Business specific
+  years_in_business?: number;
+  poultry_types?: string[];
+  farming_system?: string;
+  farming_capacity?: string;
+  
+  // Business specific fields
+  business_name?: string;
   business_type?: string;
-  target_audience?: string;
-  // Organization specific
-  org_type?: string;
-  focus_areas?: string[];
-  establishment_year?: string;
-  // Financial specific
-  financial_description?: string;
-  // Other
-  other_details?: string;
+  business_size?: string;
+  product_types?: string[];
+  services_offered?: string[];
+  
+  // Trainer specific fields
+  training_specializations?: string[];
+  
+  // Organization specific fields
+  organization?: string;
+  organization_type?: string;
+  organization_scope?: string;
+  
+  // Processor specific fields
+  processing_capacity?: string;
+  
+  // District field
+  district?: string;
 }
 
-export interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-  component: React.FC<StepProps>;
-  roles?: string[];
+export interface StepIndicatorProps {
+  currentStep: number;
+  totalSteps: number;
 }

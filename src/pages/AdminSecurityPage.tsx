@@ -39,7 +39,8 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      const { error } = await supabase.rpc('apply_rls_policy', { table_name: tableName });
+      // Cast the tableName to any to avoid TypeScript errors
+      const { error } = await supabase.rpc('apply_rls_policy', { table_name: tableName as any });
       if (error) throw error;
       toast({
         title: "Success",
@@ -60,20 +61,31 @@ const AdminSecurityPage: React.FC = () => {
   const applyAllPolicies = async () => {
     setIsLoading(true);
     try {
-      // Execute SQL script via admin function
-      const { error } = await supabase.rpc('execute_sql_script');
+      // Call the edge function that applies all RLS policies
+      const response = await fetch(
+        'https://xtdukbzdbzbemyqaifhp.supabase.co/functions/v1/apply_rls_policies',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabase.auth.getSession() ? (await supabase.auth.getSession()).data.session?.access_token : ''}`
+          }
+        }
+      );
       
-      if (error) throw error;
+      const result = await response.json();
+      
+      if (!result.success) throw new Error(result.error);
       
       toast({
         title: "Success",
         description: "Successfully applied all RLS policies"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error applying RLS policies:", error);
       toast({
         title: "Error",
-        description: "Failed to apply RLS policies",
+        description: error.message || "Failed to apply RLS policies",
         variant: "destructive"
       });
     } finally {
