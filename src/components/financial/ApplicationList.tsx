@@ -18,7 +18,7 @@ interface Application {
 interface ApplicationListProps {
   applications: Application[];
   isProvider?: boolean;
-  onUpdateStatus?: (id: string, status: string) => void;
+  onUpdateStatus?: (id: string, status: "pending" | "reviewing" | "approved" | "rejected", feedback?: string) => void;
 }
 
 const ApplicationList: React.FC<ApplicationListProps> = ({
@@ -42,7 +42,7 @@ const ApplicationList: React.FC<ApplicationListProps> = ({
     return acc;
   }, {} as Record<string, number>);
   
-  const handleBulkAction = (action: string) => {
+  const handleBulkAction = (action: "pending" | "reviewing" | "approved" | "rejected") => {
     if (!onUpdateStatus) return;
     
     // Apply action to all pending applications

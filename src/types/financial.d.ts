@@ -22,10 +22,30 @@ export interface LoanApplication {
   farm_size: string;
   annual_revenue: number;
   collateral: string;
-  status: "pending" | "approved" | "rejected" | "reviewing";
+  status: "pending" | "reviewing" | "approved" | "rejected";
   created_at?: string;
   updated_at?: string;
   contact_number?: string;
   existing_loans?: string;
   additional_info?: string;
+}
+
+export interface FinancialService {
+  id?: string;
+  user_id: string;
+  title: string;
+  category: string;
+  provider_name: string;
+  interest_rate?: string;
+  max_amount?: string;
+  tenure?: string;
+  description: string;
+  contact_number: string;
+  email: string;
+  eligibility_criteria?: string[];
+  required_documents?: string[];
+  image_url?: string;
+  tags?: string[];
+  created_at?: string;
+  updated_at?: string;
 }

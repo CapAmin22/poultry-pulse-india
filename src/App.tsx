@@ -1,136 +1,54 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/hooks/use-auth";
-import { SidebarProvider } from "@/contexts/SidebarContext";
-import { SearchProvider } from "@/contexts/SearchContext";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import ContactUs from "./pages/ContactUs";
-import Statistics from "./pages/Statistics";
-import Financial from "./pages/Financial";
-import Training from "./pages/Training";
-import News from "./pages/News";
-import Network from "./pages/Network";
-import Marketplace from "./pages/Marketplace";
-import Profile from "./pages/Profile";
-import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './components/ui/theme-provider';
+import { Toaster } from './components/ui/toaster';
+import { Onboarding } from "./pages/Onboarding";
 import LandingPage from "./pages/LandingPage";
-import AdminDashboard from "./pages/AdminDashboard";
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
+import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
+import NotFoundPage from "./pages/NotFoundPage";
+import MarketplacePage from "./pages/MarketplacePage";
+import TrainingPage from "./pages/TrainingPage";
+import NetworkPage from "./pages/NetworkPage";
+import StatisticsPage from "./pages/StatisticsPage";
+import FinancialPage from "./pages/FinancialPage";
+import JobsPage from "./pages/JobsPage";
+import Layout from './components/layout/Layout';
+import { AuthProvider } from './hooks/use-auth';
+import { FinancialProvider } from './contexts/FinancialContext';
 
-// Create a new QueryClient instance
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <BrowserRouter>
-        <SidebarProvider>
-          <SearchProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route 
-                  path="/onboarding" 
-                  element={
-                    <ProtectedRoute>
-                      <Onboarding />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/statistics" 
-                  element={
-                    <ProtectedRoute>
-                      <Statistics />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/financial" 
-                  element={
-                    <ProtectedRoute>
-                      <Financial />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/training" 
-                  element={
-                    <ProtectedRoute>
-                      <Training />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/news" 
-                  element={
-                    <ProtectedRoute>
-                      <News />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/network" 
-                  element={
-                    <ProtectedRoute>
-                      <Network />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/marketplace" 
-                  element={
-                    <ProtectedRoute>
-                      <Marketplace />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/contact" 
-                  element={<ContactUs />}
-                />
-                <Route 
-                  path="/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin" 
-                  element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </TooltipProvider>
-          </SearchProvider>
-        </SidebarProvider>
-      </BrowserRouter>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <FinancialProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route element={<Layout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/marketplace" element={<MarketplacePage />} />
+                <Route path="/training" element={<TrainingPage />} />
+                <Route path="/network" element={<NetworkPage />} />
+                <Route path="/statistics" element={<StatisticsPage />} />
+                <Route path="/financial" element={<FinancialPage />} />
+                <Route path="/jobs" element={<JobsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/settings" element={<Settings />} />
+              </Route>
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+        </FinancialProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+};
 
 export default App;
