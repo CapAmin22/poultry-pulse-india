@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './components/ui/theme-provider';
+import { ThemeProvider } from '@/components/ui/theme-provider';
 import { Toaster } from './components/ui/toaster';
-import { Onboarding } from "./pages/Onboarding";
+import Onboarding from "./pages/Onboarding";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";

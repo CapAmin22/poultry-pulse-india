@@ -1,18 +1,23 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { LoanApplication, Transaction, FinancialService } from '@/types/financial';
 
 interface FinancialContextProps {
-  financialServices: any[];
-  loanApplications: any[];
+  financialServices: FinancialService[];
+  loanApplications: LoanApplication[];
   isLoading: boolean;
-  userApplications: any[];
+  userApplications: LoanApplication[];
   refreshServices: () => Promise<void>;
   refreshApplications: () => Promise<void>;
   updateApplicationStatus: (id: string, status: string, feedback?: string) => Promise<void>;
   submitApplication: (applicationData: any) => Promise<boolean>;
   deleteService: (serviceId: string) => Promise<boolean>;
+  transactions: Transaction[];
+  refreshTransactions: () => Promise<void>;
+  addTransaction: (transactionData: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => Promise<boolean>;
 }
 
 const FinancialContext = createContext<FinancialContextProps | undefined>(undefined);
@@ -20,9 +25,10 @@ const FinancialContext = createContext<FinancialContextProps | undefined>(undefi
 export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [financialServices, setFinancialServices] = useState<any[]>([]);
-  const [loanApplications, setLoanApplications] = useState<any[]>([]);
-  const [userApplications, setUserApplications] = useState<any[]>([]);
+  const [financialServices, setFinancialServices] = useState<FinancialService[]>([]);
+  const [loanApplications, setLoanApplications] = useState<LoanApplication[]>([]);
+  const [userApplications, setUserApplications] = useState<LoanApplication[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const refreshServices = async () => {
@@ -87,6 +93,62 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const refreshTransactions = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('financial_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('transaction_date', { ascending: false });
+      
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      toast({
+        title: "Failed to load transactions",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => {
+    if (!user) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('financial_transactions')
+        .insert({
+          ...transactionData,
+          user_id: user.id
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Transaction added",
+        description: "Your financial transaction has been recorded",
+      });
+      
+      await refreshTransactions();
+      return true;
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      toast({
+        title: "Failed to add transaction",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+      return false;
     }
   };
 
@@ -189,6 +251,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
     if (user) {
       refreshServices();
       refreshApplications();
+      refreshTransactions();
     }
   }, [user]);
 
@@ -196,12 +259,15 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
     financialServices,
     loanApplications,
     userApplications,
+    transactions,
     isLoading,
     refreshServices,
     refreshApplications,
+    refreshTransactions,
     updateApplicationStatus,
     submitApplication,
-    deleteService
+    deleteService,
+    addTransaction
   };
 
   return (

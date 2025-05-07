@@ -10,25 +10,29 @@ import ServiceProviderForm from '@/components/financial/ServiceProviderForm';
 import FinancialServiceList from '@/components/financial/FinancialServiceList';
 import ApplicationList from '@/components/financial/ApplicationList';
 import LoanApplicationForm from '@/components/financial/LoanApplicationForm';
+import TransactionForm from '@/components/financial/TransactionForm';
+import TransactionsList from '@/components/financial/TransactionsList';
 import ApplicationStats from '@/components/financial/ApplicationStats';
 import { useFinancial } from '@/contexts/FinancialContext';
-import { supabase } from '@/integrations/supabase/client';
 
 const FinancialDashboard: React.FC = () => {
   const { role, isFinancialProvider } = useRole();
   const { 
     financialServices, 
     loanApplications, 
-    userApplications, 
+    userApplications,
+    transactions,
     isLoading,
     refreshServices,
     refreshApplications,
+    refreshTransactions,
     updateApplicationStatus,
     deleteService
   } = useFinancial();
   
   const [activeTab, setActiveTab] = useState('browse');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [serviceToEdit, setServiceToEdit] = useState<string | null>(null);
   const [applicationStats, setApplicationStats] = useState({
     total: 0,
@@ -70,7 +74,7 @@ const FinancialDashboard: React.FC = () => {
   
   const handleEditService = (id: string) => {
     setServiceToEdit(id);
-    setIsDialogOpen(true);
+    setIsServiceDialogOpen(true);
   };
   
   const handleApplyForService = (id: string) => {
@@ -78,7 +82,7 @@ const FinancialDashboard: React.FC = () => {
   };
   
   const handleServiceFormSuccess = () => {
-    setIsDialogOpen(false);
+    setIsServiceDialogOpen(false);
     setServiceToEdit(null);
     refreshServices();
   };
@@ -86,6 +90,12 @@ const FinancialDashboard: React.FC = () => {
   const handleApplicationFormSuccess = () => {
     setActiveTab('myapplications');
     refreshApplications();
+  };
+
+  const handleTransactionFormSuccess = () => {
+    setIsTransactionDialogOpen(false);
+    refreshTransactions();
+    setActiveTab('transactions');
   };
   
   const filterByStatus = (status: string) => {
@@ -111,25 +121,44 @@ const FinancialDashboard: React.FC = () => {
           </p>
         </div>
         
-        {isFinancialProvider && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex gap-2">
+          {isFinancialProvider && (
+            <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-[#f5565c]">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add New Service
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create Financial Service</DialogTitle>
+                </DialogHeader>
+                <ServiceProviderForm 
+                  onSuccess={handleServiceFormSuccess}
+                  serviceId={serviceToEdit}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+          
+          <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#f5565c]">
+              <Button variant="outline" className="border-[#f5565c] text-[#f5565c]">
                 <Plus className="mr-2 h-4 w-4" />
-                Add New Service
+                Record Transaction
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Create Financial Service</DialogTitle>
+                <DialogTitle>Record Financial Transaction</DialogTitle>
               </DialogHeader>
-              <ServiceProviderForm 
-                onSuccess={handleServiceFormSuccess}
-                serviceId={serviceToEdit}
+              <TransactionForm 
+                onSuccess={handleTransactionFormSuccess}
               />
             </DialogContent>
           </Dialog>
-        )}
+        </div>
       </div>
       
       {isFinancialProvider && (
@@ -147,7 +176,7 @@ const FinancialDashboard: React.FC = () => {
       )}
       
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
           <TabsTrigger value="browse">Browse Services</TabsTrigger>
           <TabsTrigger value="apply">Apply for Loan</TabsTrigger>
           {isFinancialProvider ? (
@@ -155,20 +184,21 @@ const FinancialDashboard: React.FC = () => {
           ) : (
             <TabsTrigger value="myapplications">My Applications</TabsTrigger>
           )}
-          <TabsTrigger value="resources">Financial Resources</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="resources">Resources</TabsTrigger>
         </TabsList>
         
         <div className="mt-6">
           <TabsContent value="browse" className="space-y-4">
             <FinancialServiceList 
               services={financialServices.map(service => ({
-                id: service.id,
+                id: service.id || '',
                 title: service.title,
                 provider: service.provider_name,
                 interestRate: service.interest_rate,
                 maxAmount: service.max_amount,
                 tenure: service.tenure,
-                eligibility: Array.isArray(service.eligibility_criteria) ? service.eligibility_criteria.join('; ') : service.eligibility_criteria || 'Contact provider for details',
+                eligibility: Array.isArray(service.eligibility_criteria) ? service.eligibility_criteria.join('; ') : (service.eligibility_criteria || 'Contact provider for details'),
                 tags: [service.category, ...(service.tags || [])]
               }))}
               loading={isLoading}
@@ -187,13 +217,13 @@ const FinancialDashboard: React.FC = () => {
             {isFinancialProvider && (
               <ApplicationList 
                 applications={loanApplications.map(app => ({
-                  id: app.id,
+                  id: app.id || '',
                   amount: app.amount,
                   purpose: app.purpose,
                   farm_type: app.farm_type,
                   farm_size: app.farm_size,
                   status: app.status as 'pending' | 'reviewing' | 'approved' | 'rejected',
-                  created_at: app.created_at
+                  created_at: app.created_at || new Date().toISOString()
                 }))}
                 isProvider={true}
                 onUpdateStatus={handleUpdateStatus}
@@ -205,17 +235,21 @@ const FinancialDashboard: React.FC = () => {
             {!isFinancialProvider && (
               <ApplicationList 
                 applications={userApplications.map(app => ({
-                  id: app.id,
+                  id: app.id || '',
                   amount: app.amount,
                   purpose: app.purpose,
                   farm_type: app.farm_type,
                   farm_size: app.farm_size,
                   status: app.status as 'pending' | 'reviewing' | 'approved' | 'rejected',
-                  created_at: app.created_at
+                  created_at: app.created_at || new Date().toISOString()
                 }))}
                 isProvider={false}
               />
             )}
+          </TabsContent>
+
+          <TabsContent value="transactions" className="space-y-4">
+            <TransactionsList transactions={transactions} />
           </TabsContent>
           
           <TabsContent value="resources" className="space-y-6">
