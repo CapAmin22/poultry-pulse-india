@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,8 +39,8 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      // Fix: Use generic type parameter to properly type the RPC call
-      const { error } = await supabase.rpc<{ success: boolean }>(
+      // Fix: Use generic type parameters to properly type the RPC call
+      const { error } = await supabase.rpc<{ success: boolean }, { table_name: string }>(
         'apply_rls_policy', 
         { table_name: tableName }
       );

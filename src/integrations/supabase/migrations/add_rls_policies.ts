@@ -8,8 +8,8 @@ import { supabase } from '../client';
  */
 export async function applyRlsPolicy(tableName: string) {
   try {
-    // Fix: Use generic type parameter to properly type the RPC call
-    const { error } = await supabase.rpc<{ success: boolean }>(
+    // Fix: Use generic type parameters to properly type the RPC call
+    const { error } = await supabase.rpc<{ success: boolean }, { table_name: string }>(
       'apply_rls_policy', 
       { table_name: tableName }
     );
