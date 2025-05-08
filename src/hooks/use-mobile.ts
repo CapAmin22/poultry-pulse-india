@@ -9,7 +9,10 @@ export const useIsMobile = (): boolean => {
       setIsMobile(window.innerWidth < 768);
     };
 
+    // Add event listener
     window.addEventListener('resize', handleResize);
+    
+    // Clean up
     return () => {
       window.removeEventListener('resize', handleResize);
     };

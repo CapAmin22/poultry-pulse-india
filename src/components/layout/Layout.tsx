@@ -1,15 +1,16 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 interface LayoutProps {
   children?: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const { sidebarOpen, setSidebarOpen } = useSidebar();
 
   return (
     <div className="min-h-screen bg-gray-50">

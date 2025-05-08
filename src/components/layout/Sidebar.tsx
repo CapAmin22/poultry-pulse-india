@@ -60,8 +60,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setSidebarOpen }) => {
 
   return (
     <>
-      {open && (
-        <div className={`fixed inset-0 z-30 bg-black/50 transition-opacity md:hidden ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
+      {open && isMobile && (
+        <div className="fixed inset-0 z-30 bg-black/50 transition-opacity md:hidden" 
           onClick={() => setSidebarOpen(false)} 
           aria-hidden="true"
         />
