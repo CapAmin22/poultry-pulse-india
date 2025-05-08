@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { LoanApplication } from '@/types/financial';
 
 interface LoanApplicationProps {
   application: {
@@ -19,7 +18,7 @@ interface LoanApplicationProps {
     created_at: string;
   };
   isProvider?: boolean;
-  onUpdateStatus?: (id: string, status: "pending" | "reviewing" | "approved" | "rejected", feedback?: string) => void;
+  onUpdateStatus?: (id: string, status: string, feedback?: string) => void;
 }
 
 const LoanApplicationCard: React.FC<LoanApplicationProps> = ({ 
@@ -30,7 +29,7 @@ const LoanApplicationCard: React.FC<LoanApplicationProps> = ({
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [feedback, setFeedback] = useState<string>('');
-  const [statusToUpdate, setStatusToUpdate] = useState<"pending" | "reviewing" | "approved" | "rejected">('pending');
+  const [statusToUpdate, setStatusToUpdate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const statusClasses = {
@@ -47,7 +46,7 @@ const LoanApplicationCard: React.FC<LoanApplicationProps> = ({
     rejected: 'Unfortunately, your loan application was not approved at this time.'
   };
   
-  const handleStatusUpdate = (status: "pending" | "reviewing" | "approved" | "rejected") => {
+  const handleStatusUpdate = (status: string) => {
     if (status === 'approved' || status === 'rejected') {
       setStatusToUpdate(status);
       setIsDialogOpen(true);
@@ -56,7 +55,7 @@ const LoanApplicationCard: React.FC<LoanApplicationProps> = ({
     }
   };
   
-  const handleSubmitUpdate = async (status?: "pending" | "reviewing" | "approved" | "rejected") => {
+  const handleSubmitUpdate = async (status?: string) => {
     if (!onUpdateStatus) return;
     
     setIsSubmitting(true);

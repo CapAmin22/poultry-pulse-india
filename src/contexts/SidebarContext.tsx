@@ -1,55 +1,51 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useLocation } from 'react-router-dom';
 
-interface SidebarContextProps {
+interface SidebarContextType {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
 }
 
-const SidebarContext = createContext<SidebarContextProps>({
-  sidebarOpen: false,
-  toggleSidebar: () => {},
-  setSidebarOpen: () => {},
-});
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
-export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    // Check for saved state in localStorage, default to true on desktop and false on mobile
-    const savedState = localStorage.getItem('sidebar-state');
-    if (savedState !== null) {
-      return savedState === 'open';
-    }
-    return window.innerWidth >= 768;
-  });
+export const SidebarProvider = ({ children }: { children: ReactNode }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const location = useLocation();
 
-  // Save sidebar state to localStorage when it changes
+  // Initialize sidebar state based on device
   useEffect(() => {
-    localStorage.setItem('sidebar-state', sidebarOpen ? 'open' : 'closed');
-  }, [sidebarOpen]);
-
-  // Update sidebar state on window resize
+    // On desktop, sidebar should be open by default but only on wider screens
+    const shouldOpenByDefault = !isMobile && window.innerWidth >= 1280;
+    setSidebarOpen(shouldOpenByDefault);
+  }, [isMobile]);
+  
+  // Auto-close sidebar on mobile when changing routes
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
+  
+  // Close sidebar on small screens when window resizes
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
+      if (window.innerWidth < 1024 && sidebarOpen && !isMobile) {
         setSidebarOpen(false);
-      } else {
-        // Only auto-open on desktop if it wasn't explicitly closed by the user
-        const savedState = localStorage.getItem('sidebar-state');
-        if (savedState !== 'closed') {
-          setSidebarOpen(true);
-        }
       }
     };
-
+    
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [sidebarOpen, isMobile]);
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    setSidebarOpen(prevState => !prevState);
   };
 
   return (
@@ -59,4 +55,10 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useSidebar = () => useContext(SidebarContext);
+export const useSidebar = (): SidebarContextType => {
+  const context = useContext(SidebarContext);
+  if (context === undefined) {
+    throw new Error('useSidebar must be used within a SidebarProvider');
+  }
+  return context;
+};

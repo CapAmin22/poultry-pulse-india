@@ -1,157 +1,117 @@
 
-import React, { useState } from 'react';
-import { OnboardingStepProps, LocationData } from '../OnboardingTypes';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPin, Building } from 'lucide-react';
+import { StepProps } from '../OnboardingTypes';
+import { INDIAN_STATES, BUSINESS_SIZES, EXPERIENCE_LEVELS } from '../OnboardingConstants';
 
-interface LocationOption {
-  label: string;
-  value: string;
-}
-
-const countries: LocationOption[] = [
-  { label: 'India', value: 'india' },
-  { label: 'United States', value: 'usa' },
-  { label: 'United Kingdom', value: 'uk' },
-  // Add more countries as needed
-];
-
-const states: Record<string, LocationOption[]> = {
-  india: [
-    { label: 'Delhi', value: 'delhi' },
-    { label: 'Maharashtra', value: 'maharashtra' },
-    { label: 'Tamil Nadu', value: 'tamil_nadu' },
-    // Add more Indian states as needed
-  ],
-  usa: [
-    { label: 'California', value: 'california' },
-    { label: 'New York', value: 'new_york' },
-    { label: 'Texas', value: 'texas' },
-    // Add more US states as needed
-  ],
-  uk: [
-    { label: 'England', value: 'england' },
-    { label: 'Scotland', value: 'scotland' },
-    { label: 'Wales', value: 'wales' },
-    // Add more UK regions as needed
-  ],
-};
-
-const LocationStep: React.FC<OnboardingStepProps> = ({ onboardingData, setOnboardingData, nextStep, prevStep }) => {
-  const [selectedCountry, setSelectedCountry] = useState<string>(
-    typeof onboardingData.location === 'object' ? onboardingData.location.country : ''
-  );
-
-  const handleCountryChange = (value: string) => {
-    setSelectedCountry(value);
-    setOnboardingData({
-      ...onboardingData,
-      location: {
-        country: value,
-        state: '',
-        city: '',
-      },
-      state: '',  // Update separate state field for backward compatibility
-    });
-  };
-
-  const handleStateChange = (value: string) => {
-    if (typeof onboardingData.location === 'object') {
-      setOnboardingData({
-        ...onboardingData,
-        location: {
-          ...onboardingData.location,
-          state: value,
-        },
-        state: value,  // Update separate state field for backward compatibility
-      });
-    }
-  };
-
-  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (typeof onboardingData.location === 'object') {
-      setOnboardingData({
-        ...onboardingData,
-        location: {
-          ...onboardingData.location,
-          city: e.target.value,
-        },
-      });
-    }
-  };
+const LocationStep: React.FC<StepProps> = ({ onboardingData, handleChange }) => {
+  const showBusinessDetails = ['farmer', 'distributor', 'processor', 'retailer', 'supplier'].includes(onboardingData.role);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Where are you located?</h2>
-        <p className="text-sm text-muted-foreground">
-          This helps us show you relevant content and connect you with nearby farmers and resources.
-        </p>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="state">State</Label>
+        <Select 
+          value={onboardingData.state} 
+          onValueChange={(value) => handleChange('state', value)}
+        >
+          <SelectTrigger className="bg-white">
+            <SelectValue placeholder="Select your state" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[240px]">
+            {INDIAN_STATES.map(state => (
+              <SelectItem key={state} value={state}>{state}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="country">Country</Label>
-          <Select 
-            value={typeof onboardingData.location === 'object' ? onboardingData.location.country : ''}
-            onValueChange={handleCountryChange}
-          >
-            <SelectTrigger id="country">
-              <SelectValue placeholder="Select your country" />
-            </SelectTrigger>
-            <SelectContent>
-              {countries.map((country) => (
-                <SelectItem key={country.value} value={country.value}>
-                  {country.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="state">State/Province</Label>
-          <Select 
-            value={typeof onboardingData.location === 'object' ? onboardingData.location.state : ''}
-            onValueChange={handleStateChange}
-            disabled={!selectedCountry}
-          >
-            <SelectTrigger id="state">
-              <SelectValue placeholder="Select your state/province" />
-            </SelectTrigger>
-            <SelectContent>
-              {selectedCountry && states[selectedCountry]?.map((state) => (
-                <SelectItem key={state.value} value={state.value}>
-                  {state.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="city">City/Town</Label>
-          <Input 
-            id="city" 
-            placeholder="Enter your city or town"
-            value={typeof onboardingData.location === 'object' ? onboardingData.location.city : ''}
-            onChange={handleCityChange}
+      
+      <div className="space-y-2">
+        <Label htmlFor="district">District</Label>
+        <Input
+          id="district"
+          placeholder="Your district"
+          value={onboardingData.district}
+          onChange={(e) => handleChange('district', e.target.value)}
+          className="bg-white"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="location">Village/Town/City</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-2.5 text-gray-500">
+            <MapPin className="h-5 w-5 text-gray-400" />
+          </span>
+          <Input
+            id="location"
+            placeholder="Your village, town or city"
+            value={onboardingData.location}
+            onChange={(e) => handleChange('location', e.target.value)}
+            className="pl-10 bg-white"
           />
         </div>
       </div>
 
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={prevStep}>
-          Previous
-        </Button>
-        <Button 
-          onClick={nextStep}
-          disabled={!selectedCountry || (typeof onboardingData.location === 'object' && !onboardingData.location.state)}
+      {showBusinessDetails && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="business_name">Business/Farm Name</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-gray-500">
+                <Building className="h-5 w-5 text-gray-400" />
+              </span>
+              <Input
+                id="business_name"
+                placeholder="Your business or farm name"
+                value={onboardingData.business_name}
+                onChange={(e) => handleChange('business_name', e.target.value)}
+                className="pl-10 bg-white"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="business_size">Business Size</Label>
+            <Select 
+              value={onboardingData.business_size} 
+              onValueChange={(value) => handleChange('business_size', value)}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select your business size" />
+              </SelectTrigger>
+              <SelectContent>
+                {BUSINESS_SIZES.map(size => (
+                  <SelectItem key={size.id} value={size.id}>
+                    {size.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
+      
+      <div className="space-y-2">
+        <Label htmlFor="experience_level">Experience Level</Label>
+        <Select 
+          value={onboardingData.experience_level} 
+          onValueChange={(value) => handleChange('experience_level', value)}
         >
-          Next
-        </Button>
+          <SelectTrigger className="bg-white">
+            <SelectValue placeholder="Select your experience level" />
+          </SelectTrigger>
+          <SelectContent>
+            {EXPERIENCE_LEVELS.map(level => (
+              <SelectItem key={level.id} value={level.id}>
+                {level.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

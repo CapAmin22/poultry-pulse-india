@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { OnboardingData, LocationData } from './OnboardingTypes';
+import { OnboardingData } from './OnboardingTypes';
 import BasicInfoStep from './steps/BasicInfoStep';
 import RoleSelectionStep from './steps/RoleSelectionStep';
 import LocationStep from './steps/LocationStep';
@@ -26,16 +26,10 @@ const OnboardingFlow: React.FC = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    role: '',
-    interests: [],
-    location: {
-      country: '',
-      state: '',
-      city: ''
-    },
     full_name: '',
     username: '',
-    business_name: '',
+    role: '',
+    business_name: '', // Will only require if organization or business
     business_size: '',
     poultry_types: [],
     farming_system: '',
@@ -45,8 +39,10 @@ const OnboardingFlow: React.FC = () => {
     organization_type: '',
     organization_scope: '',
     experience_level: '',
+    location: '',
     state: '',
     district: '',
+    interests: [],
     bio: '',
     preferred_language: 'English',
     secondary_languages: [],
@@ -55,7 +51,7 @@ const OnboardingFlow: React.FC = () => {
     email_notifications: true,
     sms_notifications: true,
     website_url: '',
-    years_in_business: 0,
+    years_in_business: '',
     certifications: [],
     services_offered: [],
     product_types: []
@@ -172,7 +168,7 @@ const OnboardingFlow: React.FC = () => {
       return !!onboardingData.role;
     } else if (currentStep === 2) {
       // Location is required but other fields might be optional based on role
-      return !!onboardingData.state || (typeof onboardingData.location === 'object' && !!onboardingData.location.state);
+      return !!onboardingData.state;
     } else if (currentStep === 3) {
       // For organization role, require business_name
       if (onboardingData.role === 'organization' && !onboardingData.business_name) {
@@ -193,7 +189,7 @@ const OnboardingFlow: React.FC = () => {
       if (!user) return;
 
       // Validate mobile number
-      if (!/^\d{10}$/.test(onboardingData.mobile_number || '')) {
+      if (!/^\d{10}$/.test(onboardingData.mobile_number)) {
         toast({
           variant: "destructive",
           title: "Invalid mobile number",
@@ -333,9 +329,8 @@ const OnboardingFlow: React.FC = () => {
       description: "Tell us where you're located and about your business",
       component: <LocationStep 
         onboardingData={onboardingData}
-        setOnboardingData={setOnboardingData}
-        nextStep={handleNext}
-        prevStep={handlePrevious}
+        handleChange={handleChange}
+        toggleArrayItem={toggleArrayItem}
       />
     },
     {
