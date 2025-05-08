@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,12 +36,16 @@ const AdminSecurityPage: React.FC = () => {
     'profiles'
   ];
 
+  // Define a proper type for the RPC parameters
+  type ApplyRlsPolicyParams = {
+    table_name: string;
+  };
+
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      // Fix: Use the proper approach for RPC calls - no explicit type parameters but properly type the params object
-      const { error } = await supabase.rpc(
+      const { error } = await supabase.rpc<null>(
         'apply_rls_policy', 
-        { table_name: tableName } as any
+        { table_name: tableName } as ApplyRlsPolicyParams
       );
       
       if (error) throw error;
