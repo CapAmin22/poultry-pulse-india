@@ -39,8 +39,11 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      // Using a more type-safe approach for the RPC call
-      const { error } = await supabase.rpc('apply_rls_policy', { table_name: tableName });
+      // Fix: Use type assertion to handle the RPC call properly
+      const { error } = await supabase.rpc('apply_rls_policy', { 
+        table_name: tableName 
+      } as any); // Using type assertion to resolve type mismatch
+      
       if (error) throw error;
       toast({
         title: "Success",

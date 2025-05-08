@@ -1,3 +1,4 @@
+
 import { supabase } from '../client';
 
 /**
@@ -7,7 +8,11 @@ import { supabase } from '../client';
  */
 export async function applyRlsPolicy(tableName: string) {
   try {
-    const { error } = await supabase.rpc('apply_rls_policy', { table_name: tableName });
+    // Fix: Use type assertion to handle the RPC call properly
+    const { error } = await supabase.rpc('apply_rls_policy', { 
+      table_name: tableName 
+    } as any); // Using type assertion to resolve type mismatch
+    
     if (error) throw error;
     console.log(`Successfully applied RLS policy to ${tableName}`);
     return true;
