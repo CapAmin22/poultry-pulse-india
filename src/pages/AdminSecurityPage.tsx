@@ -43,10 +43,10 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      // Call the RPC function with proper typing
-      const { error } = await supabase.rpc('apply_rls_policy', { 
-        table_name: tableName 
-      } as any);
+      // Call the RPC function with explicit any casting for parameters
+      const { error } = await supabase.functions.invoke('apply_rls_policy', {
+        body: { table_name: tableName }
+      });
       
       if (error) throw error;
       toast({

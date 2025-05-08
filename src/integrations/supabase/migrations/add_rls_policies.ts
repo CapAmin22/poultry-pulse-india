@@ -8,10 +8,10 @@ import { supabase } from '../client';
  */
 export async function applyRlsPolicy(tableName: string) {
   try {
-    // Call the RPC function with proper typing to resolve the error
-    const { error } = await supabase.rpc('apply_rls_policy', { 
-      table_name: tableName 
-    } as any);
+    // Use functions.invoke instead of rpc to avoid TypeScript errors
+    const { error } = await supabase.functions.invoke('apply_rls_policy', {
+      body: { table_name: tableName }
+    });
     
     if (error) throw error;
     console.log(`Successfully applied RLS policy to ${tableName}`);
