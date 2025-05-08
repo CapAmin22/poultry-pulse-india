@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,11 +38,10 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      // Fix: Use a more specific type casting approach
-      const { error } = await supabase.rpc(
+      // Fix: Use generic type parameter to properly type the RPC call
+      const { error } = await supabase.rpc<{ success: boolean }>(
         'apply_rls_policy', 
-        { table_name: tableName },
-        { headers: {} } // Empty headers object to satisfy the type requirements
+        { table_name: tableName }
       );
       
       if (error) throw error;
