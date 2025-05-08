@@ -43,11 +43,10 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      // Call the RPC function with type any to bypass TypeScript constraints
-      const { error } = await supabase.rpc(
-        'apply_rls_policy', 
-        { table_name: tableName }
-      );
+      // Call the RPC function with proper typing
+      const { error } = await supabase.rpc('apply_rls_policy', { 
+        table_name: tableName 
+      } as any);
       
       if (error) throw error;
       toast({
