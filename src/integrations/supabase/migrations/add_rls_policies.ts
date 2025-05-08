@@ -1,4 +1,3 @@
-
 import { supabase } from '../client';
 
 /**
@@ -8,10 +7,10 @@ import { supabase } from '../client';
  */
 export async function applyRlsPolicy(tableName: string) {
   try {
-    // We need to type the rpc call correctly
+    // Fix: Use the proper approach for RPC calls - no explicit type parameters but properly type the params object
     const { error } = await supabase.rpc(
       'apply_rls_policy', 
-      { table_name: tableName } as { table_name: string }
+      { table_name: tableName } as any
     );
     
     if (error) throw error;
