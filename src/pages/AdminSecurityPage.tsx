@@ -43,9 +43,9 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      const { error } = await supabase.rpc<null>(
+      const { error } = await supabase.rpc<boolean, ApplyRlsPolicyParams>(
         'apply_rls_policy', 
-        { table_name: tableName } as ApplyRlsPolicyParams
+        { table_name: tableName }
       );
       
       if (error) throw error;
