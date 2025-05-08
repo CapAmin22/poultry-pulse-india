@@ -43,7 +43,8 @@ const AdminSecurityPage: React.FC = () => {
 
   const applyRlsPolicy = async (tableName: string) => {
     try {
-      const { error } = await supabase.rpc<boolean, ApplyRlsPolicyParams>(
+      // Call the RPC function with type any to bypass TypeScript constraints
+      const { error } = await supabase.rpc(
         'apply_rls_policy', 
         { table_name: tableName }
       );
