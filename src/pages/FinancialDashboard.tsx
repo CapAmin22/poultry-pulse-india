@@ -125,7 +125,7 @@ const FinancialDashboard: React.FC = () => {
           {isFinancialProvider && (
             <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-[#f5565c]">
+                <Button className="bg-[#0FA0CE] hover:bg-[#0d8fb7]">
                   <Plus className="mr-2 h-4 w-4" />
                   Add New Service
                 </Button>
@@ -144,7 +144,7 @@ const FinancialDashboard: React.FC = () => {
           
           <Dialog open={isTransactionDialogOpen} onOpenChange={setIsTransactionDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="border-[#f5565c] text-[#f5565c]">
+              <Button variant="outline" className="border-[#0FA0CE] text-[#0FA0CE]">
                 <Plus className="mr-2 h-4 w-4" />
                 Record Transaction
               </Button>
@@ -256,28 +256,28 @@ const FinancialDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card className="hover:bg-gray-50 transition-colors">
                 <CardContent className="flex flex-col items-center text-center p-6">
-                  <FileText className="h-10 w-10 text-[#f5565c] mb-4" />
+                  <FileText className="h-10 w-10 text-[#0FA0CE] mb-4" />
                   <h3 className="text-lg font-medium mb-2">Loan Documentation Guide</h3>
                   <p className="text-sm text-gray-600">Learn about the documents required for loan applications and how to prepare them.</p>
-                  <Button variant="link" className="mt-4">Read Guide</Button>
+                  <Button variant="link" className="mt-4 text-[#0FA0CE]">Read Guide</Button>
                 </CardContent>
               </Card>
               
               <Card className="hover:bg-gray-50 transition-colors">
                 <CardContent className="flex flex-col items-center text-center p-6">
-                  <BarChart className="h-10 w-10 text-[#f5565c] mb-4" />
+                  <BarChart className="h-10 w-10 text-[#0FA0CE] mb-4" />
                   <h3 className="text-lg font-medium mb-2">Financial Planning Tools</h3>
                   <p className="text-sm text-gray-600">Access calculators and tools to help plan your business finances and loan repayments.</p>
-                  <Button variant="link" className="mt-4">Use Tools</Button>
+                  <Button variant="link" className="mt-4 text-[#0FA0CE]">Use Tools</Button>
                 </CardContent>
               </Card>
               
               <Card className="hover:bg-gray-50 transition-colors">
                 <CardContent className="flex flex-col items-center text-center p-6">
-                  <Calendar className="h-10 w-10 text-[#f5565c] mb-4" />
+                  <Calendar className="h-10 w-10 text-[#0FA0CE] mb-4" />
                   <h3 className="text-lg font-medium mb-2">Financial Workshops</h3>
                   <p className="text-sm text-gray-600">Join upcoming workshops on financial management for poultry businesses.</p>
-                  <Button variant="link" className="mt-4">View Schedule</Button>
+                  <Button variant="link" className="mt-4 text-[#0FA0CE]">View Schedule</Button>
                 </CardContent>
               </Card>
             </div>

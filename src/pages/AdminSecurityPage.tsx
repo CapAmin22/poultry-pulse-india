@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,65 +106,63 @@ const AdminSecurityPage: React.FC = () => {
   }
 
   return (
-    <Layout>
-      <div className="container py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Security Administration</h1>
-          <p className="text-muted-foreground">Manage Row Level Security policies and other security settings</p>
-        </div>
-
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Shield className="mr-2 h-5 w-5" />
-                Row Level Security Policies
-              </CardTitle>
-              <CardDescription>
-                Apply RLS policies to protect your database tables from unauthorized access
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center mb-4">
-                <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-                <span className="text-sm">
-                  Some tables are missing RLS policies. This could allow unauthorized access to data.
-                </span>
-              </div>
-              
-              <ul className="space-y-2 mb-4">
-                {tables.map(table => (
-                  <li key={table} className="flex justify-between items-center p-2 bg-muted rounded-md">
-                    <span>public.{table}</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => applyRlsPolicy(table)}
-                    >
-                      Apply Policy
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={applyAllPolicies} 
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Applying Policies...
-                  </>
-                ) : "Apply All RLS Policies"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+    <div className="container py-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Security Administration</h1>
+        <p className="text-muted-foreground">Manage Row Level Security policies and other security settings</p>
       </div>
-    </Layout>
+
+      <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Shield className="mr-2 h-5 w-5" />
+              Row Level Security Policies
+            </CardTitle>
+            <CardDescription>
+              Apply RLS policies to protect your database tables from unauthorized access
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center mb-4">
+              <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
+              <span className="text-sm">
+                Some tables are missing RLS policies. This could allow unauthorized access to data.
+              </span>
+            </div>
+            
+            <ul className="space-y-2 mb-4">
+              {tables.map(table => (
+                <li key={table} className="flex justify-between items-center p-2 bg-muted rounded-md">
+                  <span>public.{table}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => applyRlsPolicy(table)}
+                  >
+                    Apply Policy
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              onClick={applyAllPolicies} 
+              disabled={isLoading}
+              className="w-full bg-[#0FA0CE] hover:bg-[#0d8fb7]"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Applying Policies...
+                </>
+              ) : "Apply All RLS Policies"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 };
 
